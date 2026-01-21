@@ -1,25 +1,40 @@
 import { create } from 'zustand';
-import { Package, Agent, PackageStatus, DELIVERY_PRICING } from '@/types/delivery';
+import { Package, Agent, PackageStatus, DELIVERY_PRICING, DeliveryType } from '@/types/delivery';
 
 // Generate tracking number
 const generateTrackingNumber = () => {
-  const prefix = 'PKG';
-  const timestamp = Date.now().toString(36).toUpperCase();
-  const random = Math.random().toString(36).substring(2, 6).toUpperCase();
-  return `${prefix}-${timestamp}-${random}`;
+  const prefix = 'MTN';
+  const random = Math.random().toString(36).substring(2, 8).toUpperCase();
+  const timestamp = Date.now().toString(36).toUpperCase().slice(-4);
+  return `${prefix}${random}${timestamp}`;
+};
+
+const getCostByType = (type: DeliveryType): number => {
+  switch (type) {
+    case 'xpress':
+      return DELIVERY_PRICING.xpressCost;
+    case 'pickup_point':
+      return DELIVERY_PRICING.pickupPointCost;
+    case 'doorstep':
+      return DELIVERY_PRICING.doorstepCost;
+    case 'errand':
+      return DELIVERY_PRICING.errandCost;
+    default:
+      return DELIVERY_PRICING.pickupPointCost;
+  }
 };
 
 // Demo packages
 const demoPackages: Package[] = [
   {
     id: '1',
-    trackingNumber: 'PKG-M4K7X-AB12',
+    trackingNumber: 'MTN-M4K7X-AB12',
     senderName: 'John Kamau',
     senderPhone: '+254712345678',
-    senderAddress: '123 Kenyatta Avenue, Nairobi',
+    senderAddress: 'Nairobi CBD',
     receiverName: 'Mary Wanjiku',
     receiverPhone: '+254723456789',
-    receiverAddress: '456 Moi Avenue, Mombasa',
+    receiverAddress: 'Westlands',
     deliveryType: 'doorstep',
     packageDescription: 'Electronics - Laptop',
     weight: 2.5,
@@ -32,13 +47,13 @@ const demoPackages: Package[] = [
   },
   {
     id: '2',
-    trackingNumber: 'PKG-N5L8Y-CD34',
+    trackingNumber: 'MTN-N5L8Y-CD34',
     senderName: 'Peter Omondi',
     senderPhone: '+254734567890',
-    senderAddress: '789 Uhuru Highway, Nairobi',
+    senderAddress: 'Kilimani',
     receiverName: 'Grace Akinyi',
     receiverPhone: '+254745678901',
-    receiverAddress: '321 Oginga Odinga Street, Kisumu',
+    receiverAddress: 'Kisumu',
     deliveryType: 'pickup_point',
     pickupPoint: 'Central Hub - Downtown',
     packageDescription: 'Documents',
@@ -50,13 +65,13 @@ const demoPackages: Package[] = [
   },
   {
     id: '3',
-    trackingNumber: 'PKG-O6M9Z-EF56',
+    trackingNumber: 'MTN-O6M9Z-EF56',
     senderName: 'Sarah Njeri',
     senderPhone: '+254756789012',
-    senderAddress: '654 Tom Mboya Street, Nairobi',
+    senderAddress: 'Lavington',
     receiverName: 'David Kiprop',
     receiverPhone: '+254767890123',
-    receiverAddress: '987 Eldoret Main Road, Eldoret',
+    receiverAddress: 'Eldoret',
     deliveryType: 'doorstep',
     packageDescription: 'Clothing',
     weight: 1.5,
@@ -74,7 +89,7 @@ const demoAgent: Agent = {
   id: '1',
   name: 'James Mwangi',
   phone: '+254700123456',
-  email: 'james@swiftdeliver.com',
+  email: 'james@mtaani.com',
   totalCommission: 2340,
   pendingCommission: 540,
   completedDeliveries: 47,
@@ -97,9 +112,8 @@ export const useDeliveryStore = create<DeliveryStore>((set, get) => ({
   agent: demoAgent,
 
   addPackage: (pkgData) => {
-    const cost = pkgData.deliveryType === 'pickup_point' 
-      ? DELIVERY_PRICING.pickupPointCost 
-      : DELIVERY_PRICING.doorstepCost;
+    const cost = getCostByType(pkgData.deliveryType);
+    const commission = cost * DELIVERY_PRICING.commissionRate;
 
     const newPackage: Package = {
       ...pkgData,
@@ -107,6 +121,7 @@ export const useDeliveryStore = create<DeliveryStore>((set, get) => ({
       trackingNumber: generateTrackingNumber(),
       status: 'pending',
       cost,
+      commission,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
