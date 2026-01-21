@@ -1,162 +1,113 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
+import { Link, useNavigate } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent } from '@/components/ui/card';
-import { Package, Search, Plus, Truck, MapPin, Clock, Shield } from 'lucide-react';
-import { useDeliveryStore } from '@/store/deliveryStore';
-import { PackageCard } from '@/components/PackageCard';
+import { Search, ChevronDown, Store, Sliders, Zap, Truck, Bus } from 'lucide-react';
+import { AnnouncementBanner } from '@/components/AnnouncementBanner';
+import { BottomNav } from '@/components/BottomNav';
+import { HelpButton } from '@/components/HelpButton';
+import { DeliveryTypeCard } from '@/components/DeliveryTypeCard';
+import { DELIVERY_TYPES, DeliveryType } from '@/types/delivery';
+
+const iconMap: Record<string, React.ReactNode> = {
+  zap: <Zap className="w-6 h-6 text-primary" />,
+  store: <Store className="w-6 h-6 text-primary" />,
+  truck: <Truck className="w-6 h-6 text-primary" />,
+  bus: <Bus className="w-6 h-6 text-primary" />,
+};
 
 export default function SenderHome() {
-  const [trackingNumber, setTrackingNumber] = useState('');
-  const { packages } = useDeliveryStore();
+  const navigate = useNavigate();
+  const [searchAgent, setSearchAgent] = useState('');
+  const [selectedType, setSelectedType] = useState<DeliveryType | null>(null);
 
-  // Show recent packages (last 3)
-  const recentPackages = packages.slice(0, 3);
+  const handleTypeSelect = (type: DeliveryType) => {
+    setSelectedType(type);
+    // Navigate to new delivery with selected type
+    navigate(`/sender/new?type=${type}`);
+  };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Hero Section */}
-      <div className="gradient-hero text-primary-foreground">
-        <div className="container py-12 px-4">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-3 bg-primary-foreground/10 rounded-xl backdrop-blur-sm">
-              <Package className="w-8 h-8" />
-            </div>
-            <div>
-              <h1 className="font-display text-2xl font-bold">SwiftDeliver</h1>
-              <p className="text-sm opacity-80">Fast & Reliable Delivery</p>
+    <div className="min-h-screen bg-background pb-20">
+      {/* Announcement Banner */}
+      <AnnouncementBanner
+        title="📢 New Juja Branch Now Open!"
+        message="New JUJA Pickup Mtaani Parcel Office! Enjoy safer, faster, more reliable parcel collection near you. Find us opposite EQUITY AFYA. For inquiries, contact +254701430225."
+      />
+
+      {/* Header with Map Background */}
+      <div className="gradient-hero relative overflow-hidden">
+        {/* Map pattern overlay */}
+        <div 
+          className="absolute inset-0 opacity-20"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M10 10 L30 10 L30 30 L50 30 L50 50 L70 50 L70 70 L90 70' fill='none' stroke='%23000' stroke-width='1'/%3E%3Ccircle cx='20' cy='20' r='3' fill='%23000'/%3E%3Ccircle cx='50' cy='50' r='3' fill='%23000'/%3E%3Ccircle cx='80' cy='80' r='3' fill='%23000'/%3E%3C/svg%3E")`,
+            backgroundSize: '100px 100px',
+          }}
+        />
+
+        <div className="relative px-4 py-6">
+          {/* Top Bar */}
+          <div className="flex items-center justify-between mb-6">
+            <button className="flex items-center gap-2 text-primary-foreground">
+              <span className="font-semibold">Canyi</span>
+              <ChevronDown className="w-4 h-4" />
+            </button>
+            <div className="flex items-center gap-4">
+              <button className="p-2">
+                <Store className="w-6 h-6 text-primary-foreground" />
+              </button>
+              <button className="p-2">
+                <Store className="w-6 h-6 text-primary-foreground" />
+              </button>
+              <button className="p-2">
+                <Sliders className="w-6 h-6 text-primary-foreground" />
+              </button>
             </div>
           </div>
-          
-          <h2 className="font-display text-3xl font-bold mb-2 animate-fade-in">
-            Send Packages<br />Anywhere, Anytime
-          </h2>
-          <p className="text-primary-foreground/80 mb-6 animate-fade-in">
-            Affordable rates, real-time tracking, and secure delivery
-          </p>
 
-          {/* Quick Actions */}
-          <div className="flex gap-3 mb-8">
-            <Link to="/sender/new" className="flex-1">
-              <Button variant="accent" size="lg" className="w-full gap-2">
-                <Plus className="w-5 h-5" />
-                New Delivery
-              </Button>
-            </Link>
-            <Link to="/sender/track">
-              <Button variant="outline" size="lg" className="bg-primary-foreground/10 border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/20">
-                <Search className="w-5 h-5" />
-              </Button>
-            </Link>
-          </div>
-
-          {/* Track Package */}
-          <Card className="border-0 shadow-xl bg-card/95 backdrop-blur-sm">
-            <CardContent className="p-4">
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Enter tracking number..."
-                  value={trackingNumber}
-                  onChange={(e) => setTrackingNumber(e.target.value)}
-                  className="flex-1"
-                />
-                <Link to={trackingNumber ? `/sender/track?q=${trackingNumber}` : '/sender/track'}>
-                  <Button variant="default">Track</Button>
-                </Link>
+          {/* Search Bar */}
+          <div className="relative">
+            <div className="bg-card rounded-lg flex items-center overflow-hidden">
+              <div className="px-4">
+                <Search className="w-5 h-5 text-muted-foreground" />
               </div>
-            </CardContent>
-          </Card>
+              <Input
+                placeholder="Find the nearest agent"
+                value={searchAgent}
+                onChange={(e) => setSearchAgent(e.target.value)}
+                className="border-0 focus-visible:ring-0 bg-transparent"
+              />
+              <button className="px-4 py-3 hover:bg-muted transition-colors">
+                <ChevronDown className="w-5 h-5 text-muted-foreground rotate-[-90deg]" />
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Features */}
-      <div className="container py-8 px-4">
-        <div className="grid grid-cols-3 gap-4 mb-8">
-          <div className="flex flex-col items-center text-center p-4">
-            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-2">
-              <Truck className="w-6 h-6 text-primary" />
-            </div>
-            <p className="text-xs font-medium">Fast Delivery</p>
-          </div>
-          <div className="flex flex-col items-center text-center p-4">
-            <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center mb-2">
-              <MapPin className="w-6 h-6 text-accent" />
-            </div>
-            <p className="text-xs font-medium">Live Tracking</p>
-          </div>
-          <div className="flex flex-col items-center text-center p-4">
-            <div className="w-12 h-12 rounded-full bg-success/10 flex items-center justify-center mb-2">
-              <Shield className="w-6 h-6 text-success" />
-            </div>
-            <p className="text-xs font-medium">Secure</p>
-          </div>
+      {/* Delivery Types */}
+      <div className="px-4 py-6">
+        <div className="mb-4">
+          <h2 className="font-display text-lg font-semibold">Choose Delivery Type</h2>
+          <p className="text-sm text-muted-foreground">Select one delivery mode, that fits you</p>
         </div>
 
-        {/* Recent Deliveries */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="font-display font-semibold text-lg">Recent Deliveries</h3>
-            <Link to="/sender/history">
-              <Button variant="ghost" size="sm" className="text-primary">
-                View All
-              </Button>
-            </Link>
-          </div>
-
-          {recentPackages.length > 0 ? (
-            <div className="space-y-4">
-              {recentPackages.map((pkg) => (
-                <Link key={pkg.id} to={`/sender/track?q=${pkg.trackingNumber}`}>
-                  <PackageCard pkg={pkg} />
-                </Link>
-              ))}
-            </div>
-          ) : (
-            <Card className="border-dashed">
-              <CardContent className="flex flex-col items-center justify-center py-12">
-                <Package className="w-12 h-12 text-muted-foreground mb-4" />
-                <p className="text-muted-foreground mb-4">No deliveries yet</p>
-                <Link to="/sender/new">
-                  <Button variant="default" className="gap-2">
-                    <Plus className="w-4 h-4" />
-                    Create Your First Delivery
-                  </Button>
-                </Link>
-              </CardContent>
-            </Card>
-          )}
+        <div className="space-y-3">
+          {DELIVERY_TYPES.map((type) => (
+            <DeliveryTypeCard
+              key={type.id}
+              icon={iconMap[type.icon]}
+              title={type.name}
+              description={type.description}
+              selected={selectedType === type.id}
+              onClick={() => handleTypeSelect(type.id)}
+            />
+          ))}
         </div>
-
-        {/* Pricing Info */}
-        <Card className="mt-8 border-0 shadow-card">
-          <CardContent className="p-6">
-            <h3 className="font-display font-semibold text-lg mb-4">Delivery Rates</h3>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 bg-secondary rounded-lg">
-                <div className="flex items-center gap-3">
-                  <MapPin className="w-5 h-5 text-primary" />
-                  <div>
-                    <p className="font-medium">Pickup Point</p>
-                    <p className="text-xs text-muted-foreground">Collect from nearest hub</p>
-                  </div>
-                </div>
-                <span className="font-display font-bold text-primary">KES 150</span>
-              </div>
-              <div className="flex items-center justify-between p-3 bg-secondary rounded-lg">
-                <div className="flex items-center gap-3">
-                  <Truck className="w-5 h-5 text-accent" />
-                  <div>
-                    <p className="font-medium">Doorstep Delivery</p>
-                    <p className="text-xs text-muted-foreground">Direct to recipient</p>
-                  </div>
-                </div>
-                <span className="font-display font-bold text-accent">KES 300</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
+
+      <HelpButton />
+      <BottomNav />
     </div>
   );
 }

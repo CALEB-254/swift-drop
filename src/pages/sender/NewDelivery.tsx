@@ -1,50 +1,65 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, MapPin, Truck, Package, User, Phone, FileText, Check } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { ArrowLeft, ShoppingCart, Search } from 'lucide-react';
 import { useDeliveryStore } from '@/store/deliveryStore';
-import { PICKUP_POINTS, DELIVERY_PRICING, DeliveryType } from '@/types/delivery';
+import { PICKUP_POINTS, AREAS, PACKAGING_COLORS, DeliveryType, DELIVERY_TYPES } from '@/types/delivery';
 import { toast } from 'sonner';
+import { BottomNav } from '@/components/BottomNav';
+import { HelpButton } from '@/components/HelpButton';
 
 export default function NewDelivery() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { addPackage } = useDeliveryStore();
-  const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
+  const deliveryType = (searchParams.get('type') as DeliveryType) || 'pickup_point';
+  const deliveryTypeInfo = DELIVERY_TYPES.find(t => t.id === deliveryType);
+  
   const [formData, setFormData] = useState({
-    senderName: '',
-    senderPhone: '',
-    senderAddress: '',
-    receiverName: '',
-    receiverPhone: '',
-    receiverAddress: '',
-    deliveryType: 'pickup_point' as DeliveryType,
-    pickupPoint: '',
+    customerName: '',
+    customerPhone: '',
+    fromArea: '',
+    toArea: '',
+    isProduct: false,
     packageDescription: '',
-    weight: '',
+    packageValue: '',
+    packagingColor: '',
+    pickupPoint: '',
+    deliveryAddress: '',
   });
 
-  const cost = formData.deliveryType === 'pickup_point' 
-    ? DELIVERY_PRICING.pickupPointCost 
-    : DELIVERY_PRICING.doorstepCost;
-
   const handleSubmit = async () => {
+    if (!formData.customerName || !formData.customerPhone || !formData.fromArea) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
     setIsSubmitting(true);
     
     try {
       const newPackage = addPackage({
-        ...formData,
-        weight: parseFloat(formData.weight) || 0,
-        pickupPoint: formData.deliveryType === 'pickup_point' 
+        senderName: 'Current User', // Would come from auth
+        senderPhone: '+254700000000',
+        senderAddress: formData.fromArea,
+        receiverName: formData.customerName,
+        receiverPhone: formData.customerPhone,
+        receiverAddress: formData.toArea || formData.deliveryAddress,
+        deliveryType: deliveryType,
+        pickupPoint: deliveryType === 'pickup_point' 
           ? PICKUP_POINTS.find(p => p.id === formData.pickupPoint)?.name 
           : undefined,
+        packageDescription: formData.packageDescription,
+        weight: 0,
+        isProduct: formData.isProduct,
+        packageValue: parseFloat(formData.packageValue) || undefined,
+        packagingColor: formData.packagingColor || undefined,
       });
 
       toast.success('Delivery created successfully!', {
@@ -59,305 +74,239 @@ export default function NewDelivery() {
     }
   };
 
-  const isStep1Valid = formData.senderName && formData.senderPhone && formData.senderAddress;
-  const isStep2Valid = formData.receiverName && formData.receiverPhone && 
-    (formData.deliveryType === 'pickup_point' ? formData.pickupPoint : formData.receiverAddress);
-  const isStep3Valid = formData.packageDescription;
-
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-20">
       {/* Header */}
-      <div className="gradient-primary text-primary-foreground p-4">
-        <div className="container">
-          <div className="flex items-center gap-4 mb-4">
+      <div className="bg-card border-b border-border sticky top-0 z-40">
+        <div className="flex items-center justify-between p-4">
+          <div className="flex items-center gap-4">
             <Link to="/sender">
-              <Button variant="ghost" size="icon" className="text-primary-foreground hover:bg-primary-foreground/10">
-                <ArrowLeft className="w-5 h-5" />
-              </Button>
+              <button className="text-primary">
+                <ArrowLeft className="w-6 h-6" />
+              </button>
             </Link>
-            <h1 className="font-display text-xl font-bold">New Delivery</h1>
+            <h1 className="font-display text-lg font-semibold">Mtaani Delivery</h1>
           </div>
-          
-          {/* Progress Steps */}
-          <div className="flex items-center justify-between">
-            {[1, 2, 3].map((s) => (
-              <div key={s} className="flex items-center">
-                <div 
-                  className={`w-8 h-8 rounded-full flex items-center justify-center font-medium text-sm transition-all ${
-                    s < step 
-                      ? 'bg-primary-foreground text-primary' 
-                      : s === step 
-                        ? 'bg-primary-foreground/20 text-primary-foreground ring-2 ring-primary-foreground' 
-                        : 'bg-primary-foreground/10 text-primary-foreground/50'
-                  }`}
-                >
-                  {s < step ? <Check className="w-4 h-4" /> : s}
-                </div>
-                {s < 3 && (
-                  <div className={`w-16 sm:w-24 h-1 mx-2 rounded ${
-                    s < step ? 'bg-primary-foreground' : 'bg-primary-foreground/20'
-                  }`} />
-                )}
-              </div>
-            ))}
-          </div>
+          <button className="p-2">
+            <ShoppingCart className="w-6 h-6" />
+          </button>
         </div>
       </div>
 
-      <div className="container py-6 px-4">
-        {/* Step 1: Sender Details */}
-        {step === 1 && (
-          <Card className="border-0 shadow-card animate-slide-up">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 font-display">
-                <User className="w-5 h-5 text-primary" />
-                Sender Details
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="senderName">Full Name</Label>
-                <Input
-                  id="senderName"
-                  placeholder="Enter your name"
-                  value={formData.senderName}
-                  onChange={(e) => setFormData({ ...formData, senderName: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="senderPhone">Phone Number</Label>
-                <Input
-                  id="senderPhone"
-                  type="tel"
-                  placeholder="+254..."
-                  value={formData.senderPhone}
-                  onChange={(e) => setFormData({ ...formData, senderPhone: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="senderAddress">Pickup Address</Label>
-                <Textarea
-                  id="senderAddress"
-                  placeholder="Enter the pickup location"
-                  value={formData.senderAddress}
-                  onChange={(e) => setFormData({ ...formData, senderAddress: e.target.value })}
-                />
-              </div>
-              
-              <Button 
-                variant="hero" 
-                size="lg" 
-                className="w-full mt-4"
-                onClick={() => setStep(2)}
-                disabled={!isStep1Valid}
+      <div className="p-4 space-y-6">
+        {/* Customer Search */}
+        <div className="relative">
+          <div className="bg-muted rounded-lg flex items-center overflow-hidden">
+            <div className="px-4">
+              <Search className="w-5 h-5 text-muted-foreground" />
+            </div>
+            <Input
+              placeholder="Choose customer"
+              className="border-0 focus-visible:ring-0 bg-transparent"
+            />
+          </div>
+        </div>
+
+        {/* Customer Details */}
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label>Customer name</Label>
+            <Input
+              placeholder="Type customer name"
+              value={formData.customerName}
+              onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
+              className="input-accent"
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label>Phone number</Label>
+            <Input
+              placeholder="customer's Phone number"
+              type="tel"
+              value={formData.customerPhone}
+              onChange={(e) => setFormData({ ...formData, customerPhone: e.target.value })}
+              className="input-accent"
+            />
+          </div>
+        </div>
+
+        {/* From Area Section */}
+        <div>
+          <h3 className="section-accent font-semibold mb-4">Where Are You Sending From?</h3>
+          <div className="space-y-2">
+            <Label>From Area</Label>
+            <Select
+              value={formData.fromArea}
+              onValueChange={(value) => setFormData({ ...formData, fromArea: value })}
+            >
+              <SelectTrigger className="input-accent">
+                <SelectValue placeholder="-- Choose area --" />
+              </SelectTrigger>
+              <SelectContent>
+                {AREAS.map((area) => (
+                  <SelectItem key={area} value={area}>
+                    {area}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {/* Package Section */}
+        <div>
+          <h3 className="section-accent font-semibold mb-4">Package</h3>
+          
+          {/* Package/Product Toggle */}
+          <div className="flex items-center gap-4 mb-4 bg-muted rounded-lg p-1 w-fit">
+            <button
+              onClick={() => setFormData({ ...formData, isProduct: false })}
+              className={`flex items-center gap-2 px-4 py-2 rounded-md transition-all ${
+                !formData.isProduct 
+                  ? 'bg-card shadow-sm' 
+                  : 'text-muted-foreground'
+              }`}
+            >
+              <Checkbox checked={!formData.isProduct} />
+              <span className="text-sm font-medium">Package</span>
+            </button>
+            <button
+              onClick={() => setFormData({ ...formData, isProduct: true })}
+              className={`flex items-center gap-2 px-4 py-2 rounded-md transition-all ${
+                formData.isProduct 
+                  ? 'bg-card shadow-sm' 
+                  : 'text-muted-foreground'
+              }`}
+            >
+              <Checkbox checked={formData.isProduct} />
+              <span className="text-sm font-medium">Product</span>
+            </button>
+          </div>
+
+          {formData.isProduct && (
+            <p className="text-sm text-muted-foreground mb-4">
+              Sending product? tap on <strong>product</strong> above.
+            </p>
+          )}
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>What are you selling?</Label>
+              <Input
+                placeholder="Describe what you're sending"
+                value={formData.packageDescription}
+                onChange={(e) => setFormData({ ...formData, packageDescription: e.target.value })}
+                className="input-accent"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Price</Label>
+              <Input
+                placeholder="Package value"
+                type="number"
+                value={formData.packageValue}
+                onChange={(e) => setFormData({ ...formData, packageValue: e.target.value })}
+                className="input-accent"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Packaging color</Label>
+              <Select
+                value={formData.packagingColor}
+                onValueChange={(value) => setFormData({ ...formData, packagingColor: value })}
               >
-                Continue
-              </Button>
-            </CardContent>
-          </Card>
-        )}
+                <SelectTrigger className="input-accent">
+                  <SelectValue placeholder="Packaging color" />
+                </SelectTrigger>
+                <SelectContent>
+                  {PACKAGING_COLORS.map((color) => (
+                    <SelectItem key={color} value={color}>
+                      {color}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </div>
 
-        {/* Step 2: Receiver & Delivery Type */}
-        {step === 2 && (
-          <Card className="border-0 shadow-card animate-slide-up">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 font-display">
-                <MapPin className="w-5 h-5 text-accent" />
-                Delivery Details
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+        {/* To Area Section */}
+        <div>
+          <h3 className="section-accent font-semibold mb-4">Where Are You Sending To?</h3>
+          
+          {deliveryType === 'pickup_point' ? (
+            <div className="space-y-2">
+              <Label>Pickup Point</Label>
+              <Select
+                value={formData.pickupPoint}
+                onValueChange={(value) => setFormData({ ...formData, pickupPoint: value })}
+              >
+                <SelectTrigger className="input-accent">
+                  <SelectValue placeholder="-- Choose pickup point --" />
+                </SelectTrigger>
+                <SelectContent>
+                  {PICKUP_POINTS.map((point) => (
+                    <SelectItem key={point.id} value={point.id}>
+                      {point.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          ) : (
+            <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="receiverName">Receiver's Name</Label>
-                <Input
-                  id="receiverName"
-                  placeholder="Enter receiver's name"
-                  value={formData.receiverName}
-                  onChange={(e) => setFormData({ ...formData, receiverName: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="receiverPhone">Receiver's Phone</Label>
-                <Input
-                  id="receiverPhone"
-                  type="tel"
-                  placeholder="+254..."
-                  value={formData.receiverPhone}
-                  onChange={(e) => setFormData({ ...formData, receiverPhone: e.target.value })}
-                />
-              </div>
-
-              {/* Delivery Type */}
-              <div className="space-y-3">
-                <Label>Delivery Type</Label>
-                <RadioGroup
-                  value={formData.deliveryType}
-                  onValueChange={(value: DeliveryType) => setFormData({ ...formData, deliveryType: value })}
-                  className="space-y-3"
+                <Label>Area</Label>
+                <Select
+                  value={formData.toArea}
+                  onValueChange={(value) => setFormData({ ...formData, toArea: value })}
                 >
-                  <Label
-                    htmlFor="pickup_point"
-                    className={`flex items-center gap-4 p-4 rounded-lg border-2 cursor-pointer transition-all ${
-                      formData.deliveryType === 'pickup_point'
-                        ? 'border-primary bg-primary/5'
-                        : 'border-border hover:border-primary/50'
-                    }`}
-                  >
-                    <RadioGroupItem value="pickup_point" id="pickup_point" />
-                    <MapPin className="w-5 h-5 text-primary" />
-                    <div className="flex-1">
-                      <p className="font-medium">Pickup Point</p>
-                      <p className="text-sm text-muted-foreground">Collect from hub</p>
-                    </div>
-                    <span className="font-display font-bold text-primary">KES 150</span>
-                  </Label>
-                  
-                  <Label
-                    htmlFor="doorstep"
-                    className={`flex items-center gap-4 p-4 rounded-lg border-2 cursor-pointer transition-all ${
-                      formData.deliveryType === 'doorstep'
-                        ? 'border-accent bg-accent/5'
-                        : 'border-border hover:border-accent/50'
-                    }`}
-                  >
-                    <RadioGroupItem value="doorstep" id="doorstep" />
-                    <Truck className="w-5 h-5 text-accent" />
-                    <div className="flex-1">
-                      <p className="font-medium">Doorstep Delivery</p>
-                      <p className="text-sm text-muted-foreground">Direct to address</p>
-                    </div>
-                    <span className="font-display font-bold text-accent">KES 300</span>
-                  </Label>
-                </RadioGroup>
+                  <SelectTrigger className="input-accent">
+                    <SelectValue placeholder="-- Choose area --" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {AREAS.map((area) => (
+                      <SelectItem key={area} value={area}>
+                        {area}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
-              {/* Conditional Fields */}
-              {formData.deliveryType === 'pickup_point' ? (
+              {deliveryType === 'doorstep' && (
                 <div className="space-y-2">
-                  <Label>Select Pickup Point</Label>
-                  <Select
-                    value={formData.pickupPoint}
-                    onValueChange={(value) => setFormData({ ...formData, pickupPoint: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Choose pickup location" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {PICKUP_POINTS.map((point) => (
-                        <SelectItem key={point.id} value={point.id}>
-                          <div className="flex flex-col">
-                            <span>{point.name}</span>
-                            <span className="text-xs text-muted-foreground">{point.address}</span>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  <Label htmlFor="receiverAddress">Delivery Address</Label>
+                  <Label>Delivery Address</Label>
                   <Textarea
-                    id="receiverAddress"
                     placeholder="Enter full delivery address"
-                    value={formData.receiverAddress}
-                    onChange={(e) => setFormData({ ...formData, receiverAddress: e.target.value })}
+                    value={formData.deliveryAddress}
+                    onChange={(e) => setFormData({ ...formData, deliveryAddress: e.target.value })}
+                    className="input-accent"
                   />
                 </div>
               )}
+            </div>
+          )}
+        </div>
 
-              <div className="flex gap-3 mt-4">
-                <Button variant="outline" onClick={() => setStep(1)} className="flex-1">
-                  Back
-                </Button>
-                <Button 
-                  variant="hero" 
-                  className="flex-1"
-                  onClick={() => setStep(3)}
-                  disabled={!isStep2Valid}
-                >
-                  Continue
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Step 3: Package Details & Confirm */}
-        {step === 3 && (
-          <Card className="border-0 shadow-card animate-slide-up">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 font-display">
-                <Package className="w-5 h-5 text-primary" />
-                Package Details
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="packageDescription">Package Description</Label>
-                <Textarea
-                  id="packageDescription"
-                  placeholder="Describe the package contents"
-                  value={formData.packageDescription}
-                  onChange={(e) => setFormData({ ...formData, packageDescription: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="weight">Weight (kg) - Optional</Label>
-                <Input
-                  id="weight"
-                  type="number"
-                  step="0.1"
-                  placeholder="0.0"
-                  value={formData.weight}
-                  onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
-                />
-              </div>
-
-              {/* Order Summary */}
-              <div className="p-4 bg-secondary rounded-lg space-y-3">
-                <h4 className="font-display font-semibold">Order Summary</h4>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">From</span>
-                    <span className="font-medium">{formData.senderName}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">To</span>
-                    <span className="font-medium">{formData.receiverName}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Delivery Type</span>
-                    <span className="font-medium capitalize">
-                      {formData.deliveryType === 'pickup_point' ? 'Pickup Point' : 'Doorstep'}
-                    </span>
-                  </div>
-                </div>
-                <div className="border-t pt-3 flex justify-between items-center">
-                  <span className="font-semibold">Total Cost</span>
-                  <span className="font-display text-2xl font-bold text-primary">
-                    KES {cost.toLocaleString()}
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex gap-3 mt-4">
-                <Button variant="outline" onClick={() => setStep(2)} className="flex-1">
-                  Back
-                </Button>
-                <Button 
-                  variant="hero" 
-                  className="flex-1"
-                  onClick={handleSubmit}
-                  disabled={!isStep3Valid || isSubmitting}
-                >
-                  {isSubmitting ? 'Creating...' : 'Create Delivery'}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+        {/* Submit Button */}
+        <div className="pt-4">
+          <Button 
+            onClick={handleSubmit}
+            disabled={isSubmitting}
+            className="w-full"
+            size="lg"
+          >
+            {isSubmitting ? 'Creating Delivery...' : `Create Delivery - KES ${deliveryTypeInfo?.cost || 150}`}
+          </Button>
+        </div>
       </div>
+
+      <HelpButton />
+      <BottomNav />
     </div>
   );
 }

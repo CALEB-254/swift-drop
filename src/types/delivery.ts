@@ -1,4 +1,4 @@
-export type DeliveryType = 'pickup_point' | 'doorstep';
+export type DeliveryType = 'xpress' | 'pickup_point' | 'doorstep' | 'errand';
 
 export type PackageStatus = 
   | 'pending' 
@@ -20,6 +20,8 @@ export interface Package {
   deliveryType: DeliveryType;
   pickupPoint?: string;
   packageDescription: string;
+  packageValue?: number;
+  packagingColor?: string;
   weight: number;
   cost: number;
   status: PackageStatus;
@@ -27,6 +29,7 @@ export interface Package {
   updatedAt: Date;
   agentId?: string;
   commission?: number;
+  isProduct?: boolean;
 }
 
 export interface Agent {
@@ -41,16 +44,51 @@ export interface Agent {
 }
 
 export interface DeliveryPricing {
+  xpressCost: number;
   pickupPointCost: number;
   doorstepCost: number;
+  errandCost: number;
   commissionRate: number;
 }
 
 export const DELIVERY_PRICING: DeliveryPricing = {
+  xpressCost: 250,
   pickupPointCost: 150,
   doorstepCost: 300,
+  errandCost: 200,
   commissionRate: 0.15, // 15% commission
 };
+
+export const DELIVERY_TYPES = [
+  {
+    id: 'xpress' as DeliveryType,
+    name: 'Xpress Delivery',
+    description: "Send a package and it'll be delivered in 1 hour or less, from Nairobi, CBD.",
+    icon: 'zap',
+    cost: 250,
+  },
+  {
+    id: 'pickup_point' as DeliveryType,
+    name: 'Agent Pickup Point',
+    description: 'Pick a package from your local mtaani agents across Kenya.',
+    icon: 'store',
+    cost: 150,
+  },
+  {
+    id: 'doorstep' as DeliveryType,
+    name: 'Doorstep Delivery',
+    description: 'Get your package delivered straight to your home.',
+    icon: 'truck',
+    cost: 300,
+  },
+  {
+    id: 'errand' as DeliveryType,
+    name: 'Errand Parcel',
+    description: 'Pick your package from your favourite parcel provider. Eg. SuperMetro, 2NK etc',
+    icon: 'bus',
+    cost: 200,
+  },
+];
 
 export const PICKUP_POINTS = [
   { id: '1', name: 'Central Hub - Downtown', address: '123 Main Street, Downtown' },
@@ -58,6 +96,36 @@ export const PICKUP_POINTS = [
   { id: '3', name: 'West Mall Collection', address: '789 West Boulevard, Westgate' },
   { id: '4', name: 'North Terminal', address: '321 North Road, Northville' },
   { id: '5', name: 'South Plaza Hub', address: '654 South Lane, Southpark' },
+];
+
+export const AREAS = [
+  'Nairobi CBD',
+  'Westlands',
+  'Kilimani',
+  'Karen',
+  'Lavington',
+  'Kileleshwa',
+  'Parklands',
+  'Ruaka',
+  'Juja',
+  'Thika',
+  'Kitengela',
+  'Ongata Rongai',
+  'Kasarani',
+  'Embakasi',
+  'South B',
+  'South C',
+];
+
+export const PACKAGING_COLORS = [
+  'Black',
+  'White',
+  'Brown',
+  'Blue',
+  'Red',
+  'Green',
+  'Yellow',
+  'Transparent',
 ];
 
 export const STATUS_LABELS: Record<PackageStatus, string> = {
