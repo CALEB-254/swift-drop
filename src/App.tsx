@@ -12,6 +12,7 @@ import TrackPackage from "./pages/sender/TrackPackage";
 import AgentDashboard from "./pages/agent/AgentDashboard";
 import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
+import Notifications from "./pages/Notifications";
 
 const queryClient = new QueryClient();
 
@@ -36,6 +37,9 @@ const App = () => (
             
             {/* Agent Routes */}
             <Route path="/agent" element={<AgentDashboard />} />
+            
+            {/* Shared Routes */}
+            <Route path="/notifications" element={<Notifications />} />
             
             {/* Catch-all */}
             <Route path="*" element={<NotFound />} />

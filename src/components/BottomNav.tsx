@@ -1,5 +1,8 @@
 import { Link, useLocation } from 'react-router-dom';
 import { Home, Search, Package, Bell } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuthContext } from '@/contexts/AuthContext';
 
 interface NavItem {
   icon: React.ComponentType<{ className?: string }>;
@@ -8,15 +11,57 @@ interface NavItem {
   badge?: number;
 }
 
-const navItems: NavItem[] = [
+const baseNavItems: Omit<NavItem, 'badge'>[] = [
   { icon: Home, label: 'Home', path: '/sender' },
   { icon: Search, label: 'Track', path: '/sender/track' },
   { icon: Package, label: 'Pochi', path: '/sender/new' },
-  { icon: Bell, label: 'Notifications', path: '/sender/notifications', badge: 7 },
+  { icon: Bell, label: 'Notifications', path: '/notifications' },
 ];
 
 export function BottomNav() {
   const location = useLocation();
+  const { user } = useAuthContext();
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchUnreadCount = async () => {
+      const { count } = await supabase
+        .from('notifications')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .eq('is_read', false);
+      
+      setUnreadCount(count || 0);
+    };
+
+    fetchUnreadCount();
+
+    // Subscribe to realtime changes
+    const channel = supabase
+      .channel('notifications-count')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${user.id}`,
+        },
+        () => fetchUnreadCount()
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
+
+  const navItems: NavItem[] = baseNavItems.map(item => ({
+    ...item,
+    badge: item.path === '/notifications' && unreadCount > 0 ? unreadCount : undefined,
+  }));
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-border z-50">
