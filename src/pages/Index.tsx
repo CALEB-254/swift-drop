@@ -1,9 +1,11 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Package, Truck, ArrowRight, MapPin, Shield, Clock, Zap } from 'lucide-react';
+import { Package, Truck, ArrowRight, MapPin, Shield, Clock, Zap, LogIn, UserPlus } from 'lucide-react';
+import { useAuthContext } from '@/contexts/AuthContext';
 
 const Index = () => {
+  const { user, profile, signOut, loading } = useAuthContext();
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
@@ -13,11 +15,47 @@ const Index = () => {
         <div className="absolute bottom-20 left-10 w-48 h-48 bg-accent/10 rounded-full blur-3xl" />
         
         <div className="container py-16 px-4 relative z-10">
-          <div className="flex items-center gap-2 mb-6">
-            <div className="p-3 bg-primary-foreground/10 rounded-xl backdrop-blur-sm">
-              <Package className="w-8 h-8" />
+          {/* Header with auth buttons */}
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-2">
+              <div className="p-3 bg-primary-foreground/10 rounded-xl backdrop-blur-sm">
+                <Package className="w-8 h-8" />
+              </div>
+              <span className="font-display text-2xl font-bold">Mtaani</span>
             </div>
-            <span className="font-display text-2xl font-bold">SwiftDeliver</span>
+            
+            {!loading && (
+              <div className="flex items-center gap-2">
+                {user ? (
+                  <>
+                    <span className="text-sm hidden sm:block">Hi, {profile?.full_name?.split(' ')[0]}</span>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => signOut()}
+                      className="text-primary-foreground hover:bg-primary-foreground/10"
+                    >
+                      Sign Out
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Link to="/auth/login">
+                      <Button variant="ghost" size="sm" className="text-primary-foreground hover:bg-primary-foreground/10">
+                        <LogIn className="w-4 h-4 mr-1" />
+                        Login
+                      </Button>
+                    </Link>
+                    <Link to="/auth/signup">
+                      <Button size="sm" className="bg-primary-foreground text-primary hover:bg-primary-foreground/90">
+                        <UserPlus className="w-4 h-4 mr-1" />
+                        Sign Up
+                      </Button>
+                    </Link>
+                  </>
+                )}
+              </div>
+            )}
           </div>
           
           <h1 className="font-display text-4xl md:text-5xl font-bold mb-4 leading-tight animate-fade-in">
