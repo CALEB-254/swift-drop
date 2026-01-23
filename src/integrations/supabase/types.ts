@@ -47,6 +47,81 @@ export type Database = {
         }
         Relationships: []
       }
+      packages: {
+        Row: {
+          agent_id: string | null
+          commission: number | null
+          cost: number
+          created_at: string
+          delivery_type: Database["public"]["Enums"]["delivery_type"]
+          id: string
+          is_product: boolean | null
+          package_description: string | null
+          package_value: number | null
+          packaging_color: string | null
+          pickup_point: string | null
+          receiver_address: string
+          receiver_name: string
+          receiver_phone: string
+          sender_address: string | null
+          sender_name: string
+          sender_phone: string
+          status: Database["public"]["Enums"]["package_status"]
+          tracking_number: string
+          updated_at: string
+          user_id: string
+          weight: number | null
+        }
+        Insert: {
+          agent_id?: string | null
+          commission?: number | null
+          cost: number
+          created_at?: string
+          delivery_type: Database["public"]["Enums"]["delivery_type"]
+          id?: string
+          is_product?: boolean | null
+          package_description?: string | null
+          package_value?: number | null
+          packaging_color?: string | null
+          pickup_point?: string | null
+          receiver_address: string
+          receiver_name: string
+          receiver_phone: string
+          sender_address?: string | null
+          sender_name: string
+          sender_phone: string
+          status?: Database["public"]["Enums"]["package_status"]
+          tracking_number: string
+          updated_at?: string
+          user_id: string
+          weight?: number | null
+        }
+        Update: {
+          agent_id?: string | null
+          commission?: number | null
+          cost?: number
+          created_at?: string
+          delivery_type?: Database["public"]["Enums"]["delivery_type"]
+          id?: string
+          is_product?: boolean | null
+          package_description?: string | null
+          package_value?: number | null
+          packaging_color?: string | null
+          pickup_point?: string | null
+          receiver_address?: string
+          receiver_name?: string
+          receiver_phone?: string
+          sender_address?: string | null
+          sender_name?: string
+          sender_phone?: string
+          status?: Database["public"]["Enums"]["package_status"]
+          tracking_number?: string
+          updated_at?: string
+          user_id?: string
+          weight?: number | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           address: string | null
@@ -116,6 +191,14 @@ export type Database = {
       }
     }
     Enums: {
+      delivery_type: "xpress" | "pickup_point" | "doorstep" | "errand"
+      package_status:
+        | "pending"
+        | "picked_up"
+        | "in_transit"
+        | "out_for_delivery"
+        | "delivered"
+        | "cancelled"
       user_role: "sender" | "agent"
     }
     CompositeTypes: {
@@ -244,6 +327,15 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      delivery_type: ["xpress", "pickup_point", "doorstep", "errand"],
+      package_status: [
+        "pending",
+        "picked_up",
+        "in_transit",
+        "out_for_delivery",
+        "delivered",
+        "cancelled",
+      ],
       user_role: ["sender", "agent"],
     },
   },

@@ -3,8 +3,8 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Search, Package, User, Phone, MapPin, Clock, Copy, Check } from 'lucide-react';
-import { useDeliveryStore } from '@/store/deliveryStore';
+import { ArrowLeft, Search, Package, User, Phone, MapPin, Clock, Copy, Check, Loader2 } from 'lucide-react';
+import { usePackages, Package as PackageType } from '@/hooks/usePackages';
 import { TrackingTimeline } from '@/components/TrackingTimeline';
 import { StatusBadge } from '@/components/StatusBadge';
 import { format } from 'date-fns';
@@ -15,15 +15,36 @@ export default function TrackPackage() {
   const initialQuery = searchParams.get('q') || '';
   const [searchQuery, setSearchQuery] = useState(initialQuery);
   const [copied, setCopied] = useState(false);
-  const { getPackageByTracking } = useDeliveryStore();
-  
-  const pkg = getPackageByTracking(searchQuery);
+  const [pkg, setPkg] = useState<PackageType | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [searched, setSearched] = useState(false);
+  const { getPackageByTracking } = usePackages();
+
+  const searchPackage = async (query: string) => {
+    if (!query.trim()) return;
+    
+    setLoading(true);
+    setSearched(true);
+    try {
+      const result = await getPackageByTracking(query);
+      setPkg(result);
+    } catch (error) {
+      console.error('Error searching package:', error);
+      setPkg(null);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (initialQuery) {
-      setSearchQuery(initialQuery);
+      searchPackage(initialQuery);
     }
   }, [initialQuery]);
+
+  const handleSearch = () => {
+    searchPackage(searchQuery);
+  };
 
   const copyTrackingNumber = () => {
     if (pkg) {
@@ -54,17 +75,25 @@ export default function TrackPackage() {
               placeholder="Enter tracking number..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
               className="bg-primary-foreground/10 border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/50"
             />
-            <Button variant="accent">
-              <Search className="w-5 h-5" />
+            <Button variant="accent" onClick={handleSearch} disabled={loading}>
+              {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Search className="w-5 h-5" />}
             </Button>
           </div>
         </div>
       </div>
 
       <div className="container py-6 px-4">
-        {pkg ? (
+        {loading ? (
+          <Card className="border-0 shadow-card">
+            <CardContent className="flex flex-col items-center justify-center py-12">
+              <Loader2 className="w-12 h-12 text-primary animate-spin mb-4" />
+              <p className="text-muted-foreground">Searching for package...</p>
+            </CardContent>
+          </Card>
+        ) : pkg ? (
           <div className="space-y-6 animate-fade-in">
             {/* Tracking Number Card */}
             <Card className="border-0 shadow-card overflow-hidden">
@@ -133,7 +162,7 @@ export default function TrackPackage() {
                     </div>
                     <div className="flex items-center gap-3">
                       <MapPin className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-sm text-muted-foreground">{pkg.senderAddress}</span>
+                      <span className="text-sm text-muted-foreground">{pkg.senderAddress || 'N/A'}</span>
                     </div>
                   </div>
                 </div>
@@ -165,7 +194,7 @@ export default function TrackPackage() {
                   <div className="p-4 bg-secondary rounded-lg space-y-2">
                     <div className="flex items-center gap-3">
                       <Package className="w-4 h-4 text-primary" />
-                      <span className="font-medium">{pkg.packageDescription}</span>
+                      <span className="font-medium">{pkg.packageDescription || 'No description'}</span>
                     </div>
                     {pkg.weight > 0 && (
                       <p className="text-sm text-muted-foreground ml-7">{pkg.weight} kg</p>
@@ -181,7 +210,7 @@ export default function TrackPackage() {
               </CardContent>
             </Card>
           </div>
-        ) : searchQuery ? (
+        ) : searched ? (
           <Card className="border-0 shadow-card">
             <CardContent className="flex flex-col items-center justify-center py-12">
               <Package className="w-16 h-16 text-muted-foreground mb-4" />
@@ -190,7 +219,7 @@ export default function TrackPackage() {
                 No package found with tracking number:<br />
                 <span className="font-mono font-medium">{searchQuery}</span>
               </p>
-              <Button variant="outline" onClick={() => setSearchQuery('')}>
+              <Button variant="outline" onClick={() => { setSearchQuery(''); setSearched(false); }}>
                 Try Another Number
               </Button>
             </CardContent>
