@@ -1,11 +1,28 @@
-import { Package } from '@/types/delivery';
 import { StatusBadge } from './StatusBadge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Package as PackageIcon, MapPin, User, Phone, Clock } from 'lucide-react';
 import { format } from 'date-fns';
+import { PackageStatus, DeliveryType } from '@/types/delivery';
+
+// Shared package interface that works with both Zustand store and Supabase data
+interface PackageData {
+  id: string;
+  trackingNumber: string;
+  senderName: string;
+  senderPhone: string;
+  receiverName: string;
+  receiverPhone: string;
+  receiverAddress: string;
+  deliveryType: DeliveryType;
+  pickupPoint?: string | null;
+  packageDescription?: string | null;
+  cost: number;
+  status: PackageStatus;
+  createdAt: Date;
+}
 
 interface PackageCardProps {
-  pkg: Package;
+  pkg: PackageData;
   onClick?: () => void;
   showActions?: boolean;
   children?: React.ReactNode;
