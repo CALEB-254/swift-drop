@@ -7,7 +7,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ArrowLeft, ShoppingCart, Search } from 'lucide-react';
-import { useDeliveryStore } from '@/store/deliveryStore';
+import { usePackages } from '@/hooks/usePackages';
+import { useAuth } from '@/hooks/useAuth';
 import { PICKUP_POINTS, AREAS, PACKAGING_COLORS, DeliveryType, DELIVERY_TYPES } from '@/types/delivery';
 import { toast } from 'sonner';
 import { BottomNav } from '@/components/BottomNav';
@@ -16,7 +17,8 @@ import { HelpButton } from '@/components/HelpButton';
 export default function NewDelivery() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { addPackage } = useDeliveryStore();
+  const { createPackage } = usePackages();
+  const { user, profile } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const deliveryType = (searchParams.get('type') as DeliveryType) || 'pickup_point';
@@ -36,6 +38,12 @@ export default function NewDelivery() {
   });
 
   const handleSubmit = async () => {
+    if (!user) {
+      toast.error('Please log in to create a delivery');
+      navigate('/auth/login');
+      return;
+    }
+
     if (!formData.customerName || !formData.customerPhone || !formData.fromArea) {
       toast.error('Please fill in all required fields');
       return;
@@ -44,9 +52,9 @@ export default function NewDelivery() {
     setIsSubmitting(true);
     
     try {
-      const newPackage = addPackage({
-        senderName: 'Current User', // Would come from auth
-        senderPhone: '+254700000000',
+      const newPackage = await createPackage({
+        senderName: profile?.full_name || 'Current User',
+        senderPhone: profile?.phone || '+254700000000',
         senderAddress: formData.fromArea,
         receiverName: formData.customerName,
         receiverPhone: formData.customerPhone,
@@ -68,7 +76,9 @@ export default function NewDelivery() {
 
       navigate(`/sender/track?q=${newPackage.trackingNumber}`);
     } catch (error) {
-      toast.error('Failed to create delivery');
+      toast.error('Failed to create delivery', {
+        description: error instanceof Error ? error.message : 'Please try again',
+      });
     } finally {
       setIsSubmitting(false);
     }
