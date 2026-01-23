@@ -1,46 +1,75 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Package, Truck, DollarSign, CheckCircle, Clock, TrendingUp, User } from 'lucide-react';
-import { useDeliveryStore } from '@/store/deliveryStore';
+import { Package, Truck, DollarSign, CheckCircle, TrendingUp, User, Loader2 } from 'lucide-react';
 import { PackageCard } from '@/components/PackageCard';
 import { StatusBadge } from '@/components/StatusBadge';
-import { PackageStatus } from '@/types/delivery';
+import { useAuth } from '@/hooks/useAuth';
+import { useAgentPackages } from '@/hooks/useAgentPackages';
+import { toast } from 'sonner';
 
 export default function AgentDashboard() {
-  const { packages, agent, updatePackageStatus, assignAgent } = useDeliveryStore();
+  const { user, profile, loading: authLoading } = useAuth();
+  const {
+    availablePackages,
+    activePackages,
+    completedPackages,
+    stats,
+    loading,
+    acceptPackage,
+    updatePackageStatus,
+    getNextStatus,
+  } = useAgentPackages();
+  
   const [activeTab, setActiveTab] = useState('available');
+  const [processingId, setProcessingId] = useState<string | null>(null);
 
-  const availablePackages = packages.filter(p => !p.agentId && p.status === 'pending');
-  const myPackages = packages.filter(p => p.agentId === agent.id);
-  const activePackages = myPackages.filter(p => p.status !== 'delivered' && p.status !== 'cancelled');
-  const completedPackages = myPackages.filter(p => p.status === 'delivered');
+  // Redirect if not logged in or not an agent
+  if (!authLoading && !user) {
+    return <Navigate to="/auth/login" replace />;
+  }
 
-  const handleAcceptPackage = (packageId: string) => {
-    assignAgent(packageId, agent.id);
-    updatePackageStatus(packageId, 'picked_up');
+  if (!authLoading && profile?.role !== 'agent') {
+    return <Navigate to="/sender" replace />;
+  }
+
+  const handleAcceptPackage = async (packageId: string) => {
+    try {
+      setProcessingId(packageId);
+      await acceptPackage(packageId);
+      toast.success('Package accepted successfully!');
+      setActiveTab('active');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to accept package');
+    } finally {
+      setProcessingId(null);
+    }
   };
 
-  const handleUpdateStatus = (packageId: string, status: PackageStatus) => {
-    updatePackageStatus(packageId, status);
+  const handleUpdateStatus = async (packageId: string, status: string) => {
+    try {
+      setProcessingId(packageId);
+      await updatePackageStatus(packageId, status as any);
+      toast.success(`Status updated to ${status.replace(/_/g, ' ')}`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to update status');
+    } finally {
+      setProcessingId(null);
+    }
   };
 
-  const getNextStatus = (currentStatus: PackageStatus): PackageStatus | null => {
-    const statusFlow: Record<PackageStatus, PackageStatus | null> = {
-      pending: 'picked_up',
-      picked_up: 'in_transit',
-      in_transit: 'out_for_delivery',
-      out_for_delivery: 'delivered',
-      delivered: null,
-      cancelled: null,
-    };
-    return statusFlow[currentStatus];
-  };
+  if (authLoading || loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-20">
       {/* Header */}
       <div className="gradient-hero text-primary-foreground">
         <div className="container py-6 px-4">
@@ -51,7 +80,7 @@ export default function AgentDashboard() {
               </div>
               <div>
                 <p className="text-sm opacity-80">Welcome back,</p>
-                <h1 className="font-display font-bold text-lg">{agent.name}</h1>
+                <h1 className="font-display font-bold text-lg">{profile?.full_name || 'Agent'}</h1>
               </div>
             </div>
             <Link to="/">
@@ -71,7 +100,7 @@ export default function AgentDashboard() {
                   </div>
                   <div>
                     <p className="text-2xl font-display font-bold text-primary-foreground">
-                      {agent.activeDeliveries}
+                      {stats.activeDeliveries}
                     </p>
                     <p className="text-xs text-primary-foreground/70">Active</p>
                   </div>
@@ -86,7 +115,7 @@ export default function AgentDashboard() {
                   </div>
                   <div>
                     <p className="text-2xl font-display font-bold text-primary-foreground">
-                      {agent.completedDeliveries}
+                      {stats.completedDeliveries}
                     </p>
                     <p className="text-xs text-primary-foreground/70">Completed</p>
                   </div>
@@ -109,14 +138,14 @@ export default function AgentDashboard() {
                 <div>
                   <p className="text-sm text-muted-foreground">Total Commission</p>
                   <p className="font-display text-2xl font-bold text-foreground">
-                    KES {agent.totalCommission.toLocaleString()}
+                    KES {stats.totalCommission.toLocaleString()}
                   </p>
                 </div>
               </div>
               <div className="text-right">
                 <p className="text-xs text-muted-foreground">Pending</p>
                 <p className="font-display font-bold text-success">
-                  KES {agent.pendingCommission.toLocaleString()}
+                  KES {stats.pendingCommission.toLocaleString()}
                 </p>
               </div>
             </div>
@@ -153,7 +182,11 @@ export default function AgentDashboard() {
                     variant="hero"
                     className="w-full"
                     onClick={() => handleAcceptPackage(pkg.id)}
+                    disabled={processingId === pkg.id}
                   >
+                    {processingId === pkg.id ? (
+                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                    ) : null}
                     Accept Delivery
                   </Button>
                 </PackageCard>
@@ -186,8 +219,12 @@ export default function AgentDashboard() {
                           variant="hero"
                           className="w-full"
                           onClick={() => handleUpdateStatus(pkg.id, nextStatus)}
+                          disabled={processingId === pkg.id}
                         >
-                          Mark as {nextStatus.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
+                          {processingId === pkg.id ? (
+                            <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                          ) : null}
+                          Mark as {nextStatus.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
                         </Button>
                       )}
                       <Button
@@ -195,6 +232,7 @@ export default function AgentDashboard() {
                         size="sm"
                         className="w-full"
                         onClick={() => handleUpdateStatus(pkg.id, 'cancelled')}
+                        disabled={processingId === pkg.id}
                       >
                         Cancel Delivery
                       </Button>
