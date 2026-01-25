@@ -4,13 +4,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuthContext } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import { Package, ArrowLeft, Eye, EyeOff } from 'lucide-react';
+import { Package, Eye, EyeOff } from 'lucide-react';
 
 export default function Login() {
   const navigate = useNavigate();
-  const { signIn } = useAuth();
+  const { signIn, profile } = useAuthContext();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -21,11 +21,13 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const { user } = await signIn(email, password);
+      await signIn(email, password);
       toast.success('Welcome back!');
       
-      // Redirect based on role will happen in the auth hook
-      navigate('/');
+      // After login, profile will be fetched - redirect based on role
+      setTimeout(() => {
+        navigate('/');
+      }, 100);
     } catch (error: any) {
       toast.error(error.message || 'Failed to sign in');
     } finally {
@@ -36,20 +38,12 @@ export default function Login() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
-      <header className="p-4 flex items-center gap-3">
-        <Button 
-          variant="ghost" 
-          size="icon"
-          onClick={() => navigate('/')}
-          className="shrink-0"
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
+      <header className="p-4 flex items-center gap-3 justify-center">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
             <Package className="w-5 h-5 text-primary-foreground" />
           </div>
-          <span className="font-bold text-lg">Mtaani</span>
+          <span className="font-bold text-lg">Canyi Delivery</span>
         </div>
       </header>
 
@@ -106,6 +100,12 @@ export default function Login() {
               >
                 {loading ? 'Signing in...' : 'Sign In'}
               </Button>
+
+              <div className="text-right">
+                <Link to="/auth/forgot-password" className="text-sm text-primary hover:underline">
+                  Forgot Password?
+                </Link>
+              </div>
             </form>
 
             <div className="mt-6 text-center">

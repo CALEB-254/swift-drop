@@ -31,7 +31,7 @@ export default function SenderHome() {
       {/* Announcement Banner */}
       <AnnouncementBanner
         title="📢 New Juja Branch Now Open!"
-        message="New JUJA Pickup Mtaani Parcel Office! Enjoy safer, faster, more reliable parcel collection near you. Find us opposite EQUITY AFYA. For inquiries, contact +254701430225."
+        message="New JUJA Pickup Canyi Parcel Office! Enjoy safer, faster, more reliable parcel collection near you. Find us opposite EQUITY AFYA. For inquiries, contact +254701430225."
       />
 
       {/* Header with Map Background */}
@@ -49,7 +49,7 @@ export default function SenderHome() {
           {/* Top Bar */}
           <div className="flex items-center justify-between mb-6">
             <button className="flex items-center gap-2 text-primary-foreground">
-              <span className="font-semibold">Canyi</span>
+              <span className="font-semibold">Canyi Delivery</span>
               <ChevronDown className="w-4 h-4" />
             </button>
             <div className="flex items-center gap-4">
