@@ -10,6 +10,7 @@ interface Profile {
   full_name: string;
   phone: string;
   address: string | null;
+  avatar_url: string | null;
   role: 'sender' | 'agent';
   created_at: string;
   updated_at: string;

@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
-import Index from "./pages/Index";
+import Welcome from "./pages/Welcome";
 import NotFound from "./pages/NotFound";
 import SenderHome from "./pages/sender/SenderHome";
 import SenderDashboard from "./pages/sender/SenderDashboard";
@@ -17,6 +17,8 @@ import Signup from "./pages/auth/Signup";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import ResetPassword from "./pages/auth/ResetPassword";
 import VerifyOTP from "./pages/auth/VerifyOTP";
+import AuthCallback from "./pages/auth/AuthCallback";
+import EditProfile from "./pages/profile/EditProfile";
 import Notifications from "./pages/Notifications";
 
 const queryClient = new QueryClient();
@@ -29,9 +31,8 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <Routes>
-            {/* Default route redirects to login */}
-            <Route path="/" element={<Navigate to="/auth/login" replace />} />
-            <Route path="/home" element={<Index />} />
+            {/* Welcome page (landing page for unauthenticated users) */}
+            <Route path="/" element={<Welcome />} />
             
             {/* Auth Routes */}
             <Route path="/auth/login" element={<Login />} />
@@ -39,6 +40,7 @@ const App = () => (
             <Route path="/auth/forgot-password" element={<ForgotPassword />} />
             <Route path="/auth/reset-password" element={<ResetPassword />} />
             <Route path="/auth/verify" element={<VerifyOTP />} />
+            <Route path="/auth/callback" element={<AuthCallback />} />
             
             {/* Protected Sender Routes */}
             <Route
@@ -84,6 +86,16 @@ const App = () => (
               }
             />
             
+            {/* Protected Profile Routes */}
+            <Route
+              path="/profile/edit"
+              element={
+                <ProtectedRoute>
+                  <EditProfile />
+                </ProtectedRoute>
+              }
+            />
+            
             {/* Protected Shared Routes */}
             <Route
               path="/notifications"
@@ -93,6 +105,9 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+
+            {/* Legacy route redirects */}
+            <Route path="/home" element={<Navigate to="/" replace />} />
             
             {/* Catch-all */}
             <Route path="*" element={<NotFound />} />

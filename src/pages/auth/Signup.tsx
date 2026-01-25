@@ -1,17 +1,18 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { useAuth } from '@/hooks/useAuth';
+import { SocialLoginButtons } from '@/components/SocialLoginButtons';
+import { useAuthContext } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { Package, ArrowLeft, Eye, EyeOff, User, Truck } from 'lucide-react';
 
 export default function Signup() {
   const navigate = useNavigate();
-  const { signUp } = useAuth();
+  const { signUp, user, profile, loading: authLoading } = useAuthContext();
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -23,6 +24,13 @@ export default function Signup() {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (!authLoading && user && profile) {
+      navigate(profile.role === 'agent' ? '/agent' : '/sender');
+    }
+  }, [user, profile, authLoading, navigate]);
 
   const handleChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -224,6 +232,10 @@ export default function Signup() {
                 {loading ? 'Creating Account...' : 'Create Account'}
               </Button>
             </form>
+
+            <div className="mt-6">
+              <SocialLoginButtons mode="signup" />
+            </div>
 
             <div className="mt-6 text-center">
               <p className="text-muted-foreground">

@@ -1,37 +1,40 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { SocialLoginButtons } from '@/components/SocialLoginButtons';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { Package, Eye, EyeOff } from 'lucide-react';
 
 export default function Login() {
   const navigate = useNavigate();
-  const { signIn, profile } = useAuthContext();
+  const { signIn, user, profile, loading } = useAuthContext();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (!loading && user && profile) {
+      navigate(profile.role === 'agent' ? '/agent' : '/sender');
+    }
+  }, [user, profile, loading, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    setSubmitting(true);
 
     try {
       await signIn(email, password);
       toast.success('Welcome back!');
-      
-      // After login, profile will be fetched - redirect based on role
-      setTimeout(() => {
-        navigate('/');
-      }, 100);
     } catch (error: any) {
       toast.error(error.message || 'Failed to sign in');
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
 
@@ -96,9 +99,9 @@ export default function Login() {
               <Button 
                 type="submit" 
                 className="w-full h-12 text-base font-semibold"
-                disabled={loading}
+                disabled={submitting}
               >
-                {loading ? 'Signing in...' : 'Sign In'}
+                {submitting ? 'Signing in...' : 'Sign In'}
               </Button>
 
               <div className="text-right">
@@ -107,6 +110,10 @@ export default function Login() {
                 </Link>
               </div>
             </form>
+
+            <div className="mt-6">
+              <SocialLoginButtons mode="login" />
+            </div>
 
             <div className="mt-6 text-center">
               <p className="text-muted-foreground">
