@@ -21,9 +21,8 @@ const Index = () => {
               <div className="p-3 bg-primary-foreground/10 rounded-xl backdrop-blur-sm">
                 <Package className="w-8 h-8" />
               </div>
-              <span className="font-display text-2xl font-bold">Mtaani</span>
+              <span className="font-display text-2xl font-bold">Canyi Delivery</span>
             </div>
-            
             {!loading && (
               <div className="flex items-center gap-2">
                 {user ? (

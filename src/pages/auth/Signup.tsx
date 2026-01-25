@@ -84,7 +84,7 @@ export default function Signup() {
           <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
             <Package className="w-5 h-5 text-primary-foreground" />
           </div>
-          <span className="font-bold text-lg">Mtaani</span>
+          <span className="font-bold text-lg">Canyi Delivery</span>
         </div>
       </header>
 
@@ -93,7 +93,7 @@ export default function Signup() {
         <Card className="w-full max-w-md border-0 shadow-lg">
           <CardHeader className="text-center pb-2">
             <CardTitle className="text-2xl font-bold">Create Account</CardTitle>
-            <CardDescription>Join Mtaani to start sending or delivering packages</CardDescription>
+            <CardDescription>Join Canyi Delivery to start sending or delivering packages</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
