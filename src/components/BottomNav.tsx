@@ -15,13 +15,14 @@ const senderNavItems: Omit<NavItem, 'badge'>[] = [
   { icon: Home, label: 'Home', path: '/sender' },
   { icon: LayoutDashboard, label: 'Dashboard', path: '/sender/dashboard' },
   { icon: Package, label: 'Send', path: '/sender/new' },
-  { icon: Search, label: 'Track', path: '/sender/track' },
   { icon: Bell, label: 'Alerts', path: '/notifications' },
+  { icon: User, label: 'Profile', path: '/profile/edit' },
 ];
 
 const agentNavItems: Omit<NavItem, 'badge'>[] = [
   { icon: LayoutDashboard, label: 'Dashboard', path: '/agent' },
   { icon: Bell, label: 'Alerts', path: '/notifications' },
+  { icon: User, label: 'Profile', path: '/profile/edit' },
 ];
 
 export function BottomNav() {
