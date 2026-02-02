@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, forwardRef } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,7 +10,7 @@ import { StatusBadge } from '@/components/StatusBadge';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 
-export default function TrackPackage() {
+const TrackPackage = forwardRef<HTMLDivElement>(function TrackPackage(_, ref) {
   const [searchParams] = useSearchParams();
   const initialQuery = searchParams.get('q') || '';
   const [searchQuery, setSearchQuery] = useState(initialQuery);
@@ -56,7 +56,7 @@ export default function TrackPackage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div ref={ref} className="min-h-screen bg-background">
       {/* Header */}
       <div className="gradient-primary text-primary-foreground p-4">
         <div className="container">
@@ -238,4 +238,6 @@ export default function TrackPackage() {
       </div>
     </div>
   );
-}
+});
+
+export default TrackPackage;
