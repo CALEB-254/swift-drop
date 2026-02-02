@@ -27,9 +27,10 @@ export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) 
     return <Navigate to="/auth/login" state={{ from: location }} replace />;
   }
 
-  if (requiredRole && profile?.role !== requiredRole) {
+  // Only enforce role check if profile exists and requiredRole is specified
+  if (requiredRole && profile && profile.role !== requiredRole) {
     // Redirect to the appropriate dashboard based on user's role
-    const redirectPath = profile?.role === 'agent' ? '/agent' : '/sender';
+    const redirectPath = profile.role === 'agent' ? '/agent' : '/sender';
     return <Navigate to={redirectPath} replace />;
   }
 

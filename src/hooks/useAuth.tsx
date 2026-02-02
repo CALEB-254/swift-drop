@@ -30,13 +30,13 @@ export function useAuth() {
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Fetch profile after auth state change
+          // Fetch profile after auth state change - use maybeSingle to handle missing profiles
           setTimeout(async () => {
             const { data: profileData } = await supabase
               .from('profiles')
               .select('*')
               .eq('user_id', session.user.id)
-              .single();
+              .maybeSingle();
             setProfile(profileData);
           }, 0);
         } else {
@@ -57,7 +57,7 @@ export function useAuth() {
           .from('profiles')
           .select('*')
           .eq('user_id', session.user.id)
-          .single()
+          .maybeSingle()
           .then(({ data }) => {
             setProfile(data);
             setLoading(false);

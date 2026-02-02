@@ -19,8 +19,10 @@ export default function Login() {
 
   // Redirect if already logged in
   useEffect(() => {
-    if (!loading && user && profile) {
-      navigate(profile.role === 'agent' ? '/agent' : '/sender');
+    if (!loading && user) {
+      // Redirect based on role, default to sender if no profile yet
+      const redirectPath = profile?.role === 'agent' ? '/agent' : '/sender';
+      navigate(redirectPath);
     }
   }, [user, profile, loading, navigate]);
 
