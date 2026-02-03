@@ -11,6 +11,7 @@ import SenderHome from "./pages/sender/SenderHome";
 import SenderDashboard from "./pages/sender/SenderDashboard";
 import NewDelivery from "./pages/sender/NewDelivery";
 import TrackPackage from "./pages/sender/TrackPackage";
+import Cart from "./pages/sender/Cart";
 import AgentDashboard from "./pages/agent/AgentDashboard";
 import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
@@ -72,6 +73,14 @@ const App = () => (
               element={
                 <ProtectedRoute requiredRole="sender">
                   <TrackPackage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/sender/cart"
+              element={
+                <ProtectedRoute requiredRole="sender">
+                  <Cart />
                 </ProtectedRoute>
               }
             />
