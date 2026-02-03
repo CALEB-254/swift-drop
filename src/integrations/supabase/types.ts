@@ -56,9 +56,12 @@ export type Database = {
           delivery_type: Database["public"]["Enums"]["delivery_type"]
           id: string
           is_product: boolean | null
+          mpesa_receipt_number: string | null
           package_description: string | null
           package_value: number | null
           packaging_color: string | null
+          paid_at: string | null
+          payment_status: string
           pickup_point: string | null
           receiver_address: string
           receiver_name: string
@@ -80,9 +83,12 @@ export type Database = {
           delivery_type: Database["public"]["Enums"]["delivery_type"]
           id?: string
           is_product?: boolean | null
+          mpesa_receipt_number?: string | null
           package_description?: string | null
           package_value?: number | null
           packaging_color?: string | null
+          paid_at?: string | null
+          payment_status?: string
           pickup_point?: string | null
           receiver_address: string
           receiver_name: string
@@ -104,9 +110,12 @@ export type Database = {
           delivery_type?: Database["public"]["Enums"]["delivery_type"]
           id?: string
           is_product?: boolean | null
+          mpesa_receipt_number?: string | null
           package_description?: string | null
           package_value?: number | null
           packaging_color?: string | null
+          paid_at?: string | null
+          payment_status?: string
           pickup_point?: string | null
           receiver_address?: string
           receiver_name?: string

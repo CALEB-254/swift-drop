@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Search, Package, Bell, LayoutDashboard, User } from 'lucide-react';
+import { Home, Search, Package, Bell, LayoutDashboard, User, ShoppingCart } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuthContext } from '@/contexts/AuthContext';
@@ -15,7 +15,7 @@ const senderNavItems: Omit<NavItem, 'badge'>[] = [
   { icon: Home, label: 'Home', path: '/sender' },
   { icon: LayoutDashboard, label: 'Dashboard', path: '/sender/dashboard' },
   { icon: Package, label: 'Send', path: '/sender/new' },
-  { icon: Bell, label: 'Alerts', path: '/notifications' },
+  { icon: ShoppingCart, label: 'Cart', path: '/sender/cart' },
   { icon: User, label: 'Profile', path: '/profile/edit' },
 ];
 

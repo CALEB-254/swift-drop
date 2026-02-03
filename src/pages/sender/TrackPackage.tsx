@@ -3,10 +3,11 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Search, Package, User, Phone, MapPin, Clock, Copy, Check, Loader2 } from 'lucide-react';
+import { ArrowLeft, Search, Package, User, Phone, MapPin, Clock, Copy, Check, Loader2, QrCode } from 'lucide-react';
 import { usePackages, Package as PackageType } from '@/hooks/usePackages';
 import { TrackingTimeline } from '@/components/TrackingTimeline';
 import { StatusBadge } from '@/components/StatusBadge';
+import { QRScanner } from '@/components/QRScanner';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 
@@ -18,7 +19,13 @@ const TrackPackage = forwardRef<HTMLDivElement>(function TrackPackage(_, ref) {
   const [pkg, setPkg] = useState<PackageType | null>(null);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
+  const [showScanner, setShowScanner] = useState(false);
   const { getPackageByTracking } = usePackages();
+
+  const handleQRScan = (trackingNumber: string) => {
+    setSearchQuery(trackingNumber);
+    searchPackage(trackingNumber);
+  };
 
   const searchPackage = async (query: string) => {
     if (!query.trim()) return;
@@ -78,11 +85,26 @@ const TrackPackage = forwardRef<HTMLDivElement>(function TrackPackage(_, ref) {
               onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
               className="bg-primary-foreground/10 border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/50"
             />
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={() => setShowScanner(true)}
+              className="text-primary-foreground hover:bg-primary-foreground/10 shrink-0"
+            >
+              <QrCode className="w-5 h-5" />
+            </Button>
             <Button variant="accent" onClick={handleSearch} disabled={loading}>
               {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Search className="w-5 h-5" />}
             </Button>
           </div>
         </div>
+
+        {/* QR Scanner Dialog */}
+        <QRScanner 
+          open={showScanner} 
+          onClose={() => setShowScanner(false)} 
+          onScan={handleQRScan} 
+        />
       </div>
 
       <div className="container py-6 px-4">

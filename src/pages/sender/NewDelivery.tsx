@@ -70,11 +70,11 @@ export default function NewDelivery() {
         packagingColor: formData.packagingColor || undefined,
       });
 
-      toast.success('Delivery created successfully!', {
-        description: `Tracking: ${newPackage.trackingNumber}`,
+      toast.success('Delivery added to cart!', {
+        description: `Tracking: ${newPackage.trackingNumber}. Pay to process.`,
       });
 
-      navigate(`/sender/track?q=${newPackage.trackingNumber}`);
+      navigate('/sender/cart');
     } catch (error) {
       toast.error('Failed to create delivery', {
         description: error instanceof Error ? error.message : 'Please try again',
