@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
-import { Search, ChevronDown, Store, Sliders, Zap, Truck, Bus } from 'lucide-react';
+import { Search, ChevronDown, Store, Zap, Truck, Bus } from 'lucide-react';
 import { AnnouncementBanner } from '@/components/AnnouncementBanner';
 import { BottomNav } from '@/components/BottomNav';
 import { HelpButton } from '@/components/HelpButton';
 import { DeliveryTypeCard } from '@/components/DeliveryTypeCard';
+import { TopHeader } from '@/components/TopHeader';
 import { DELIVERY_TYPES, DeliveryType } from '@/types/delivery';
 
 const iconMap: Record<string, React.ReactNode> = {
@@ -47,22 +48,8 @@ export default function SenderHome() {
 
         <div className="relative px-4 py-6">
           {/* Top Bar */}
-          <div className="flex items-center justify-between mb-6">
-            <button className="flex items-center gap-2 text-primary-foreground">
-              <span className="font-semibold">Canyi Delivery</span>
-              <ChevronDown className="w-4 h-4" />
-            </button>
-            <div className="flex items-center gap-4">
-              <button className="p-2">
-                <Store className="w-6 h-6 text-primary-foreground" />
-              </button>
-              <button className="p-2">
-                <Store className="w-6 h-6 text-primary-foreground" />
-              </button>
-              <button className="p-2">
-                <Sliders className="w-6 h-6 text-primary-foreground" />
-              </button>
-            </div>
+          <div className="mb-6">
+            <TopHeader />
           </div>
 
           {/* Search Bar */}

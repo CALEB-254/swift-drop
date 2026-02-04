@@ -1,5 +1,7 @@
 import { StatusBadge } from './StatusBadge';
 import { Card, CardContent } from '@/components/ui/card';
+import { PackageQRCode } from './PackageQRCode';
+import { PrintReceiptButton } from './PrintReceiptButton';
 import { Package as PackageIcon, MapPin, User, Phone, Clock } from 'lucide-react';
 import { format } from 'date-fns';
 import { PackageStatus, DeliveryType } from '@/types/delivery';
@@ -25,10 +27,12 @@ interface PackageCardProps {
   pkg: PackageData;
   onClick?: () => void;
   showActions?: boolean;
+  showQRCode?: boolean;
+  showPrint?: boolean;
   children?: React.ReactNode;
 }
 
-export function PackageCard({ pkg, onClick, children }: PackageCardProps) {
+export function PackageCard({ pkg, onClick, showQRCode = false, showPrint = false, children }: PackageCardProps) {
   return (
     <Card 
       className="shadow-card hover:shadow-lg transition-all duration-300 cursor-pointer border-0 overflow-hidden group"
@@ -93,6 +97,20 @@ export function PackageCard({ pkg, onClick, children }: PackageCardProps) {
               KES {pkg.cost.toLocaleString()}
             </div>
           </div>
+          
+          {/* QR Code Section */}
+          {showQRCode && (
+            <div className="pt-3 border-t border-border flex justify-center" onClick={(e) => e.stopPropagation()}>
+              <PackageQRCode trackingNumber={pkg.trackingNumber} size={100} />
+            </div>
+          )}
+          
+          {/* Print Button */}
+          {showPrint && (
+            <div className="pt-3 border-t border-border flex justify-end" onClick={(e) => e.stopPropagation()}>
+              <PrintReceiptButton pkg={pkg} />
+            </div>
+          )}
           
           {children && (
             <div className="pt-3 border-t border-border" onClick={(e) => e.stopPropagation()}>

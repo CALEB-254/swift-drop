@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { usePackages, Package } from '@/hooks/usePackages';
+import { TopHeader } from '@/components/TopHeader';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -20,6 +21,8 @@ import {
 import { BottomNav } from '@/components/BottomNav';
 import { HelpButton } from '@/components/HelpButton';
 import { StatusBadge } from '@/components/StatusBadge';
+import { PrintReceiptButton } from '@/components/PrintReceiptButton';
+import { PackageQRCode } from '@/components/PackageQRCode';
 import {
   Search,
   Package as PackageIcon,
@@ -28,7 +31,6 @@ import {
   Clock,
   CheckCircle2,
   Truck,
-  ArrowLeft,
   RefreshCw,
   Download,
   FileText,
@@ -37,6 +39,8 @@ import {
   ChevronLeft,
   ChevronRight,
   X,
+  QrCode,
+  Printer,
 } from 'lucide-react';
 import { format, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
 import { STATUS_LABELS, DELIVERY_TYPES, PackageStatus } from '@/types/delivery';
@@ -265,13 +269,18 @@ export default function SenderDashboard() {
     <div className="min-h-screen bg-background pb-20">
       {/* Header */}
       <div className="gradient-hero px-4 py-6">
-        <div className="flex items-center justify-between mb-4">
-          <Link to="/sender" className="p-2 -ml-2">
-            <ArrowLeft className="w-6 h-6 text-primary-foreground" />
-          </Link>
-          <h1 className="font-display text-xl font-bold text-primary-foreground">
-            My Dashboard
-          </h1>
+        <div className="mb-4">
+          <TopHeader />
+        </div>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="font-display text-xl font-bold text-primary-foreground">
+              My Dashboard
+            </h1>
+            <p className="text-primary-foreground/80">
+              Welcome back, {profile?.full_name || 'Sender'}
+            </p>
+          </div>
           <Button
             variant="ghost"
             size="sm"
@@ -281,9 +290,6 @@ export default function SenderDashboard() {
             Logout
           </Button>
         </div>
-        <p className="text-primary-foreground/80">
-          Welcome back, {profile?.full_name || 'Sender'}
-        </p>
       </div>
 
       {/* Analytics Cards */}
@@ -519,8 +525,8 @@ export default function SenderDashboard() {
           <>
             <div className="space-y-3">
               {paginatedPackages.map((pkg) => (
-                <Link key={pkg.id} to={`/sender/track?tracking=${pkg.trackingNumber}`}>
-                  <Card className="shadow-card hover:shadow-md transition-shadow">
+                <Card key={pkg.id} className="shadow-card hover:shadow-md transition-shadow">
+                  <Link to={`/sender/track?tracking=${pkg.trackingNumber}`}>
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between mb-2">
                         <div>
@@ -543,8 +549,16 @@ export default function SenderDashboard() {
                         <p className="font-semibold">KES {pkg.cost}</p>
                       </div>
                     </CardContent>
-                  </Card>
-                </Link>
+                  </Link>
+                  {/* QR and Print Actions */}
+                  <div className="px-4 pb-4 pt-2 border-t border-border flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <QrCode className="w-3.5 h-3.5" />
+                      <span className="font-mono">{pkg.trackingNumber}</span>
+                    </div>
+                    <PrintReceiptButton pkg={pkg} />
+                  </div>
+                </Card>
               ))}
             </div>
 
