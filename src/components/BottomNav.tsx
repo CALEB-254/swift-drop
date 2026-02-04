@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Search, Package, Bell, LayoutDashboard, User, ShoppingCart } from 'lucide-react';
+import { Home, Search, Bell, LayoutDashboard, User } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuthContext } from '@/contexts/AuthContext';
@@ -14,14 +14,13 @@ interface NavItem {
 const senderNavItems: Omit<NavItem, 'badge'>[] = [
   { icon: Home, label: 'Home', path: '/sender' },
   { icon: LayoutDashboard, label: 'Dashboard', path: '/sender/dashboard' },
-  { icon: Package, label: 'Send', path: '/sender/new' },
-  { icon: ShoppingCart, label: 'Cart', path: '/sender/cart' },
+  { icon: Search, label: 'Track', path: '/sender/track' },
   { icon: User, label: 'Profile', path: '/profile/edit' },
 ];
 
 const agentNavItems: Omit<NavItem, 'badge'>[] = [
   { icon: LayoutDashboard, label: 'Dashboard', path: '/agent' },
-  { icon: Bell, label: 'Alerts', path: '/notifications' },
+  { icon: Bell, label: 'Notifications', path: '/notifications' },
   { icon: User, label: 'Profile', path: '/profile/edit' },
 ];
 
