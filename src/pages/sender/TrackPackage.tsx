@@ -8,6 +8,7 @@ import { usePackages, Package as PackageType } from '@/hooks/usePackages';
 import { TrackingTimeline } from '@/components/TrackingTimeline';
 import { StatusBadge } from '@/components/StatusBadge';
 import { QRScanner } from '@/components/QRScanner';
+import { BottomNav } from '@/components/BottomNav';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 
@@ -63,7 +64,7 @@ const TrackPackage = forwardRef<HTMLDivElement>(function TrackPackage(_, ref) {
   };
 
   return (
-    <div ref={ref} className="min-h-screen bg-background">
+    <div ref={ref} className="min-h-screen bg-background pb-20">
       {/* Header */}
       <div className="gradient-primary text-primary-foreground p-4">
         <div className="container">
@@ -258,6 +259,7 @@ const TrackPackage = forwardRef<HTMLDivElement>(function TrackPackage(_, ref) {
           </Card>
         )}
       </div>
+      <BottomNav />
     </div>
   );
 });
