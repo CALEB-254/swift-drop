@@ -33,9 +33,36 @@ interface PrintReceiptButtonProps {
 export function PrintReceiptButton({ pkg, variant = 'outline', size = 'sm' }: PrintReceiptButtonProps) {
   const receiptRef = useRef<HTMLDivElement>(null);
 
-  const handlePrint = () => {
+  const handlePrint = async () => {
     if (!receiptRef.current) return;
 
+    // Try Bluetooth printing first if available
+    if ('bluetooth' in navigator) {
+      try {
+        const device = await (navigator as any).bluetooth.requestDevice({
+          filters: [{ services: ['000018f0-0000-1000-8000-00805f9b34fb'] }],
+          optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb']
+        });
+        
+        const server = await device.gatt?.connect();
+        if (server) {
+          // Format receipt text for thermal printer
+          const receiptText = formatReceiptForPrinter(pkg);
+          const encoder = new TextEncoder();
+          const data = encoder.encode(receiptText);
+          
+          const service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
+          const characteristic = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb');
+          await characteristic.writeValue(data);
+          
+          return;
+        }
+      } catch (err) {
+        console.log('Bluetooth printing not available, falling back to browser print');
+      }
+    }
+
+    // Fallback to browser print
     const printContent = receiptRef.current.innerHTML;
     const printWindow = window.open('', '_blank');
     if (printWindow) {
@@ -69,6 +96,36 @@ export function PrintReceiptButton({ pkg, variant = 'outline', size = 'sm' }: Pr
         printWindow.close();
       }, 250);
     }
+  };
+
+  const formatReceiptForPrinter = (pkg: PrintReceiptButtonProps['pkg']) => {
+    const line = '================================\n';
+    return `
+${line}
+      CANYI DELIVERY
+${line}
+Tracking: ${pkg.trackingNumber}
+Date: ${pkg.createdAt.toLocaleDateString()}
+${line}
+SENDER
+${pkg.senderName}
+${pkg.senderPhone}
+${line}
+RECEIVER
+${pkg.receiverName}
+${pkg.receiverPhone}
+${pkg.receiverAddress}
+${line}
+Type: ${pkg.deliveryType}
+${pkg.pickupPoint ? `Pickup: ${pkg.pickupPoint}\n` : ''}
+${line}
+TOTAL: KES ${pkg.cost}
+${pkg.paymentStatus === 'paid' ? 'PAID' : 'UNPAID'}
+${pkg.mpesaReceiptNumber ? `M-Pesa: ${pkg.mpesaReceiptNumber}` : ''}
+${line}
+    Thank you!
+${line}
+`;
   };
 
   return (

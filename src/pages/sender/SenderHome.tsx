@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Search, ChevronDown, Store, Zap, Truck, Bus } from 'lucide-react';
-import { AnnouncementBanner } from '@/components/AnnouncementBanner';
 import { BottomNav } from '@/components/BottomNav';
 import { HelpButton } from '@/components/HelpButton';
 import { DeliveryTypeCard } from '@/components/DeliveryTypeCard';
@@ -29,11 +28,6 @@ export default function SenderHome() {
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      {/* Announcement Banner */}
-      <AnnouncementBanner
-        title="📢 New Juja Branch Now Open!"
-        message="New JUJA Pickup Canyi Parcel Office! Enjoy safer, faster, more reliable parcel collection near you. Find us opposite EQUITY AFYA. For inquiries, contact +254701430225."
-      />
 
       {/* Header with Map Background */}
       <div className="gradient-hero relative overflow-hidden">

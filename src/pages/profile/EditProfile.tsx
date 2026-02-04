@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { BottomNav } from '@/components/BottomNav';
 import { toast } from 'sonner';
 import { ArrowLeft, Camera, Loader2, User } from 'lucide-react';
 
@@ -111,7 +112,7 @@ export default function EditProfile() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-20">
       {/* Header */}
       <div className="gradient-hero px-4 py-6">
         <div className="flex items-center gap-3">
@@ -240,6 +241,7 @@ export default function EditProfile() {
           </CardContent>
         </Card>
       </div>
+      <BottomNav />
     </div>
   );
 }
