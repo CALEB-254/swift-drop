@@ -14,6 +14,54 @@ export type Database = {
   }
   public: {
     Tables: {
+      agents: {
+        Row: {
+          address: string | null
+          business_name: string
+          created_at: string
+          id: string
+          is_active: boolean | null
+          latitude: number | null
+          location: string
+          longitude: number | null
+          operating_hours: string | null
+          phone: string
+          services: string[] | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          address?: string | null
+          business_name: string
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          latitude?: number | null
+          location: string
+          longitude?: number | null
+          operating_hours?: string | null
+          phone: string
+          services?: string[] | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          address?: string | null
+          business_name?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          latitude?: number | null
+          location?: string
+          longitude?: number | null
+          operating_hours?: string | null
+          phone?: string
+          services?: string[] | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
@@ -167,6 +215,36 @@ export type Database = {
         }
         Relationships: []
       }
+      user_preferences: {
+        Row: {
+          bluetooth_enabled: boolean | null
+          created_at: string
+          id: string
+          notifications_enabled: boolean | null
+          theme: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          bluetooth_enabled?: boolean | null
+          created_at?: string
+          id?: string
+          notifications_enabled?: boolean | null
+          theme?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          bluetooth_enabled?: boolean | null
+          created_at?: string
+          id?: string
+          notifications_enabled?: boolean | null
+          theme?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
@@ -201,6 +279,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_admin: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
       delivery_type: "xpress" | "pickup_point" | "doorstep" | "errand"
@@ -211,7 +290,7 @@ export type Database = {
         | "out_for_delivery"
         | "delivered"
         | "cancelled"
-      user_role: "sender" | "agent"
+      user_role: "sender" | "agent" | "admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -348,7 +427,7 @@ export const Constants = {
         "delivered",
         "cancelled",
       ],
-      user_role: ["sender", "agent"],
+      user_role: ["sender", "agent", "admin"],
     },
   },
 } as const

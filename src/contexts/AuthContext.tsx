@@ -9,7 +9,7 @@ interface Profile {
   phone: string;
   address: string | null;
   avatar_url: string | null;
-  role: 'sender' | 'agent';
+  role: 'sender' | 'agent' | 'admin';
   created_at: string;
   updated_at: string;
 }

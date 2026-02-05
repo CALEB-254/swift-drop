@@ -21,6 +21,12 @@ import VerifyOTP from "./pages/auth/VerifyOTP";
 import AuthCallback from "./pages/auth/AuthCallback";
 import EditProfile from "./pages/profile/EditProfile";
 import Notifications from "./pages/Notifications";
+import Preferences from "./pages/Preferences";
+import AgentList from "./pages/AgentList";
+import Terms from "./pages/Terms";
+import Feedback from "./pages/Feedback";
+import Customers from "./pages/Customers";
+import AdminDashboard from "./pages/admin/AdminDashboard";
 
 const queryClient = new QueryClient();
 
@@ -111,6 +117,58 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Notifications />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Protected Settings Routes */}
+            <Route
+              path="/preferences"
+              element={
+                <ProtectedRoute>
+                  <Preferences />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/agents"
+              element={
+                <ProtectedRoute>
+                  <AgentList />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/customers"
+              element={
+                <ProtectedRoute>
+                  <Customers />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/terms"
+              element={
+                <ProtectedRoute>
+                  <Terms />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/feedback"
+              element={
+                <ProtectedRoute>
+                  <Feedback />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Admin Routes */}
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute requiredRole="admin">
+                  <AdminDashboard />
                 </ProtectedRoute>
               }
             />
