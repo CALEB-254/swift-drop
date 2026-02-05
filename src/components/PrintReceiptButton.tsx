@@ -1,6 +1,6 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Printer } from 'lucide-react';
+import { Printer, Bluetooth, Loader2 } from 'lucide-react';
 import { PackageReceipt } from './PackageReceipt';
 import {
   Dialog,
@@ -9,6 +9,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import { toast } from 'sonner';
 
 interface PrintReceiptButtonProps {
   pkg: {
@@ -32,36 +33,114 @@ interface PrintReceiptButtonProps {
 
 export function PrintReceiptButton({ pkg, variant = 'outline', size = 'sm' }: PrintReceiptButtonProps) {
   const receiptRef = useRef<HTMLDivElement>(null);
+  const [isConnecting, setIsConnecting] = useState(false);
+  const [connectedPrinter, setConnectedPrinter] = useState<any>(null);
 
-  const handlePrint = async () => {
-    if (!receiptRef.current) return;
-
-    // Try Bluetooth printing first if available
-    if ('bluetooth' in navigator) {
-      try {
-        const device = await (navigator as any).bluetooth.requestDevice({
-          filters: [{ services: ['000018f0-0000-1000-8000-00805f9b34fb'] }],
-          optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb']
-        });
-        
-        const server = await device.gatt?.connect();
-        if (server) {
-          // Format receipt text for thermal printer
-          const receiptText = formatReceiptForPrinter(pkg);
-          const encoder = new TextEncoder();
-          const data = encoder.encode(receiptText);
-          
-          const service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
-          const characteristic = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb');
-          await characteristic.writeValue(data);
-          
-          return;
-        }
-      } catch (err) {
-        console.log('Bluetooth printing not available, falling back to browser print');
-      }
+  const scanForPrinters = async () => {
+    if (!('bluetooth' in navigator)) {
+      toast.error('Bluetooth is not supported on this device');
+      return;
     }
 
+    setIsConnecting(true);
+    try {
+      // Request Bluetooth device with broader filters for thermal printers
+      const device = await (navigator as any).bluetooth.requestDevice({
+        acceptAllDevices: true,
+        optionalServices: [
+          '000018f0-0000-1000-8000-00805f9b34fb', // Generic thermal printer
+          '49535343-fe7d-4ae5-8fa9-9fafd205e455', // Nordic UART
+          '0000ff00-0000-1000-8000-00805f9b34fb', // Common printer service
+          '0000ffe0-0000-1000-8000-00805f9b34fb', // HM-10 BLE
+          'e7810a71-73ae-499d-8c15-faa9aef0c3f2', // RN4870/RN4871
+        ]
+      });
+
+      if (device) {
+        setConnectedPrinter(device);
+        toast.success(`Connected to ${device.name || 'Bluetooth Printer'}`);
+      }
+    } catch (err: any) {
+      if (err.name !== 'NotFoundError') {
+        console.error('Bluetooth error:', err);
+        toast.error('Failed to connect to printer');
+      }
+    } finally {
+      setIsConnecting(false);
+    }
+  };
+
+  const printViaBluetooth = async () => {
+    if (!connectedPrinter) {
+      toast.error('No printer connected');
+      return;
+    }
+
+    setIsConnecting(true);
+    try {
+      const server = await connectedPrinter.gatt?.connect();
+      if (!server) {
+        throw new Error('Could not connect to printer');
+      }
+
+      // Try different service UUIDs
+      const serviceUUIDs = [
+        '000018f0-0000-1000-8000-00805f9b34fb',
+        '49535343-fe7d-4ae5-8fa9-9fafd205e455',
+        '0000ff00-0000-1000-8000-00805f9b34fb',
+        '0000ffe0-0000-1000-8000-00805f9b34fb',
+        'e7810a71-73ae-499d-8c15-faa9aef0c3f2',
+      ];
+
+      let printed = false;
+      for (const serviceUUID of serviceUUIDs) {
+        try {
+          const service = await server.getPrimaryService(serviceUUID);
+          const characteristics = await service.getCharacteristics();
+          
+          for (const characteristic of characteristics) {
+            if (characteristic.properties.write || characteristic.properties.writeWithoutResponse) {
+              const receiptText = formatReceiptForPrinter(pkg);
+              const encoder = new TextEncoder();
+              const data = encoder.encode(receiptText);
+              
+              // Split data into chunks for BLE transfer
+              const chunkSize = 20;
+              for (let i = 0; i < data.length; i += chunkSize) {
+                const chunk = data.slice(i, i + chunkSize);
+                if (characteristic.properties.writeWithoutResponse) {
+                  await characteristic.writeValueWithoutResponse(chunk);
+                } else {
+                  await characteristic.writeValue(chunk);
+                }
+                await new Promise(resolve => setTimeout(resolve, 50));
+              }
+              
+              printed = true;
+              toast.success('Receipt printed successfully!');
+              break;
+            }
+          }
+          if (printed) break;
+        } catch {
+          // Try next service
+        }
+      }
+
+      if (!printed) {
+        toast.error('Could not print - incompatible printer');
+      }
+    } catch (err: any) {
+      console.error('Print error:', err);
+      toast.error('Failed to print receipt');
+    } finally {
+      setIsConnecting(false);
+    }
+  };
+
+  const handleBrowserPrint = () => {
+    if (!receiptRef.current) return;
+    
     // Fallback to browser print
     const printContent = receiptRef.current.innerHTML;
     const printWindow = window.open('', '_blank');
@@ -144,10 +223,39 @@ ${line}
           <PackageReceipt ref={receiptRef} pkg={pkg} />
         </div>
         <div className="flex gap-2 mt-4">
-          <Button onClick={handlePrint} className="flex-1 gap-2">
+          <Button onClick={handleBrowserPrint} className="flex-1 gap-2">
             <Printer className="w-4 h-4" />
-            Print Receipt
+            Browser Print
           </Button>
+          {connectedPrinter ? (
+            <Button 
+              onClick={printViaBluetooth} 
+              variant="secondary"
+              className="flex-1 gap-2"
+              disabled={isConnecting}
+            >
+              {isConnecting ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Bluetooth className="w-4 h-4" />
+              )}
+              {connectedPrinter.name || 'Printer'}
+            </Button>
+          ) : (
+            <Button 
+              onClick={scanForPrinters} 
+              variant="outline"
+              className="flex-1 gap-2"
+              disabled={isConnecting}
+            >
+              {isConnecting ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Bluetooth className="w-4 h-4" />
+              )}
+              Connect Printer
+            </Button>
+          )}
         </div>
       </DialogContent>
     </Dialog>

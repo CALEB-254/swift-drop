@@ -103,8 +103,9 @@ export function QRScanner({ open, onClose, onScan }: QRScannerProps) {
 
     // Validate it looks like a tracking number (starts with MTN)
     if (trackingNumber.toUpperCase().startsWith('MTN') || trackingNumber.length >= 8) {
-      toast.success('QR Code scanned!');
+      // Stop scanning immediately to prevent continuous loop
       stopScanning();
+      toast.success('QR Code scanned!');
       onScan(trackingNumber);
       onClose();
     } else {

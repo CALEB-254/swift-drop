@@ -1,8 +1,9 @@
 import { Link } from 'react-router-dom';
-import { ShoppingCart, Bell, ChevronDown, Store, Sliders } from 'lucide-react';
+import { ShoppingCart, Bell, ChevronDown } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuthContext } from '@/contexts/AuthContext';
+import { ProfileDropdown } from './ProfileDropdown';
 
 export function TopHeader() {
   const { user } = useAuthContext();
@@ -99,9 +100,7 @@ export function TopHeader() {
             </span>
           )}
         </Link>
-        <button className="p-2">
-          <Sliders className="w-6 h-6 text-primary-foreground" />
-        </button>
+        <ProfileDropdown />
       </div>
     </div>
   );

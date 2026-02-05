@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Search, ChevronDown, Store, Zap, Truck, Bus } from 'lucide-react';
 import { BottomNav } from '@/components/BottomNav';
@@ -48,20 +48,19 @@ export default function SenderHome() {
 
           {/* Search Bar */}
           <div className="relative">
-            <div className="bg-card rounded-lg flex items-center overflow-hidden">
-              <div className="px-4">
-                <Search className="w-5 h-5 text-muted-foreground" />
+            <Link to="/agents">
+              <div className="bg-card rounded-lg flex items-center overflow-hidden">
+                <div className="px-4">
+                  <Search className="w-5 h-5 text-muted-foreground" />
+                </div>
+                <div className="flex-1 h-10 flex items-center text-muted-foreground">
+                  Find the nearest agent
+                </div>
+                <div className="px-4 py-3 hover:bg-muted transition-colors">
+                  <ChevronDown className="w-5 h-5 text-muted-foreground rotate-[-90deg]" />
+                </div>
               </div>
-              <Input
-                placeholder="Find the nearest agent"
-                value={searchAgent}
-                onChange={(e) => setSearchAgent(e.target.value)}
-                className="border-0 focus-visible:ring-0 bg-transparent"
-              />
-              <button className="px-4 py-3 hover:bg-muted transition-colors">
-                <ChevronDown className="w-5 h-5 text-muted-foreground rotate-[-90deg]" />
-              </button>
-            </div>
+            </Link>
           </div>
         </div>
       </div>
