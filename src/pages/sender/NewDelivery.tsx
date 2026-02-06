@@ -95,7 +95,7 @@ export default function NewDelivery() {
                 <ArrowLeft className="w-6 h-6" />
               </button>
             </Link>
-            <h1 className="font-display text-lg font-semibold">Mtaani Delivery</h1>
+            <h1 className="font-display text-lg font-semibold">SwiftDrop</h1>
           </div>
           <button className="p-2">
             <ShoppingCart className="w-6 h-6" />

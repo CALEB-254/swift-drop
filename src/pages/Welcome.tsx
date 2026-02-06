@@ -7,7 +7,6 @@ export default function Welcome() {
     <div className="min-h-screen bg-background flex flex-col">
       {/* Hero Section */}
       <div className="gradient-hero relative overflow-hidden flex-1 flex flex-col">
-        {/* Map pattern overlay */}
         <div 
           className="absolute inset-0 opacity-10"
           style={{
@@ -23,7 +22,7 @@ export default function Welcome() {
               <Package className="w-6 h-6 text-primary" />
             </div>
             <span className="font-display text-xl font-bold text-primary-foreground">
-              Canyi Delivery
+              SwiftDrop
             </span>
           </div>
 

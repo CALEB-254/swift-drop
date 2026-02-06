@@ -17,10 +17,8 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  // Redirect if already logged in
   useEffect(() => {
     if (!loading && user) {
-      // Redirect based on role, default to sender if no profile yet
       const redirectPath = profile?.role === 'agent' ? '/agent' : '/sender';
       navigate(redirectPath);
     }
@@ -29,7 +27,6 @@ export default function Login() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
-
     try {
       await signIn(email, password);
       toast.success('Welcome back!');
@@ -42,17 +39,15 @@ export default function Login() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Header */}
       <header className="p-4 flex items-center gap-3 justify-center">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
             <Package className="w-5 h-5 text-primary-foreground" />
           </div>
-          <span className="font-bold text-lg">Canyi Delivery</span>
+          <span className="font-bold text-lg">SwiftDrop</span>
         </div>
       </header>
 
-      {/* Content */}
       <div className="flex-1 flex items-center justify-center p-4">
         <Card className="w-full max-w-md border-0 shadow-lg">
           <CardHeader className="text-center pb-2">
@@ -63,66 +58,31 @@ export default function Login() {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="Enter your email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="h-12"
-                />
+                <Input id="email" type="email" placeholder="Enter your email" value={email} onChange={(e) => setEmail(e.target.value)} required className="h-12" />
               </div>
-
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
                 <div className="relative">
-                  <Input
-                    id="password"
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder="Enter your password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    className="h-12 pr-12"
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
+                  <Input id="password" type={showPassword ? 'text' : 'password'} placeholder="Enter your password" value={password} onChange={(e) => setPassword(e.target.value)} required className="h-12 pr-12" />
+                  <Button type="button" variant="ghost" size="icon" className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8" onClick={() => setShowPassword(!showPassword)}>
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </Button>
                 </div>
               </div>
-
-              <Button 
-                type="submit" 
-                className="w-full h-12 text-base font-semibold"
-                disabled={submitting}
-              >
+              <Button type="submit" className="w-full h-12 text-base font-semibold" disabled={submitting}>
                 {submitting ? 'Signing in...' : 'Sign In'}
               </Button>
-
               <div className="text-right">
-                <Link to="/auth/forgot-password" className="text-sm text-primary hover:underline">
-                  Forgot Password?
-                </Link>
+                <Link to="/auth/forgot-password" className="text-sm text-primary hover:underline">Forgot Password?</Link>
               </div>
             </form>
-
             <div className="mt-6">
               <SocialLoginButtons mode="login" />
             </div>
-
             <div className="mt-6 text-center">
-              <p className="text-muted-foreground">
+              <p className="text-foreground">
                 Don't have an account?{' '}
-                <Link to="/auth/signup" className="text-primary font-semibold hover:underline">
-                  Sign Up
-                </Link>
+                <Link to="/auth/signup" className="text-primary font-semibold hover:underline">Sign Up</Link>
               </p>
             </div>
           </CardContent>

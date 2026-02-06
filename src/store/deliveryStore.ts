@@ -1,7 +1,6 @@
 import { create } from 'zustand';
 import { Package, Agent, PackageStatus, DELIVERY_PRICING, DeliveryType } from '@/types/delivery';
 
-// Generate tracking number
 const generateTrackingNumber = () => {
   const prefix = 'MTN';
   const random = Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -11,8 +10,6 @@ const generateTrackingNumber = () => {
 
 const getCostByType = (type: DeliveryType): number => {
   switch (type) {
-    case 'xpress':
-      return DELIVERY_PRICING.xpressCost;
     case 'pickup_point':
       return DELIVERY_PRICING.pickupPointCost;
     case 'doorstep':
@@ -24,7 +21,6 @@ const getCostByType = (type: DeliveryType): number => {
   }
 };
 
-// Demo packages
 const demoPackages: Package[] = [
   {
     id: '1',
@@ -84,7 +80,6 @@ const demoPackages: Package[] = [
   },
 ];
 
-// Demo agent
 const demoAgent: Agent = {
   id: '1',
   name: 'James Mwangi',
@@ -138,12 +133,8 @@ export const useDeliveryStore = create<DeliveryStore>((set, get) => ({
       const updatedPackages = state.packages.map((pkg) => {
         if (pkg.id === id) {
           const updated = { ...pkg, status, updatedAt: new Date() };
-          
-          // If delivered, calculate commission
           if (status === 'delivered' && pkg.agentId) {
             updated.commission = pkg.cost * DELIVERY_PRICING.commissionRate;
-            
-            // Update agent's commission
             set((s) => ({
               agent: {
                 ...s.agent,
@@ -154,12 +145,10 @@ export const useDeliveryStore = create<DeliveryStore>((set, get) => ({
               },
             }));
           }
-          
           return updated;
         }
         return pkg;
       });
-
       return { packages: updatedPackages };
     });
   },
@@ -167,14 +156,9 @@ export const useDeliveryStore = create<DeliveryStore>((set, get) => ({
   assignAgent: (packageId, agentId) => {
     set((state) => ({
       packages: state.packages.map((pkg) =>
-        pkg.id === packageId
-          ? { ...pkg, agentId, updatedAt: new Date() }
-          : pkg
+        pkg.id === packageId ? { ...pkg, agentId, updatedAt: new Date() } : pkg
       ),
-      agent: {
-        ...state.agent,
-        activeDeliveries: state.agent.activeDeliveries + 1,
-      },
+      agent: { ...state.agent, activeDeliveries: state.agent.activeDeliveries + 1 },
     }));
   },
 
