@@ -1,4 +1,4 @@
-export type DeliveryType = 'xpress' | 'pickup_point' | 'doorstep' | 'errand';
+export type DeliveryType = 'pickup_point' | 'doorstep' | 'errand';
 
 export type PackageStatus = 
   | 'pending' 
@@ -44,7 +44,6 @@ export interface Agent {
 }
 
 export interface DeliveryPricing {
-  xpressCost: number;
   pickupPointCost: number;
   doorstepCost: number;
   errandCost: number;
@@ -52,21 +51,13 @@ export interface DeliveryPricing {
 }
 
 export const DELIVERY_PRICING: DeliveryPricing = {
-  xpressCost: 250,
   pickupPointCost: 150,
   doorstepCost: 300,
   errandCost: 200,
-  commissionRate: 0.15, // 15% commission
+  commissionRate: 0.15,
 };
 
 export const DELIVERY_TYPES = [
-  {
-    id: 'xpress' as DeliveryType,
-    name: 'Xpress Delivery',
-    description: "Send a package and it'll be delivered in 1 hour or less, from Nairobi, CBD.",
-    icon: 'zap',
-    cost: 250,
-  },
   {
     id: 'pickup_point' as DeliveryType,
     name: 'Agent Pickup Point',

@@ -35,7 +35,7 @@ export const PackageReceipt = forwardRef<HTMLDivElement, PackageReceiptProps>(
       >
         {/* Header */}
         <div className="text-center border-b-2 border-dashed border-gray-300 pb-4 mb-4">
-          <h1 className="text-xl font-bold">CANYI DELIVERY</h1>
+          <h1 className="text-xl font-bold">SWIFTDROP</h1>
           <p className="text-xs text-gray-600">Delivery Receipt</p>
           <p className="text-xs text-gray-600">{format(new Date(), 'PPpp')}</p>
         </div>
@@ -129,7 +129,7 @@ export const PackageReceipt = forwardRef<HTMLDivElement, PackageReceiptProps>(
 
         {/* Footer */}
         <div className="text-center pt-4 text-xs text-gray-600">
-          <p>Thank you for choosing Canyi Delivery!</p>
+          <p>Thank you for choosing SwiftDrop!</p>
           <p className="mt-1">For inquiries: +254701430225</p>
           <p className="mt-2 text-[10px]">Keep this receipt for your records</p>
         </div>

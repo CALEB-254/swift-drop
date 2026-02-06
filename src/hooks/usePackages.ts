@@ -44,8 +44,6 @@ const generateTrackingNumber = () => {
 
 const getCostByType = (type: DeliveryType): number => {
   switch (type) {
-    case 'xpress':
-      return DELIVERY_PRICING.xpressCost;
     case 'pickup_point':
       return DELIVERY_PRICING.pickupPointCost;
     case 'doorstep':

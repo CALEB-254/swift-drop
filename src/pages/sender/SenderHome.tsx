@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Input } from '@/components/ui/input';
-import { Search, ChevronDown, Store, Zap, Truck, Bus } from 'lucide-react';
+import { Search, ChevronDown, Store, Truck, Bus } from 'lucide-react';
 import { BottomNav } from '@/components/BottomNav';
 import { HelpButton } from '@/components/HelpButton';
 import { DeliveryTypeCard } from '@/components/DeliveryTypeCard';
@@ -9,7 +8,6 @@ import { TopHeader } from '@/components/TopHeader';
 import { DELIVERY_TYPES, DeliveryType } from '@/types/delivery';
 
 const iconMap: Record<string, React.ReactNode> = {
-  zap: <Zap className="w-6 h-6 text-primary" />,
   store: <Store className="w-6 h-6 text-primary" />,
   truck: <Truck className="w-6 h-6 text-primary" />,
   bus: <Bus className="w-6 h-6 text-primary" />,
@@ -17,21 +15,17 @@ const iconMap: Record<string, React.ReactNode> = {
 
 export default function SenderHome() {
   const navigate = useNavigate();
-  const [searchAgent, setSearchAgent] = useState('');
   const [selectedType, setSelectedType] = useState<DeliveryType | null>(null);
 
   const handleTypeSelect = (type: DeliveryType) => {
     setSelectedType(type);
-    // Navigate to new delivery with selected type
     navigate(`/sender/new?type=${type}`);
   };
 
   return (
     <div className="min-h-screen bg-background pb-20">
-
       {/* Header with Map Background */}
       <div className="gradient-hero relative overflow-hidden">
-        {/* Map pattern overlay */}
         <div 
           className="absolute inset-0 opacity-20"
           style={{
@@ -39,14 +33,10 @@ export default function SenderHome() {
             backgroundSize: '100px 100px',
           }}
         />
-
         <div className="relative px-4 py-6">
-          {/* Top Bar */}
           <div className="mb-6">
             <TopHeader />
           </div>
-
-          {/* Search Bar */}
           <div className="relative">
             <Link to="/agents">
               <div className="bg-card rounded-lg flex items-center overflow-hidden">
@@ -71,7 +61,6 @@ export default function SenderHome() {
           <h2 className="font-display text-lg font-semibold">Choose Delivery Type</h2>
           <p className="text-sm text-muted-foreground">Select one delivery mode, that fits you</p>
         </div>
-
         <div className="space-y-3">
           {DELIVERY_TYPES.map((type) => (
             <DeliveryTypeCard
