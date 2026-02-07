@@ -43,7 +43,7 @@ export const PackageReceipt = forwardRef<HTMLDivElement, PackageReceiptProps>(
         <div className="text-center border-b border-black pb-3 mb-3">
           <h1 className="text-xl font-bold tracking-wider">SWIFTDROP</h1>
           <p className="text-[10px] mt-1">Fast & Reliable Delivery</p>
-          <p className="text-[10px]">TEL: +254701430225</p>
+          <p className="text-[10px]">TEL: +254114606020</p>
         </div>
 
         {/* Parcel Info */}
