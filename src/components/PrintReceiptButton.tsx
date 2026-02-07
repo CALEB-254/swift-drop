@@ -106,20 +106,70 @@ async function printViaBluetooth(pkg: ReceiptPkg) {
     'e7810a71-73ae-499d-8c15-faa9aef0c3f2',
   ];
 
-  const line = '================================\n';
-  const receiptText = `
-${line}        SWIFTDROP\n${line}
-Tracking: ${pkg.trackingNumber}
-Date: ${pkg.createdAt.toLocaleDateString()}
-${line}SENDER: ${pkg.senderName}
-${line}RECEIVER: ${pkg.receiverName}
-Address: ${pkg.receiverAddress}
-${line}Type: ${pkg.deliveryType}
-${pkg.pickupPoint ? `Pickup: ${pkg.pickupPoint}\n` : ''}${pkg.packageDescription ? `Package: ${pkg.packageDescription}\n` : ''}${line}
+  const line = '--------------------------------\n';
+const boldLine = '================================\n';
+
+const receiptText = `
+${boldLine}
+              SWIFTDROP
+        Fast & Reliable Delivery
+        TEL: +254701430225
+${boldLine}
+
+PARCEL NO: ${pkg.trackingNumber}
+TOTAL ITEMS: ${pkg.quantity || 1}
+
+${line}
+SENDER DETAILS
+${pkg.senderName}
+${pkg.senderAddress || ''}
+
+PRIORITY: ${pkg.priority || 'A'}
+${line}
+
+RECEIVER DETAILS
+${pkg.receiverName}
+${pkg.receiverAddress}
+
+${line}
+TRACKING CODE: ${pkg.trackingNumber}
+
+AGENT PICKUP POINT:
+${pkg.pickupPoint || 'N/A'}
+
+Quantity: ${pkg.quantity || 1}
+Value: KES ${pkg.declaredValue || pkg.cost}
+Desc: ${pkg.packageDescription || 'N/A'}
+
+WEIGHT: ${pkg.weight || '0'} KG
+${line}
+
+PAYMENT METHOD: ${pkg.paymentMethod || 'CASH'}
+
+TAXABLE: KES ${(pkg.cost * 0.86).toFixed(2)}
+TAX (16%): KES ${(pkg.cost * 0.16).toFixed(2)}
+
 TOTAL: KES ${pkg.cost}
-${pkg.paymentStatus === 'paid' ? 'PAID' : 'UNPAID'}
-${pkg.mpesaReceiptNumber ? `M-Pesa: ${pkg.mpesaReceiptNumber}` : ''}
-${line}    Thank you!\n${line}`;
+STATUS: ${pkg.paymentStatus === 'paid' ? 'PAID' : 'UNPAID'}
+
+${pkg.mpesaReceiptNumber ? `M-PESA CODE: ${pkg.mpesaReceiptNumber}\n` : ''}
+
+${line}
+TERMS & CONDITIONS
+You MUST declare parcel VALUE.
+Above Ksh.5000 must be insured by SENDER.
+Compensation up to Ksh.5000 only.
+Fragile items sent at OWNER'S RISK.
+${line}
+
+Printed on: ${new Date(pkg.createdAt).toLocaleString()}
+
+${boldLine}
+        THANK YOU FOR CHOOSING
+              SWIFTDROP
+${boldLine}
+`;
+
 
   const encoder = new TextEncoder();
   const data = encoder.encode(receiptText);
