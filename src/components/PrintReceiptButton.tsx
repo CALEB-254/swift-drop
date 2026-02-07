@@ -106,8 +106,125 @@ async function printViaBluetooth(pkg: ReceiptPkg) {
     'e7810a71-73ae-499d-8c15-faa9aef0c3f2',
   ];
 
+  // ================================
+// SWIFTDROP RECEIPT PRINT MODULE
+// POS / LOVABLE AI READY
+// ================================
+
+const TAX_RATE = 0.16;
+
+// ESC/POS Printer Example (replace with your printer instance)
+const printer = {
+  initialize: async () => console.log("Printer Initialized"),
+  printText: async (text) => console.log(text),
+  printImage: async (path) => console.log(`Printing Logo: ${path}`),
+  printQRCode: async (data) => console.log(`QR Code: ${data}`),
+  cut: async () => console.log("Paper Cut")
+};
+
+async function printReceipt(pkg) {
+
   const line = '--------------------------------\n';
-const boldLine = '================================\n';
+  const bold = '================================\n';
+
+  const taxable = (pkg.cost / (1 + TAX_RATE)).toFixed(2);
+  const tax = (pkg.cost - taxable).toFixed(2);
+
+  // OPTIONAL LOGO IMAGE PATH
+  const logoPath = '/logo-swiftdrop.png';
+
+  // ========================
+  // RECEIPT TEXT BODY
+  // ========================
+  const receiptText = `
+${bold}
+               SWIFTDROP
+         Fast & Reliable Delivery
+            TEL: +254701430225
+${bold}
+
+PARCEL NO: ${pkg.trackingNumber}
+TOTAL ITEMS: ${pkg.quantity || 1}
+
+${line}
+SENDER DETAILS
+${pkg.senderName}
+${pkg.senderAddress || ''}
+
+PRIORITY: ${pkg.priority || 'A'}
+${line}
+
+RECEIVER DETAILS
+${pkg.receiverName}
+${pkg.receiverAddress}
+
+${line}
+TRACKING CODE
+${pkg.trackingNumber}
+
+AGENT PICKUP POINT
+${pkg.pickupPoint || 'N/A'}
+
+Quantity : ${pkg.quantity || 1}
+Value    : KES ${pkg.declaredValue || pkg.cost}
+Desc     : ${pkg.packageDescription || 'N/A'}
+Weight   : ${pkg.weight || '0'} KG
+${line}
+
+PAYMENT METHOD: ${pkg.paymentMethod || 'CASH'}
+
+${bold}
+ITEM              AMOUNT (KES)
+${bold}
+TAXABLE           ${taxable}
+TAX (16%)         ${tax}
+TOTAL             ${pkg.cost}
+${bold}
+
+PAYMENT STATUS: ${pkg.paymentStatus === 'paid' ? 'PAID' : 'UNPAID'}
+
+${pkg.mpesaReceiptNumber ? `M-PESA CODE: ${pkg.mpesaReceiptNumber}\n` : ''}
+
+${line}
+TERMS & CONDITIONS
+You MUST declare parcel VALUE.
+Above Ksh.5000 must be insured by SENDER.
+Compensation limited to Ksh.5000.
+Fragile items sent at OWNER'S RISK.
+${line}
+
+Printed on: ${new Date(pkg.createdAt).toLocaleString()}
+
+${bold}
+QR CODE
+${bold}
+
+Tracking Ref: ${pkg.trackingNumber}
+
+${bold}
+      THANK YOU FOR CHOOSING
+              SWIFTDROP
+${bold}
+`;
+
+  // ========================
+  // PRINT PROCESS
+  // ========================
+  await printer.initialize();
+
+  // PRINT LOGO (if supported)
+  await printer.printImage(logoPath);
+
+  // PRINT RECEIPT TEXT
+  await printer.printText(receiptText);
+
+  // PRINT QR CODE
+  await printer.printQRCode(pkg.trackingNumber);
+
+  // CUT PAPER
+  await printer.cut();
+}
+
 
 const receiptText = `
 ${boldLine}
