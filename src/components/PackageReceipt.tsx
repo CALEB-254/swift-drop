@@ -8,12 +8,15 @@ interface PackageReceiptProps {
     trackingNumber: string;
     senderName: string;
     senderPhone: string;
+    senderAddress?: string | null;
     receiverName: string;
     receiverPhone: string;
     receiverAddress: string;
     deliveryType: string;
     pickupPoint?: string | null;
     packageDescription?: string | null;
+    packageValue?: number | null;
+    weight?: number | null;
     cost: number;
     createdAt: Date;
     paymentStatus?: string;
@@ -27,103 +30,135 @@ export const PackageReceipt = forwardRef<HTMLDivElement, PackageReceiptProps>(
       return DELIVERY_TYPES.find((t) => t.id === type)?.name || type;
     };
 
+    const taxable = Math.round((pkg.cost / 1.16) * 100) / 100;
+    const tax = Math.round((pkg.cost - taxable) * 100) / 100;
+
     return (
       <div 
         ref={ref}
         className="bg-white p-6 max-w-[320px] mx-auto text-black"
-        style={{ fontFamily: 'monospace' }}
+        style={{ fontFamily: 'monospace', fontSize: '12px' }}
       >
         {/* Header */}
-        <div className="text-center border-b-2 border-dashed border-gray-300 pb-4 mb-4">
-          <h1 className="text-xl font-bold">SWIFTDROP</h1>
-          <p className="text-xs text-gray-600">Delivery Receipt</p>
-          <p className="text-xs text-gray-600">{format(new Date(), 'PPpp')}</p>
+        <div className="text-center border-b border-black pb-3 mb-3">
+          <h1 className="text-xl font-bold tracking-wider">SWIFTDROP</h1>
+          <p className="text-[10px] mt-1">Fast & Reliable Delivery</p>
+          <p className="text-[10px]">TEL: +254701430225</p>
         </div>
 
-        {/* QR Code */}
-        <div className="flex justify-center mb-4">
-          <div className="bg-white p-2 rounded">
-            <QRCodeSVG 
-              value={pkg.trackingNumber}
-              size={100}
-              level="H"
-            />
+        {/* Parcel Info */}
+        <div className="text-center border-b border-dashed border-gray-400 pb-3 mb-3">
+          <p className="text-[10px]">PARCEL NO: <span className="font-bold">{pkg.trackingNumber}</span></p>
+          <p className="text-[10px]">TOTAL ITEMS: 1</p>
+        </div>
+
+        {/* Sender Details */}
+        <div className="border border-black mb-3">
+          <div className="flex">
+            <div className="flex-1 p-2 border-r border-black">
+              <p className="font-bold text-[11px] mb-1">SENDER DETAILS</p>
+              <p>{pkg.senderName}</p>
+              {pkg.senderAddress && <p className="text-[10px]">{pkg.senderAddress}</p>}
+            </div>
+            <div className="p-2 flex flex-col items-center justify-center w-20">
+              <p className="text-[10px] font-bold">PRIORITY</p>
+              <p className="text-2xl font-bold">A</p>
+            </div>
           </div>
         </div>
 
-        {/* Tracking Number */}
-        <div className="text-center mb-4">
-          <p className="text-xs text-gray-600">Tracking Number</p>
-          <p className="font-bold text-lg">{pkg.trackingNumber}</p>
+        {/* Receiver Details with QR */}
+        <div className="border border-black mb-3">
+          <div className="flex">
+            <div className="p-2 flex items-center justify-center border-r border-black">
+              <QRCodeSVG 
+                value={pkg.trackingNumber}
+                size={64}
+                level="H"
+              />
+            </div>
+            <div className="flex-1 p-2">
+              <p className="font-bold text-[11px] mb-1">RECEIVER DETAILS</p>
+              <p>{pkg.receiverName}</p>
+              <p className="text-[10px]">{pkg.receiverAddress}</p>
+              {pkg.pickupPoint && (
+                <p className="text-[10px]">{pkg.pickupPoint}</p>
+              )}
+            </div>
+          </div>
         </div>
 
-        {/* Details - No phone numbers */}
-        <div className="border-t border-b border-dashed border-gray-300 py-4 space-y-2 text-sm">
-          <div className="flex justify-between">
-            <span className="text-gray-600">From:</span>
-            <span className="font-medium text-right max-w-[180px]">{pkg.senderName}</span>
-          </div>
-          <div className="border-t border-dashed border-gray-200 my-2" />
-          <div className="flex justify-between">
-            <span className="text-gray-600">To:</span>
-            <span className="font-medium text-right max-w-[180px]">{pkg.receiverName}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-600">Address:</span>
-            <span className="text-right max-w-[180px]">{pkg.receiverAddress}</span>
-          </div>
-          {pkg.pickupPoint && (
-            <div className="flex justify-between">
-              <span className="text-gray-600">Pickup:</span>
-              <span className="text-right max-w-[180px]">{pkg.pickupPoint}</span>
-            </div>
-          )}
-          <div className="border-t border-dashed border-gray-200 my-2" />
-          <div className="flex justify-between">
-            <span className="text-gray-600">Type:</span>
-            <span>{getDeliveryTypeName(pkg.deliveryType)}</span>
-          </div>
-          {pkg.packageDescription && (
-            <div className="flex justify-between">
-              <span className="text-gray-600">Package:</span>
-              <span className="text-right max-w-[180px]">{pkg.packageDescription}</span>
-            </div>
-          )}
-          <div className="flex justify-between">
-            <span className="text-gray-600">Created:</span>
-            <span>{format(pkg.createdAt, 'dd/MM/yyyy HH:mm')}</span>
-          </div>
-          {pkg.mpesaReceiptNumber && (
-            <div className="flex justify-between">
-              <span className="text-gray-600">M-Pesa:</span>
-              <span>{pkg.mpesaReceiptNumber}</span>
-            </div>
-          )}
+        {/* Tracking & Type */}
+        <div className="flex justify-between items-center mb-3">
+          <p className="font-bold text-sm">{pkg.trackingNumber}</p>
+          <span className="text-[10px] uppercase">{getDeliveryTypeName(pkg.deliveryType)}</span>
         </div>
 
-        {/* Total */}
-        <div className="py-4 border-b border-dashed border-gray-300">
-          <div className="flex justify-between items-center">
-            <span className="text-lg font-bold">TOTAL:</span>
-            <span className="text-xl font-bold">KES {pkg.cost.toLocaleString()}</span>
+        {/* Quantity & Weight */}
+        <div className="flex justify-between items-center border-b border-dashed border-gray-400 pb-3 mb-3">
+          <div>
+            <p className="text-[10px]">Quantity: 1</p>
+            {pkg.packageValue != null && <p className="text-[10px]">Value: {pkg.packageValue.toLocaleString()} KES</p>}
+            {pkg.packageDescription && <p className="text-[10px]">Desc: {pkg.packageDescription}</p>}
           </div>
-          {pkg.paymentStatus && (
-            <div className="flex justify-between mt-1">
-              <span className="text-gray-600 text-sm">Status:</span>
-              <span className={`text-sm font-medium ${
-                pkg.paymentStatus === 'paid' ? 'text-green-600' : 'text-orange-600'
-              }`}>
-                {pkg.paymentStatus.toUpperCase()}
-              </span>
-            </div>
-          )}
+          <div className="border border-black px-3 py-1 text-center">
+            <p className="font-bold">{pkg.weight ?? 0} KG</p>
+          </div>
+        </div>
+
+        {/* Cost Breakdown */}
+        <div className="border border-black mb-3">
+          <table className="w-full text-[11px]">
+            <tbody>
+              <tr className="border-b border-black">
+                <td className="p-1 border-r border-black" rowSpan={2}>
+                  <span className="font-bold">{pkg.paymentStatus === 'paid' ? 'PAID' : 'CASH'}</span>
+                </td>
+                <td className="p-1 border-r border-black text-right font-bold">TAXABLE</td>
+                <td className="p-1 text-right">{taxable.toFixed(2)}</td>
+              </tr>
+              <tr className="border-b border-black">
+                <td className="p-1 border-r border-black text-right font-bold">TAX (16%)</td>
+                <td className="p-1 text-right">{tax.toFixed(2)}</td>
+              </tr>
+              <tr>
+                <td className="p-1 border-r border-black"></td>
+                <td className="p-1 border-r border-black text-right font-bold">TOTAL</td>
+                <td className="p-1 text-right font-bold">{pkg.cost.toLocaleString()}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        {/* M-Pesa receipt if available */}
+        {pkg.mpesaReceiptNumber && (
+          <div className="text-center text-[10px] mb-3">
+            <p>M-Pesa Ref: <span className="font-bold">{pkg.mpesaReceiptNumber}</span></p>
+          </div>
+        )}
+
+        {/* Terms */}
+        <div className="border border-black p-2 mb-3 text-[9px]">
+          <p className="font-bold text-center text-[10px] mb-1">TERMS & CONDITIONS</p>
+          <p>You MUST declare parcel VALUE. Above Ksh.5000 to be insured by SENDER. Compensation is up to Ksh.5000. Perishable & Fragile not compensated. FRAGILE ITEMS SENT AT OWNERS RISK</p>
         </div>
 
         {/* Footer */}
-        <div className="text-center pt-4 text-xs text-gray-600">
-          <p>Thank you for choosing SwiftDrop!</p>
-          <p className="mt-1">For inquiries: +254701430225</p>
-          <p className="mt-2 text-[10px]">Keep this receipt for your records</p>
+        <div className="text-center text-[10px] mb-3">
+          <p>Printed on: {format(new Date(), 'dd MMM yyyy hh:mm a')}</p>
+        </div>
+
+        {/* Invoice QR */}
+        <div className="text-center border-t border-dashed border-gray-400 pt-3">
+          <p className="text-[10px] font-bold mb-2">INVOICE NO.</p>
+          <div className="flex justify-center">
+            <QRCodeSVG 
+              value={pkg.trackingNumber}
+              size={80}
+              level="H"
+            />
+          </div>
+          <p className="text-[9px] mt-2">POWERED BY SWIFTDROP</p>
         </div>
       </div>
     );

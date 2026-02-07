@@ -10,12 +10,15 @@ interface DownloadReceiptButtonProps {
     trackingNumber: string;
     senderName: string;
     senderPhone: string;
+    senderAddress?: string | null;
     receiverName: string;
     receiverPhone: string;
     receiverAddress: string;
     deliveryType: string;
     pickupPoint?: string | null;
     packageDescription?: string | null;
+    packageValue?: number | null;
+    weight?: number | null;
     cost: number;
     createdAt: Date;
     paymentStatus?: string;
