@@ -22,6 +22,7 @@ import { BottomNav } from '@/components/BottomNav';
 import { HelpButton } from '@/components/HelpButton';
 import { StatusBadge } from '@/components/StatusBadge';
 import { PrintReceiptButton } from '@/components/PrintReceiptButton';
+import { DownloadReceiptButton } from '@/components/DownloadReceiptButton';
 import { PackageQRCode } from '@/components/PackageQRCode';
 import {
   Search,
@@ -550,13 +551,16 @@ export default function SenderDashboard() {
                       </div>
                     </CardContent>
                   </Link>
-                  {/* QR and Print Actions */}
+                  {/* QR, Download and Print Actions */}
                   <div className="px-4 pb-4 pt-2 border-t border-border flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <QrCode className="w-3.5 h-3.5" />
                       <span className="font-mono">{pkg.trackingNumber}</span>
                     </div>
-                    <PrintReceiptButton pkg={pkg} />
+                    <div className="flex gap-2">
+                      <DownloadReceiptButton pkg={pkg} />
+                      <PrintReceiptButton pkg={pkg} />
+                    </div>
                   </div>
                 </Card>
               ))}
