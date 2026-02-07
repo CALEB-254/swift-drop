@@ -69,7 +69,7 @@ export default function Welcome() {
               <Button 
                 size="lg" 
                 variant="outline"
-                className="w-full h-14 text-base font-semibold border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10"
+                className="w-full h-14 text-base font-semibold border-white/40 text-white hover:bg-white/10"
               >
                 Create Account
               </Button>

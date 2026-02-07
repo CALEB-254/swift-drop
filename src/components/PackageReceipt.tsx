@@ -57,24 +57,16 @@ export const PackageReceipt = forwardRef<HTMLDivElement, PackageReceiptProps>(
           <p className="font-bold text-lg">{pkg.trackingNumber}</p>
         </div>
 
-        {/* Details */}
+        {/* Details - No phone numbers */}
         <div className="border-t border-b border-dashed border-gray-300 py-4 space-y-2 text-sm">
           <div className="flex justify-between">
             <span className="text-gray-600">From:</span>
             <span className="font-medium text-right max-w-[180px]">{pkg.senderName}</span>
           </div>
-          <div className="flex justify-between">
-            <span className="text-gray-600">Phone:</span>
-            <span>{pkg.senderPhone}</span>
-          </div>
           <div className="border-t border-dashed border-gray-200 my-2" />
           <div className="flex justify-between">
             <span className="text-gray-600">To:</span>
             <span className="font-medium text-right max-w-[180px]">{pkg.receiverName}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-600">Phone:</span>
-            <span>{pkg.receiverPhone}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-600">Address:</span>
