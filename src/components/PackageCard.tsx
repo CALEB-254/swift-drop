@@ -2,6 +2,7 @@ import { StatusBadge } from './StatusBadge';
 import { Card, CardContent } from '@/components/ui/card';
 import { PackageQRCode } from './PackageQRCode';
 import { PrintReceiptButton } from './PrintReceiptButton';
+import { DownloadReceiptButton } from './DownloadReceiptButton';
 import { Package as PackageIcon, MapPin, User, Phone, Clock } from 'lucide-react';
 import { format } from 'date-fns';
 import { PackageStatus, DeliveryType } from '@/types/delivery';
@@ -105,9 +106,10 @@ export function PackageCard({ pkg, onClick, showQRCode = false, showPrint = fals
             </div>
           )}
           
-          {/* Print Button */}
+          {/* Print & Download Buttons */}
           {showPrint && (
-            <div className="pt-3 border-t border-border flex justify-end" onClick={(e) => e.stopPropagation()}>
+            <div className="pt-3 border-t border-border flex justify-end gap-2" onClick={(e) => e.stopPropagation()}>
+              <DownloadReceiptButton pkg={pkg} />
               <PrintReceiptButton pkg={pkg} />
             </div>
           )}

@@ -1,25 +1,28 @@
 import { useRef, useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Printer, Loader2 } from 'lucide-react';
 import { PackageReceipt } from './PackageReceipt';
 import { toast } from 'sonner';
 
+interface ReceiptPkg {
+  trackingNumber: string;
+  senderName: string;
+  senderPhone: string;
+  receiverName: string;
+  receiverPhone: string;
+  receiverAddress: string;
+  deliveryType: string;
+  pickupPoint?: string | null;
+  packageDescription?: string | null;
+  cost: number;
+  createdAt: Date;
+  paymentStatus?: string;
+  mpesaReceiptNumber?: string | null;
+}
+
 interface PrintReceiptButtonProps {
-  pkg: {
-    trackingNumber: string;
-    senderName: string;
-    senderPhone: string;
-    receiverName: string;
-    receiverPhone: string;
-    receiverAddress: string;
-    deliveryType: string;
-    pickupPoint?: string | null;
-    packageDescription?: string | null;
-    cost: number;
-    createdAt: Date;
-    paymentStatus?: string;
-    mpesaReceiptNumber?: string | null;
-  };
+  pkg: ReceiptPkg;
   variant?: 'default' | 'outline' | 'ghost';
   size?: 'default' | 'sm' | 'lg' | 'icon';
 }
@@ -27,14 +30,20 @@ interface PrintReceiptButtonProps {
 export function PrintReceiptButton({ pkg, variant = 'outline', size = 'sm' }: PrintReceiptButtonProps) {
   const receiptRef = useRef<HTMLDivElement>(null);
   const [isPrinting, setIsPrinting] = useState(false);
+  const navigate = useNavigate();
 
-  const printDirect = useCallback(async () => {
-    setIsPrinting(true);
-    
-    // Check if a Bluetooth printer is saved in localStorage
+  const handlePrint = useCallback(async () => {
     const savedPrinterId = localStorage.getItem('bt_printer_id');
     
-    if (savedPrinterId && 'bluetooth' in navigator) {
+    if (!savedPrinterId) {
+      toast.error('No printer connected. Redirecting to Preferences...');
+      navigate('/preferences');
+      return;
+    }
+
+    setIsPrinting(true);
+
+    if ('bluetooth' in navigator) {
       try {
         await printViaBluetooth(pkg);
         setIsPrinting(false);
@@ -43,53 +52,17 @@ export function PrintReceiptButton({ pkg, variant = 'outline', size = 'sm' }: Pr
         // Fall through to browser print
       }
     }
-    
-    // Browser print with full receipt including QR code
-    printViaBrowser();
+
+    printViaBrowser(receiptRef, pkg);
     setIsPrinting(false);
-  }, [pkg]);
-
-  const printViaBrowser = () => {
-    // Create a hidden container, render the receipt, then print
-    const container = document.createElement('div');
-    container.style.position = 'fixed';
-    container.style.left = '-9999px';
-    container.style.top = '0';
-    document.body.appendChild(container);
-
-    // Use receiptRef if available, otherwise create inline
-    const receiptHtml = receiptRef.current?.innerHTML || generateReceiptHTML(pkg);
-    
-    const printWindow = window.open('', '_blank');
-    if (printWindow) {
-      printWindow.document.write(`
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <title>Receipt - ${pkg.trackingNumber}</title>
-          <style>
-            body { margin: 0; padding: 20px; font-family: monospace; display: flex; justify-content: center; }
-            @media print { body { padding: 0; } }
-          </style>
-        </head>
-        <body>${receiptHtml}</body>
-        </html>
-      `);
-      printWindow.document.close();
-      printWindow.focus();
-      setTimeout(() => { printWindow.print(); printWindow.close(); }, 250);
-    }
-    
-    document.body.removeChild(container);
-  };
+  }, [pkg, navigate]);
 
   return (
     <>
-      {/* Hidden receipt for generating print content */}
       <div style={{ position: 'fixed', left: '-9999px', top: 0 }}>
         <PackageReceipt ref={receiptRef} pkg={pkg} />
       </div>
-      <Button variant={variant} size={size} className="gap-2" onClick={printDirect} disabled={isPrinting}>
+      <Button variant={variant} size={size} className="gap-2" onClick={handlePrint} disabled={isPrinting}>
         {isPrinting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Printer className="w-4 h-4" />}
         <span className="hidden sm:inline">Print</span>
       </Button>
@@ -97,7 +70,20 @@ export function PrintReceiptButton({ pkg, variant = 'outline', size = 'sm' }: Pr
   );
 }
 
-async function printViaBluetooth(pkg: PrintReceiptButtonProps['pkg']) {
+function printViaBrowser(receiptRef: React.RefObject<HTMLDivElement | null>, pkg: ReceiptPkg) {
+  const receiptHtml = receiptRef.current?.innerHTML || generateReceiptHTML(pkg);
+  const printWindow = window.open('', '_blank');
+  if (printWindow) {
+    printWindow.document.write(`<!DOCTYPE html><html><head><title>Receipt - ${pkg.trackingNumber}</title>
+      <style>body{margin:0;padding:20px;font-family:monospace;display:flex;justify-content:center}@media print{body{padding:0}}</style>
+      </head><body>${receiptHtml}</body></html>`);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => { printWindow.print(); printWindow.close(); }, 250);
+  }
+}
+
+async function printViaBluetooth(pkg: ReceiptPkg) {
   const device = await (navigator as any).bluetooth.requestDevice({
     acceptAllDevices: true,
     optionalServices: [
@@ -122,30 +108,18 @@ async function printViaBluetooth(pkg: PrintReceiptButtonProps['pkg']) {
 
   const line = '================================\n';
   const receiptText = `
-${line}
-        SWIFTDROP
-${line}
+${line}        SWIFTDROP\n${line}
 Tracking: ${pkg.trackingNumber}
 Date: ${pkg.createdAt.toLocaleDateString()}
-${line}
-SENDER
-${pkg.senderName}
-${pkg.senderPhone}
-${line}
-RECEIVER
-${pkg.receiverName}
-${pkg.receiverPhone}
-${pkg.receiverAddress}
-${line}
-Type: ${pkg.deliveryType}
+${line}SENDER: ${pkg.senderName}
+${line}RECEIVER: ${pkg.receiverName}
+Address: ${pkg.receiverAddress}
+${line}Type: ${pkg.deliveryType}
 ${pkg.pickupPoint ? `Pickup: ${pkg.pickupPoint}\n` : ''}${pkg.packageDescription ? `Package: ${pkg.packageDescription}\n` : ''}${line}
 TOTAL: KES ${pkg.cost}
 ${pkg.paymentStatus === 'paid' ? 'PAID' : 'UNPAID'}
 ${pkg.mpesaReceiptNumber ? `M-Pesa: ${pkg.mpesaReceiptNumber}` : ''}
-${line}
-    Thank you!
-${line}
-`;
+${line}    Thank you!\n${line}`;
 
   const encoder = new TextEncoder();
   const data = encoder.encode(receiptText);
@@ -175,7 +149,7 @@ ${line}
   throw new Error('No compatible printer service');
 }
 
-function generateReceiptHTML(pkg: PrintReceiptButtonProps['pkg']) {
+function generateReceiptHTML(pkg: ReceiptPkg) {
   return `<div style="font-family:monospace;max-width:320px;margin:auto;padding:24px;color:#000">
     <div style="text-align:center;border-bottom:2px dashed #ccc;padding-bottom:16px;margin-bottom:16px">
       <h1 style="font-size:20px;font-weight:bold">SWIFTDROP</h1>
@@ -186,8 +160,8 @@ function generateReceiptHTML(pkg: PrintReceiptButtonProps['pkg']) {
       <p style="font-weight:bold;font-size:18px">${pkg.trackingNumber}</p>
     </div>
     <div style="border-top:1px dashed #ccc;border-bottom:1px dashed #ccc;padding:16px 0;font-size:14px">
-      <p><strong>From:</strong> ${pkg.senderName} (${pkg.senderPhone})</p>
-      <p><strong>To:</strong> ${pkg.receiverName} (${pkg.receiverPhone})</p>
+      <p><strong>From:</strong> ${pkg.senderName}</p>
+      <p><strong>To:</strong> ${pkg.receiverName}</p>
       <p><strong>Address:</strong> ${pkg.receiverAddress}</p>
       ${pkg.packageDescription ? `<p><strong>Package:</strong> ${pkg.packageDescription}</p>` : ''}
     </div>
