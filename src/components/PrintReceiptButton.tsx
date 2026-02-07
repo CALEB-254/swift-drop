@@ -225,32 +225,6 @@ ${bold}
   await printer.cut();
 }
 
-
-const receiptText = `
-${boldLine}
-<div style="font-family:monospace;max-width:320px;margin:auto;padding:24px;color:#000">
-    <div style="text-align:center;border-bottom:2px dashed #ccc;padding-bottom:16px;margin-bottom:16px">
-      <h1 style="font-size:20px;font-weight:bold">SWIFTDROP</h1>
-      <p style="font-size:12px;color:#666">Delivery Receipt</p>
-    </div>
-    <div style="text-align:center;margin-bottom:16px">
-      <p style="font-size:12px;color:#666">Tracking Number</p>
-      <p style="font-weight:bold;font-size:18px">${pkg.trackingNumber}</p>
-    </div>
-    <div style="border-top:1px dashed #ccc;border-bottom:1px dashed #ccc;padding:16px 0;font-size:14px">
-      <p><strong>From:</strong> ${pkg.senderName}</p>
-      <p><strong>To:</strong> ${pkg.receiverName}</p>
-      <p><strong>Address:</strong> ${pkg.receiverAddress}</p>
-      ${pkg.packageDescription ? `<p><strong>Package:</strong> ${pkg.packageDescription}</p>` : ''}
-    </div>
-    <div style="padding:16px 0;text-align:center">
-      <p style="font-size:20px;font-weight:bold">TOTAL: KES ${pkg.cost.toLocaleString()}</p>
-    </div>
-    <div style="text-align:center;font-size:12px;color:#666">
-      <p>Thank you for choosing SwiftDrop!</p>
-    </div>
-  </div>`;
-
   const encoder = new TextEncoder();
   const data = encoder.encode(receiptText);
 
