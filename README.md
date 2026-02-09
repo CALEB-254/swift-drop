@@ -2,7 +2,7 @@
 
 ## Project info
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+A modern delivery management system built with React, TypeScript, and Supabase.
 
 ## How can I edit this code?
 
@@ -10,7 +10,7 @@ There are several ways of editing your application.
 
 **Use Lovable**
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+If you're using Lovable to manage this project, visit your Lovable workspace and start prompting.
 
 Changes made via Lovable will be committed automatically to this repo.
 
@@ -27,12 +27,16 @@ Follow these steps:
 git clone <YOUR_GIT_URL>
 
 # Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+cd swift-drop
 
 # Step 3: Install the necessary dependencies.
 npm i
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Step 4: Create a .env file with your Supabase credentials.
+# Copy .env.example and add your actual Supabase project details
+cp .env.example .env
+
+# Step 5: Start the development server with auto-reloading and an instant preview.
 npm run dev
 ```
 
@@ -54,20 +58,62 @@ npm run dev
 
 This project is built with:
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+- **Vite** - Lightning-fast build tool and dev server
+- **TypeScript** - Type-safe JavaScript
+- **React** - Modern UI library
+- **shadcn-ui** - High-quality UI components
+- **Tailwind CSS** - Utility-first CSS framework
+- **Supabase** - Open-source Firebase alternative
+- **React Query** - Data synchronization library
+- **React Hook Form** - Performant form handling
+- **Zod** - Schema validation
 
-## How can I deploy this project?
+## Features
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+- 📦 Multi-user delivery tracking system
+- 🔐 Secure authentication with Supabase
+- 👥 Support for Senders, Agents, and Admins
+- 📊 Comprehensive dashboards for each user role
+- 🎨 Modern, responsive UI with Tailwind CSS
+- ✅ Form validation with Zod
 
-## Can I connect a custom domain to my Lovable project?
+## Environment Variables
 
-Yes, you can!
+Create a `.env` file in the root directory with the following variables:
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+```
+VITE_SUPABASE_PROJECT_ID=your_project_id_here
+VITE_SUPABASE_PUBLISHABLE_KEY=your_publishable_key_here
+VITE_SUPABASE_URL=https://your_project_id_here.supabase.co
+```
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+Never commit the `.env` file with real credentials. Use `.env.example` for template purposes.
+
+## Development
+
+```sh
+# Run development server
+npm run dev
+
+# Build for production
+npm run build
+
+# Build with development mode
+npm run build:dev
+
+# Preview production build locally
+npm run preview
+
+# Run linter
+npm run lint
+
+# Run tests
+npm run test
+
+# Watch tests
+npm run test:watch
+```
+
+## License
+
+This project is private. Contact the repository owner for more information.
