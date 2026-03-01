@@ -9,12 +9,15 @@ interface ReceiptPkg {
   trackingNumber: string;
   senderName: string;
   senderPhone: string;
+  senderAddress?: string | null;
   receiverName: string;
   receiverPhone: string;
   receiverAddress: string;
   deliveryType: string;
   pickupPoint?: string | null;
   packageDescription?: string | null;
+  packageValue?: number | null;
+  weight?: number | null;
   cost: number;
   createdAt: Date;
   paymentStatus?: string;
@@ -83,75 +86,30 @@ function printViaBrowser(receiptRef: React.RefObject<HTMLDivElement | null>, pkg
   }
 }
 
-async function printViaBluetooth(pkg: ReceiptPkg) {
-  const device = await (navigator as any).bluetooth.requestDevice({
-    acceptAllDevices: true,
-    optionalServices: [
-      '000018f0-0000-1000-8000-00805f9b34fb',
-      '49535343-fe7d-4ae5-8fa9-9fafd205e455',
-      '0000ff00-0000-1000-8000-00805f9b34fb',
-      '0000ffe0-0000-1000-8000-00805f9b34fb',
-      'e7810a71-73ae-499d-8c15-faa9aef0c3f2',
-    ]
-  });
-
-  const server = await device.gatt?.connect();
-  if (!server) throw new Error('Could not connect');
-
-  const serviceUUIDs = [
-    '000018f0-0000-1000-8000-00805f9b34fb',
-    '49535343-fe7d-4ae5-8fa9-9fafd205e455',
-    '0000ff00-0000-1000-8000-00805f9b34fb',
-    '0000ffe0-0000-1000-8000-00805f9b34fb',
-    'e7810a71-73ae-499d-8c15-faa9aef0c3f2',
-  ];
-
-  // ================================
-// SWIFTDROP RECEIPT PRINT MODULE
-// POS / LOVABLE AI READY
-// ================================
-
-const TAX_RATE = 0.16;
-
-// ESC/POS Printer Example (replace with your printer instance)
-const printer = {
-  initialize: async () => console.log("Printer Initialized"),
-  printText: async (text) => console.log(text),
-  printImage: async (path) => console.log(`Printing Logo: ${path}`),
-  printQRCode: async (data) => console.log(`QR Code: ${data}`),
-  cut: async () => console.log("Paper Cut")
-};
-
-async function printReceipt(pkg) {
+function generateReceiptText(pkg: ReceiptPkg): string {
+  const TAX_RATE = 0.16;
+  const taxable = (pkg.cost / (1 + TAX_RATE)).toFixed(2);
+  const tax = (pkg.cost - Number(taxable)).toFixed(2);
 
   const line = '--------------------------------\n';
   const bold = '================================\n';
 
-  const taxable = (pkg.cost / (1 + TAX_RATE)).toFixed(2);
-  const tax = (pkg.cost - taxable).toFixed(2);
-
-  // OPTIONAL LOGO IMAGE PATH
-  const logoPath = '/logo-swiftdrop.png';
-
-  // ========================
-  // RECEIPT TEXT BODY
-  // ========================
-  const receiptText = `
+  return `
 ${bold}
-               SWIFTDROP
-         Fast & Reliable Delivery
-            TEL: +254701430225
+             SWIFTDROP
+       Fast & Reliable Delivery
+          TEL: +254114606020
 ${bold}
 
 PARCEL NO: ${pkg.trackingNumber}
-TOTAL ITEMS: ${pkg.quantity || 1}
+TOTAL ITEMS: 1
 
 ${line}
 SENDER DETAILS
 ${pkg.senderName}
 ${pkg.senderAddress || ''}
 
-PRIORITY: ${pkg.priority || 'A'}
+PRIORITY: A
 ${line}
 
 RECEIVER DETAILS
@@ -165,13 +123,13 @@ ${pkg.trackingNumber}
 AGENT PICKUP POINT
 ${pkg.pickupPoint || 'N/A'}
 
-Quantity : ${pkg.quantity || 1}
-Value    : KES ${pkg.declaredValue || pkg.cost}
+Quantity : 1
+Value    : KES ${pkg.packageValue || pkg.cost}
 Desc     : ${pkg.packageDescription || 'N/A'}
 Weight   : ${pkg.weight || '0'} KG
 ${line}
 
-PAYMENT METHOD: ${pkg.paymentMethod || 'CASH'}
+PAYMENT METHOD: ${pkg.paymentStatus === 'paid' ? 'M-PESA' : 'CASH'}
 
 ${bold}
 ITEM              AMOUNT (KES)
@@ -196,35 +154,36 @@ ${line}
 Printed on: ${new Date(pkg.createdAt).toLocaleString()}
 
 ${bold}
-QR CODE
-${bold}
-
-Tracking Ref: ${pkg.trackingNumber}
-
-${bold}
-      THANK YOU FOR CHOOSING
-              SWIFTDROP
+     THANK YOU FOR CHOOSING
+             SWIFTDROP
 ${bold}
 `;
-
-  // ========================
-  // PRINT PROCESS
-  // ========================
-  await printer.initialize();
-
-  // PRINT LOGO (if supported)
-  await printer.printImage(logoPath);
-
-  // PRINT RECEIPT TEXT
-  await printer.printText(receiptText);
-
-  // PRINT QR CODE
-  await printer.printQRCode(pkg.trackingNumber);
-
-  // CUT PAPER
-  await printer.cut();
 }
 
+async function printViaBluetooth(pkg: ReceiptPkg) {
+  const device = await (navigator as any).bluetooth.requestDevice({
+    acceptAllDevices: true,
+    optionalServices: [
+      '000018f0-0000-1000-8000-00805f9b34fb',
+      '49535343-fe7d-4ae5-8fa9-9fafd205e455',
+      '0000ff00-0000-1000-8000-00805f9b34fb',
+      '0000ffe0-0000-1000-8000-00805f9b34fb',
+      'e7810a71-73ae-499d-8c15-faa9aef0c3f2',
+    ]
+  });
+
+  const server = await device.gatt?.connect();
+  if (!server) throw new Error('Could not connect');
+
+  const serviceUUIDs = [
+    '000018f0-0000-1000-8000-00805f9b34fb',
+    '49535343-fe7d-4ae5-8fa9-9fafd205e455',
+    '0000ff00-0000-1000-8000-00805f9b34fb',
+    '0000ffe0-0000-1000-8000-00805f9b34fb',
+    'e7810a71-73ae-499d-8c15-faa9aef0c3f2',
+  ];
+
+  const receiptText = generateReceiptText(pkg);
   const encoder = new TextEncoder();
   const data = encoder.encode(receiptText);
 

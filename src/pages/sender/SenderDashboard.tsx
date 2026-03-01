@@ -67,6 +67,7 @@ export default function SenderDashboard() {
   const [statusFilter, setStatusFilter] = useState<PackageStatus | 'all'>('all');
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [currentPage, setCurrentPage] = useState(1);
+  const [expandedQR, setExpandedQR] = useState<string | null>(null);
 
   // Filter packages based on search, status, and date range
   const filteredPackages = useMemo(() => {
@@ -552,15 +553,31 @@ export default function SenderDashboard() {
                     </CardContent>
                   </Link>
                   {/* QR, Download and Print Actions */}
-                  <div className="px-4 pb-4 pt-2 border-t border-border flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <QrCode className="w-3.5 h-3.5" />
-                      <span className="font-mono">{pkg.trackingNumber}</span>
+                  <div className="px-4 pb-4 pt-2 border-t border-border">
+                    <div className="flex items-center justify-between gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="gap-2 text-xs"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setExpandedQR(expandedQR === pkg.id ? null : pkg.id);
+                        }}
+                      >
+                        <QrCode className="w-3.5 h-3.5" />
+                        <span className="font-mono">{pkg.trackingNumber}</span>
+                      </Button>
+                      <div className="flex gap-2">
+                        <DownloadReceiptButton pkg={pkg} />
+                        <PrintReceiptButton pkg={pkg} />
+                      </div>
                     </div>
-                    <div className="flex gap-2">
-                      <DownloadReceiptButton pkg={pkg} />
-                      <PrintReceiptButton pkg={pkg} />
-                    </div>
+                    {expandedQR === pkg.id && (
+                      <div className="flex justify-center mt-3 pb-1">
+                        <PackageQRCode trackingNumber={pkg.trackingNumber} size={140} />
+                      </div>
+                    )}
                   </div>
                 </Card>
               ))}

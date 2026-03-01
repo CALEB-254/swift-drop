@@ -34,12 +34,12 @@ export interface Package {
   updatedAt: Date;
 }
 
-// Generate tracking number
+// Generate tracking number in SWF-D01-XXXX format
 const generateTrackingNumber = () => {
-  const prefix = 'MTN';
-  const random = Math.random().toString(36).substring(2, 8).toUpperCase();
-  const timestamp = Date.now().toString(36).toUpperCase().slice(-4);
-  return `${prefix}${random}${timestamp}`;
+  const prefix = 'SWF';
+  const agentCode = 'D01';
+  const randomNum = Math.floor(1000 + Math.random() * 9000); // 4-digit random
+  return `${prefix}-${agentCode}-${randomNum}`;
 };
 
 const getCostByType = (type: DeliveryType): number => {
