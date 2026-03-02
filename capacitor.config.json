@@ -1,0 +1,9 @@
+{
+  "appId": "app.lovable.405dd10f5fca4a54afa38e591d06a8b7",
+  "appName": "SwiftDrop",
+  "webDir": "dist",
+  "server": {
+    "url": "https://405dd10f-5fca-4a54-afa3-8e591d06a8b7.lovableproject.com?forceHideBadge=true",
+    "cleartext": true
+  }
+}
