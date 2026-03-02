@@ -23,7 +23,9 @@ import { HelpButton } from '@/components/HelpButton';
 import { StatusBadge } from '@/components/StatusBadge';
 import { PrintReceiptButton } from '@/components/PrintReceiptButton';
 import { DownloadReceiptButton } from '@/components/DownloadReceiptButton';
+import { ShareWhatsAppButton } from '@/components/ShareWhatsAppButton';
 import { PackageQRCode } from '@/components/PackageQRCode';
+import { PrinterDrawer } from '@/components/PrinterDrawer';
 import {
   Search,
   Package as PackageIcon,
@@ -41,8 +43,9 @@ import {
   ChevronRight,
   X,
   QrCode,
-  Printer,
-} from 'lucide-react';
+    Printer,
+    MessageCircle,
+  } from 'lucide-react';
 import { format, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
 import { STATUS_LABELS, DELIVERY_TYPES, PackageStatus } from '@/types/delivery';
 import { toast } from 'sonner';
@@ -68,6 +71,7 @@ export default function SenderDashboard() {
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [currentPage, setCurrentPage] = useState(1);
   const [expandedQR, setExpandedQR] = useState<string | null>(null);
+  const [showPrinterDrawer, setShowPrinterDrawer] = useState(false);
 
   // Filter packages based on search, status, and date range
   const filteredPackages = useMemo(() => {
@@ -569,6 +573,7 @@ export default function SenderDashboard() {
                         <span className="font-mono">{pkg.trackingNumber}</span>
                       </Button>
                       <div className="flex gap-2">
+                        <ShareWhatsAppButton pkg={pkg} />
                         <DownloadReceiptButton pkg={pkg} />
                         <PrintReceiptButton pkg={pkg} />
                       </div>
@@ -672,6 +677,7 @@ export default function SenderDashboard() {
       </div>
 
       <HelpButton />
+      <PrinterDrawer open={showPrinterDrawer} onOpenChange={setShowPrinterDrawer} onPrinterSelected={() => setShowPrinterDrawer(false)} />
       <BottomNav />
     </div>
   );
