@@ -24,23 +24,27 @@
    const [loading, setLoading] = useState(true);
    const [searchQuery, setSearchQuery] = useState('');
  
-   useEffect(() => {
-     const fetchAgents = async () => {
-       const { data, error } = await supabase
-         .from('agents')
-         .select('*')
-         .eq('is_active', true)
-         .order('business_name');
-       
-       if (data) {
-         setAgents(data);
-         setFilteredAgents(data);
-       }
-       setLoading(false);
-     };
-     
-     fetchAgents();
-   }, []);
+    useEffect(() => {
+      const fetchAgents = async () => {
+        const { data, error } = await supabase
+          .from('agents')
+          .select('*')
+          .eq('is_active', true)
+          .order('business_name');
+        
+        if (data) {
+          // Only show agents created by admin (those with tracking_prefix in services)
+          const adminAgents = data.filter(agent => 
+            agent.services?.some((s: string) => s.startsWith('tracking_prefix:'))
+          );
+          setAgents(adminAgents);
+          setFilteredAgents(adminAgents);
+        }
+        setLoading(false);
+      };
+      
+      fetchAgents();
+    }, []);
  
    useEffect(() => {
      if (!searchQuery.trim()) {

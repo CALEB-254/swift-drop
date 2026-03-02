@@ -1,8 +1,8 @@
 import { useRef, useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Printer, Loader2 } from 'lucide-react';
 import { PackageReceipt } from './PackageReceipt';
+import { PrinterDrawer } from './PrinterDrawer';
 import { toast } from 'sonner';
 
 interface ReceiptPkg {
@@ -33,14 +33,13 @@ interface PrintReceiptButtonProps {
 export function PrintReceiptButton({ pkg, variant = 'outline', size = 'sm' }: PrintReceiptButtonProps) {
   const receiptRef = useRef<HTMLDivElement>(null);
   const [isPrinting, setIsPrinting] = useState(false);
-  const navigate = useNavigate();
+  const [showDrawer, setShowDrawer] = useState(false);
 
   const handlePrint = useCallback(async () => {
     const savedPrinterId = localStorage.getItem('bt_printer_id');
     
     if (!savedPrinterId) {
-      toast.error('No printer connected. Redirecting to Preferences...');
-      navigate('/preferences');
+      setShowDrawer(true);
       return;
     }
 
@@ -58,7 +57,7 @@ export function PrintReceiptButton({ pkg, variant = 'outline', size = 'sm' }: Pr
 
     printViaBrowser(receiptRef, pkg);
     setIsPrinting(false);
-  }, [pkg, navigate]);
+  }, [pkg]);
 
   return (
     <>
@@ -69,6 +68,15 @@ export function PrintReceiptButton({ pkg, variant = 'outline', size = 'sm' }: Pr
         {isPrinting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Printer className="w-4 h-4" />}
         <span className="hidden sm:inline">Print</span>
       </Button>
+      <PrinterDrawer
+        open={showDrawer}
+        onOpenChange={setShowDrawer}
+        onPrinterSelected={() => {
+          setShowDrawer(false);
+          // Auto-print after connecting
+          setTimeout(() => handlePrint(), 500);
+        }}
+      />
     </>
   );
 }

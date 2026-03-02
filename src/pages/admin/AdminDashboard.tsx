@@ -11,6 +11,7 @@ import { StatusBadge } from '@/components/StatusBadge';
 import { PackageQRCode } from '@/components/PackageQRCode';
 import { PrintReceiptButton } from '@/components/PrintReceiptButton';
 import { DownloadReceiptButton } from '@/components/DownloadReceiptButton';
+import { ShareWhatsAppButton } from '@/components/ShareWhatsAppButton';
 import { useAuthContext } from '@/contexts/AuthContext';
 import {
   Package,
@@ -330,6 +331,15 @@ export default function AdminDashboard() {
                       </Button>
                     </div>
                     <div className="flex gap-2">
+                      <ShareWhatsAppButton pkg={{
+                        trackingNumber: pkg.tracking_number,
+                        receiverName: pkg.receiver_name,
+                        receiverPhone: pkg.receiver_phone,
+                        receiverAddress: pkg.receiver_address,
+                        deliveryType: pkg.delivery_type,
+                        pickupPoint: pkg.pickup_point,
+                        cost: pkg.cost,
+                      }} />
                       <DownloadReceiptButton pkg={{
                         trackingNumber: pkg.tracking_number,
                         senderName: pkg.sender_name,
