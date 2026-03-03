@@ -3,8 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Printer, Loader2 } from 'lucide-react';
 import { PackageReceipt } from './PackageReceipt';
 import { PrinterDrawer } from './PrinterDrawer';
+import { ReceiptPreviewDrawer } from './ReceiptPreviewDrawer';
 import { toast } from 'sonner';
-
 interface ReceiptPkg {
   trackingNumber: string;
   senderName: string;
@@ -34,21 +34,16 @@ export function PrintReceiptButton({ pkg, variant = 'outline', size = 'sm' }: Pr
   const receiptRef = useRef<HTMLDivElement>(null);
   const [isPrinting, setIsPrinting] = useState(false);
   const [showDrawer, setShowDrawer] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
 
-  const handlePrint = useCallback(async () => {
-    const savedPrinterId = localStorage.getItem('bt_printer_id');
-    
-    if (!savedPrinterId) {
-      setShowDrawer(true);
-      return;
-    }
-
+  const executePrint = useCallback(async () => {
     setIsPrinting(true);
 
     if ('bluetooth' in navigator) {
       try {
         await printViaBluetooth(pkg);
         setIsPrinting(false);
+        setShowPreview(false);
         return;
       } catch {
         // Fall through to browser print
@@ -57,23 +52,45 @@ export function PrintReceiptButton({ pkg, variant = 'outline', size = 'sm' }: Pr
 
     printViaBrowser(receiptRef, pkg);
     setIsPrinting(false);
+    setShowPreview(false);
   }, [pkg]);
+
+  const handlePrintClick = useCallback(() => {
+    setShowPreview(true);
+  }, []);
+
+  const handleConfirmPrint = useCallback(async () => {
+    const savedPrinterId = localStorage.getItem('bt_printer_id');
+    
+    if (!savedPrinterId) {
+      setShowPreview(false);
+      setShowDrawer(true);
+      return;
+    }
+
+    await executePrint();
+  }, [executePrint]);
 
   return (
     <>
-      <div style={{ position: 'fixed', left: '-9999px', top: 0 }}>
-        <PackageReceipt ref={receiptRef} pkg={pkg} />
-      </div>
-      <Button variant={variant} size={size} className="gap-2" onClick={handlePrint} disabled={isPrinting}>
+      <Button variant={variant} size={size} className="gap-2" onClick={handlePrintClick} disabled={isPrinting}>
         {isPrinting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Printer className="w-4 h-4" />}
         <span className="hidden sm:inline">Print</span>
       </Button>
+      <ReceiptPreviewDrawer
+        open={showPreview}
+        onOpenChange={setShowPreview}
+        pkg={pkg}
+        onPrint={handleConfirmPrint}
+        isPrinting={isPrinting}
+        receiptRef={receiptRef}
+      />
       <PrinterDrawer
         open={showDrawer}
         onOpenChange={setShowDrawer}
         onPrinterSelected={() => {
           setShowDrawer(false);
-          setTimeout(() => handlePrint(), 500);
+          setTimeout(() => executePrint(), 500);
         }}
       />
     </>
