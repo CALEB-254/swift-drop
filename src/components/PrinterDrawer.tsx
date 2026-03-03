@@ -9,22 +9,52 @@ import {
   DrawerClose,
 } from '@/components/ui/drawer';
 import { Button } from '@/components/ui/button';
-import { Bluetooth, Printer, Loader2, Wifi, WifiOff } from 'lucide-react';
+import { Bluetooth, Printer, Loader2, Wifi, WifiOff, Trash2, Check } from 'lucide-react';
 import { toast } from 'sonner';
+
+interface SavedPrinter {
+  id: string;
+  name: string;
+}
 
 interface PrinterDrawerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onPrinterSelected: (device: { id: string; name: string }) => void;
+  onPrinterSelected: (device: SavedPrinter) => void;
+}
+
+function getSavedPrinters(): SavedPrinter[] {
+  try {
+    const raw = localStorage.getItem('bt_printers');
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+function savePrinters(printers: SavedPrinter[]) {
+  localStorage.setItem('bt_printers', JSON.stringify(printers));
+}
+
+function getActivePrinterId(): string | null {
+  return localStorage.getItem('bt_printer_id');
+}
+
+function setActivePrinter(printer: SavedPrinter) {
+  localStorage.setItem('bt_printer_id', printer.id);
+  localStorage.setItem('bt_printer_name', printer.name);
 }
 
 export function PrinterDrawer({ open, onOpenChange, onPrinterSelected }: PrinterDrawerProps) {
   const [isScanning, setIsScanning] = useState(false);
-  const [connectedPrinter, setConnectedPrinter] = useState<string | null>(null);
+  const [printers, setPrinters] = useState<SavedPrinter[]>([]);
+  const [activeId, setActiveId] = useState<string | null>(null);
 
   useEffect(() => {
-    const saved = localStorage.getItem('bt_printer_name');
-    setConnectedPrinter(saved);
+    if (open) {
+      setPrinters(getSavedPrinters());
+      setActiveId(getActivePrinterId());
+    }
   }, [open]);
 
   const scanForPrinters = async () => {
@@ -48,11 +78,21 @@ export function PrinterDrawer({ open, onOpenChange, onPrinterSelected }: Printer
 
       if (device) {
         const name = device.name || 'Bluetooth Printer';
-        localStorage.setItem('bt_printer_id', device.id);
-        localStorage.setItem('bt_printer_name', name);
-        setConnectedPrinter(name);
-        toast.success(`Connected to ${name}`);
-        onPrinterSelected({ id: device.id, name });
+        const newPrinter: SavedPrinter = { id: device.id, name };
+
+        const existing = getSavedPrinters();
+        const alreadyExists = existing.some(p => p.id === device.id);
+        if (!alreadyExists) {
+          const updated = [...existing, newPrinter];
+          savePrinters(updated);
+          setPrinters(updated);
+        }
+
+        // Auto-select the newly paired printer
+        setActivePrinter(newPrinter);
+        setActiveId(newPrinter.id);
+        toast.success(`Paired with ${name}`);
+        onPrinterSelected(newPrinter);
       }
     } catch (err: any) {
       if (err.name !== 'NotFoundError') {
@@ -63,11 +103,24 @@ export function PrinterDrawer({ open, onOpenChange, onPrinterSelected }: Printer
     }
   };
 
-  const disconnectPrinter = () => {
-    localStorage.removeItem('bt_printer_id');
-    localStorage.removeItem('bt_printer_name');
-    setConnectedPrinter(null);
-    toast.success('Printer disconnected');
+  const selectPrinter = (printer: SavedPrinter) => {
+    setActivePrinter(printer);
+    setActiveId(printer.id);
+    toast.success(`Selected ${printer.name}`);
+    onPrinterSelected(printer);
+  };
+
+  const removePrinter = (id: string) => {
+    const updated = printers.filter(p => p.id !== id);
+    savePrinters(updated);
+    setPrinters(updated);
+
+    if (activeId === id) {
+      localStorage.removeItem('bt_printer_id');
+      localStorage.removeItem('bt_printer_name');
+      setActiveId(null);
+    }
+    toast.success('Printer removed');
   };
 
   return (
@@ -78,37 +131,66 @@ export function PrinterDrawer({ open, onOpenChange, onPrinterSelected }: Printer
             <Printer className="w-6 h-6 text-primary" />
           </div>
           <DrawerTitle className="font-display">Printer Settings</DrawerTitle>
-          <DrawerDescription>Connect a Bluetooth thermal printer to print receipts</DrawerDescription>
+          <DrawerDescription>Manage your Bluetooth thermal printers</DrawerDescription>
         </DrawerHeader>
 
-        <div className="px-4 pb-2 space-y-4">
-          {/* Current Printer Status */}
-          <div className="rounded-xl border border-border bg-card p-4">
-            <div className="flex items-center gap-3">
-              {connectedPrinter ? (
-                <div className="w-10 h-10 rounded-full bg-success/10 flex items-center justify-center">
-                  <Wifi className="w-5 h-5 text-success" />
-                </div>
-              ) : (
-                <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
-                  <WifiOff className="w-5 h-5 text-muted-foreground" />
-                </div>
-              )}
-              <div className="flex-1">
-                <p className="font-medium text-sm">
-                  {connectedPrinter || 'No printer connected'}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {connectedPrinter ? 'Ready to print' : 'Tap scan to find a printer'}
-                </p>
-              </div>
-              {connectedPrinter && (
-                <Button variant="ghost" size="sm" onClick={disconnectPrinter} className="text-destructive text-xs">
-                  Remove
-                </Button>
-              )}
+        <div className="px-4 pb-2 space-y-3 max-h-[50vh] overflow-y-auto">
+          {printers.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-border bg-muted/30 p-6 text-center">
+              <WifiOff className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+              <p className="text-sm text-muted-foreground">No printers paired yet</p>
+              <p className="text-xs text-muted-foreground mt-1">Tap "Scan" to find nearby printers</p>
             </div>
-          </div>
+          ) : (
+            printers.map((printer) => {
+              const isActive = printer.id === activeId;
+              return (
+                <div
+                  key={printer.id}
+                  className={`rounded-xl border p-3 flex items-center gap-3 transition-colors cursor-pointer ${
+                    isActive
+                      ? 'border-primary bg-primary/5'
+                      : 'border-border bg-card hover:bg-muted/50'
+                  }`}
+                  onClick={() => selectPrinter(printer)}
+                >
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
+                    isActive ? 'bg-primary/10' : 'bg-muted'
+                  }`}>
+                    {isActive ? (
+                      <Wifi className="w-5 h-5 text-primary" />
+                    ) : (
+                      <Bluetooth className="w-5 h-5 text-muted-foreground" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-sm truncate">{printer.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {isActive ? 'Active printer' : 'Tap to select'}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0">
+                    {isActive && (
+                      <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center">
+                        <Check className="w-3.5 h-3.5 text-primary-foreground" />
+                      </div>
+                    )}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-destructive hover:text-destructive"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removePrinter(printer.id);
+                      }}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              );
+            })
+          )}
 
           {/* Scan Button */}
           <Button
@@ -121,7 +203,7 @@ export function PrinterDrawer({ open, onOpenChange, onPrinterSelected }: Printer
             ) : (
               <Bluetooth className="w-5 h-5" />
             )}
-            {isScanning ? 'Scanning...' : connectedPrinter ? 'Change Printer' : 'Scan for Printers'}
+            {isScanning ? 'Scanning...' : 'Scan for Printers'}
           </Button>
         </div>
 
