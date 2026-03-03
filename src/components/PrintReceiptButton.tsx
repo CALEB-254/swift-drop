@@ -73,7 +73,6 @@ export function PrintReceiptButton({ pkg, variant = 'outline', size = 'sm' }: Pr
         onOpenChange={setShowDrawer}
         onPrinterSelected={() => {
           setShowDrawer(false);
-          // Auto-print after connecting
           setTimeout(() => handlePrint(), 500);
         }}
       />
@@ -94,114 +93,246 @@ function printViaBrowser(receiptRef: React.RefObject<HTMLDivElement | null>, pkg
   }
 }
 
-function generateReceiptText(pkg: ReceiptPkg): string {
+// ── ESC/POS helpers ──
+const ESC = 0x1B;
+const GS = 0x1D;
+
+function escposInit(): number[] {
+  return [ESC, 0x40]; // ESC @  – initialise printer
+}
+
+function escposAlignCenter(): number[] {
+  return [ESC, 0x61, 0x01];
+}
+
+function escposAlignLeft(): number[] {
+  return [ESC, 0x61, 0x00];
+}
+
+function escposAlignRight(): number[] {
+  return [ESC, 0x61, 0x02];
+}
+
+function escposBoldOn(): number[] {
+  return [ESC, 0x45, 0x01];
+}
+
+function escposBoldOff(): number[] {
+  return [ESC, 0x45, 0x00];
+}
+
+function escposDoubleHeight(): number[] {
+  return [ESC, 0x21, 0x10]; // double height
+}
+
+function escposNormal(): number[] {
+  return [ESC, 0x21, 0x00]; // normal
+}
+
+function escposCut(): number[] {
+  return [GS, 0x56, 0x00]; // full cut
+}
+
+function escposFeedLines(n: number): number[] {
+  return [ESC, 0x64, n];
+}
+
+function escposQRCode(data: string): number[] {
+  const encoder = new TextEncoder();
+  const d = encoder.encode(data);
+  const bytes: number[] = [];
+
+  // Model 2
+  bytes.push(GS, 0x28, 0x6B, 4, 0, 0x31, 0x41, 0x32, 0x00);
+  // Size – 6 dots
+  bytes.push(GS, 0x28, 0x6B, 3, 0, 0x31, 0x43, 0x06);
+  // Error correction – Level H
+  bytes.push(GS, 0x28, 0x6B, 3, 0, 0x31, 0x45, 0x33);
+  // Store data
+  const storeLen = d.length + 3;
+  bytes.push(GS, 0x28, 0x6B, storeLen & 0xFF, (storeLen >> 8) & 0xFF, 0x31, 0x50, 0x30, ...d);
+  // Print QR
+  bytes.push(GS, 0x28, 0x6B, 3, 0, 0x31, 0x51, 0x30);
+
+  return bytes;
+}
+
+function textToBytes(text: string): number[] {
+  return Array.from(new TextEncoder().encode(text));
+}
+
+function line(char = '-', width = 32): number[] {
+  return textToBytes(char.repeat(width) + '\n');
+}
+
+function padRow(left: string, right: string, width = 32): string {
+  const gap = width - left.length - right.length;
+  return left + ' '.repeat(Math.max(1, gap)) + right + '\n';
+}
+
+function generateReceiptBytes(pkg: ReceiptPkg): Uint8Array {
   const TAX_RATE = 0.16;
   const taxable = (pkg.cost / (1 + TAX_RATE)).toFixed(2);
   const tax = (pkg.cost - Number(taxable)).toFixed(2);
+  const deliveryLabel = pkg.deliveryType === 'pickup_point' ? 'AGENT PICKUP POINT'
+    : pkg.deliveryType === 'doorstep' ? 'DOORSTEP DELIVERY'
+    : pkg.deliveryType === 'xpress' ? 'XPRESS DELIVERY'
+    : pkg.deliveryType === 'errand' ? 'ERRAND SERVICE'
+    : pkg.deliveryType.toUpperCase();
 
-  const line = '--------------------------------\n';
-  const bold = '================================\n';
+  const dateStr = new Date(pkg.createdAt).toLocaleString('en-GB', {
+    day: '2-digit', month: 'short', year: 'numeric',
+    hour: '2-digit', minute: '2-digit', hour12: true,
+  });
 
-  return `
-${bold}
-             SWIFTDROP
-       Fast & Reliable Delivery
-          TEL: +254114606020
-${bold}
+  const bytes: number[] = [];
 
-PARCEL NO: ${pkg.trackingNumber}
-TOTAL ITEMS: 1
+  // Init
+  bytes.push(...escposInit());
 
-${line}
-SENDER DETAILS
-${pkg.senderName}
-${pkg.senderAddress || ''}
+  // ── Header ──
+  bytes.push(...escposAlignCenter());
+  bytes.push(...escposDoubleHeight());
+  bytes.push(...escposBoldOn());
+  bytes.push(...textToBytes('SWIFTDROP\n'));
+  bytes.push(...escposBoldOff());
+  bytes.push(...escposNormal());
+  bytes.push(...textToBytes('Fast & Reliable Delivery\n'));
+  bytes.push(...textToBytes('TEL: +254114606020\n'));
+  bytes.push(...line('='));
 
-PRIORITY: A
-${line}
+  // ── Parcel info ──
+  bytes.push(...textToBytes(`PARCEL NO: ${pkg.trackingNumber}\n`));
+  bytes.push(...textToBytes('TOTAL ITEMS: 1\n'));
+  bytes.push(...line('-'));
 
-RECEIVER DETAILS
-${pkg.receiverName}
-${pkg.receiverAddress}
+  // ── Sender details ──
+  bytes.push(...escposAlignLeft());
+  bytes.push(...escposBoldOn());
+  bytes.push(...textToBytes('SENDER DETAILS\n'));
+  bytes.push(...escposBoldOff());
+  bytes.push(...textToBytes(`${pkg.senderName}\n`));
+  if (pkg.senderAddress) bytes.push(...textToBytes(`${pkg.senderAddress}\n`));
+  bytes.push(...textToBytes('\n'));
+  bytes.push(...escposAlignRight());
+  bytes.push(...escposBoldOn());
+  bytes.push(...textToBytes('PRIORITY: A\n'));
+  bytes.push(...escposBoldOff());
+  bytes.push(...line('-'));
 
-${line}
-TRACKING CODE
-${pkg.trackingNumber}
+  // ── QR Code for tracking ──
+  bytes.push(...escposAlignCenter());
+  bytes.push(...escposQRCode(pkg.trackingNumber));
+  bytes.push(...escposFeedLines(1));
 
-AGENT PICKUP POINT
-${pkg.pickupPoint || 'N/A'}
+  // ── Receiver details ──
+  bytes.push(...escposAlignLeft());
+  bytes.push(...escposBoldOn());
+  bytes.push(...textToBytes('RECEIVER DETAILS\n'));
+  bytes.push(...escposBoldOff());
+  bytes.push(...textToBytes(`${pkg.receiverName}\n`));
+  bytes.push(...textToBytes(`${pkg.receiverAddress}\n`));
+  if (pkg.pickupPoint) bytes.push(...textToBytes(`${pkg.pickupPoint}\n`));
+  bytes.push(...line('-'));
 
-Quantity : 1
-Value    : KES ${pkg.packageValue || pkg.cost}
-Desc     : ${pkg.packageDescription || 'N/A'}
-Weight   : ${pkg.weight || '0'} KG
-${line}
+  // ── Tracking & type ──
+  bytes.push(...escposBoldOn());
+  bytes.push(...textToBytes(padRow(pkg.trackingNumber, deliveryLabel)));
+  bytes.push(...escposBoldOff());
+  bytes.push(...textToBytes('\n'));
 
-PAYMENT METHOD: ${pkg.paymentStatus === 'paid' ? 'M-PESA' : 'CASH'}
+  // ── Package details ──
+  bytes.push(...textToBytes('Quantity: 1\n'));
+  if (pkg.packageValue != null) {
+    bytes.push(...textToBytes(`Value: ${pkg.packageValue.toLocaleString()} KES\n`));
+  }
+  if (pkg.packageDescription) {
+    bytes.push(...textToBytes(`Desc: ${pkg.packageDescription}\n`));
+  }
+  bytes.push(...escposAlignRight());
+  bytes.push(...escposBoldOn());
+  bytes.push(...textToBytes(`${pkg.weight ?? 0} KG\n`));
+  bytes.push(...escposBoldOff());
+  bytes.push(...escposAlignLeft());
+  bytes.push(...line('-'));
 
-${bold}
-ITEM              AMOUNT (KES)
-${bold}
-TAXABLE           ${taxable}
-TAX (16%)         ${tax}
-TOTAL             ${pkg.cost}
-${bold}
+  // ── Cost breakdown ──
+  const payMethod = pkg.paymentStatus === 'paid' ? 'PAID' : 'CASH';
+  bytes.push(...escposBoldOn());
+  bytes.push(...textToBytes(payMethod + '\n'));
+  bytes.push(...escposBoldOff());
+  bytes.push(...textToBytes(padRow('  TAXABLE', taxable)));
+  bytes.push(...textToBytes(padRow('  TAX (16%)', tax)));
+  bytes.push(...escposBoldOn());
+  bytes.push(...textToBytes(padRow('  TOTAL', String(pkg.cost))));
+  bytes.push(...escposBoldOff());
 
-PAYMENT STATUS: ${pkg.paymentStatus === 'paid' ? 'PAID' : 'UNPAID'}
+  // ── M-Pesa ref ──
+  if (pkg.mpesaReceiptNumber) {
+    bytes.push(...escposAlignCenter());
+    bytes.push(...textToBytes(`M-Pesa Ref: ${pkg.mpesaReceiptNumber}\n`));
+  }
+  bytes.push(...line('-'));
 
-${pkg.mpesaReceiptNumber ? `M-PESA CODE: ${pkg.mpesaReceiptNumber}\n` : ''}
+  // ── Terms ──
+  bytes.push(...escposAlignCenter());
+  bytes.push(...escposBoldOn());
+  bytes.push(...textToBytes('TERMS & CONDITIONS\n'));
+  bytes.push(...escposBoldOff());
+  bytes.push(...escposAlignLeft());
+  bytes.push(...textToBytes('You MUST declare parcel VALUE. Above\n'));
+  bytes.push(...textToBytes('Ksh.5000 to be insured by SENDER.\n'));
+  bytes.push(...textToBytes('Compensation is up to Ksh.5000.\n'));
+  bytes.push(...textToBytes('Perishable & Fragile not compensated.\n'));
+  bytes.push(...textToBytes('FRAGILE ITEMS SENT AT OWNERS RISK\n'));
+  bytes.push(...line('-'));
 
-${line}
-TERMS & CONDITIONS
-You MUST declare parcel VALUE.
-Above Ksh.5000 must be insured by SENDER.
-Compensation limited to Ksh.5000.
-Fragile items sent at OWNER'S RISK.
-${line}
+  // ── Printed on ──
+  bytes.push(...escposAlignCenter());
+  bytes.push(...textToBytes(`Printed on: ${dateStr}\n`));
+  bytes.push(...line('-'));
 
-Printed on: ${new Date(pkg.createdAt).toLocaleString()}
+  // ── Invoice QR ──
+  bytes.push(...escposBoldOn());
+  bytes.push(...textToBytes('INVOICE NO.\n'));
+  bytes.push(...escposBoldOff());
+  bytes.push(...escposQRCode(pkg.trackingNumber));
+  bytes.push(...escposFeedLines(1));
+  bytes.push(...textToBytes('POWERED BY SWIFTDROP\n'));
 
-${bold}
-     THANK YOU FOR CHOOSING
-             SWIFTDROP
-${bold}
-`;
+  // Feed & cut
+  bytes.push(...escposFeedLines(4));
+  bytes.push(...escposCut());
+
+  return new Uint8Array(bytes);
 }
+
+const PRINTER_SERVICE_UUIDS = [
+  '000018f0-0000-1000-8000-00805f9b34fb',
+  '49535343-fe7d-4ae5-8fa9-9fafd205e455',
+  '0000ff00-0000-1000-8000-00805f9b34fb',
+  '0000ffe0-0000-1000-8000-00805f9b34fb',
+  'e7810a71-73ae-499d-8c15-faa9aef0c3f2',
+];
 
 async function printViaBluetooth(pkg: ReceiptPkg) {
   const device = await (navigator as any).bluetooth.requestDevice({
     acceptAllDevices: true,
-    optionalServices: [
-      '000018f0-0000-1000-8000-00805f9b34fb',
-      '49535343-fe7d-4ae5-8fa9-9fafd205e455',
-      '0000ff00-0000-1000-8000-00805f9b34fb',
-      '0000ffe0-0000-1000-8000-00805f9b34fb',
-      'e7810a71-73ae-499d-8c15-faa9aef0c3f2',
-    ]
+    optionalServices: PRINTER_SERVICE_UUIDS,
   });
 
   const server = await device.gatt?.connect();
   if (!server) throw new Error('Could not connect');
 
-  const serviceUUIDs = [
-    '000018f0-0000-1000-8000-00805f9b34fb',
-    '49535343-fe7d-4ae5-8fa9-9fafd205e455',
-    '0000ff00-0000-1000-8000-00805f9b34fb',
-    '0000ffe0-0000-1000-8000-00805f9b34fb',
-    'e7810a71-73ae-499d-8c15-faa9aef0c3f2',
-  ];
+  const data = generateReceiptBytes(pkg);
 
-  const receiptText = generateReceiptText(pkg);
-  const encoder = new TextEncoder();
-  const data = encoder.encode(receiptText);
-
-  for (const serviceUUID of serviceUUIDs) {
+  for (const serviceUUID of PRINTER_SERVICE_UUIDS) {
     try {
       const service = await server.getPrimaryService(serviceUUID);
       const characteristics = await service.getCharacteristics();
       for (const char of characteristics) {
         if (char.properties.write || char.properties.writeWithoutResponse) {
-          const chunkSize = 20;
+          const chunkSize = 100;
           for (let i = 0; i < data.length; i += chunkSize) {
             const chunk = data.slice(i, i + chunkSize);
             if (char.properties.writeWithoutResponse) {
@@ -209,7 +340,7 @@ async function printViaBluetooth(pkg: ReceiptPkg) {
             } else {
               await char.writeValue(chunk);
             }
-            await new Promise(r => setTimeout(r, 50));
+            await new Promise(r => setTimeout(r, 30));
           }
           toast.success('Receipt printed!');
           return;
