@@ -80,7 +80,7 @@ export default function AgentDashboard() {
               </div>
               <div>
                 <p className="text-sm opacity-80">Welcome back,</p>
-                <h1 className="font-display font-bold text-lg">{profile?.full_name || 'Agent'}</h1>
+                <h1 className="font-display font-bold text-lg">{profile?.full_name || 'Rider'}</h1>
               </div>
             </div>
             <Link to="/">
