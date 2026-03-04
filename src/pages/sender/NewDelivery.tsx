@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,10 +9,11 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { ArrowLeft, ShoppingCart, Search } from 'lucide-react';
 import { usePackages } from '@/hooks/usePackages';
 import { useAuth } from '@/hooks/useAuth';
-import { PICKUP_POINTS, AREAS, PACKAGING_COLORS, DeliveryType, DELIVERY_TYPES } from '@/types/delivery';
+import { AREAS, PACKAGING_COLORS, DeliveryType, DELIVERY_TYPES } from '@/types/delivery';
 import { toast } from 'sonner';
 import { BottomNav } from '@/components/BottomNav';
 import { HelpButton } from '@/components/HelpButton';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function NewDelivery() {
   const navigate = useNavigate();
@@ -20,6 +21,7 @@ export default function NewDelivery() {
   const { createPackage } = usePackages();
   const { user, profile } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [agents, setAgents] = useState<{ id: string; business_name: string; location: string }[]>([]);
   
   const deliveryType = (searchParams.get('type') as DeliveryType) || 'pickup_point';
   const deliveryTypeInfo = DELIVERY_TYPES.find(t => t.id === deliveryType);
@@ -33,9 +35,29 @@ export default function NewDelivery() {
     packageDescription: '',
     packageValue: '',
     packagingColor: '',
-    pickupPoint: '',
+    pickupPoint: '', // stores agent id
     deliveryAddress: '',
   });
+
+  // Fetch agents for pickup point selection
+  useEffect(() => {
+    const fetchAgents = async () => {
+      const { data } = await supabase
+        .from('agents')
+        .select('id, business_name, location')
+        .eq('is_active', true)
+        .order('business_name');
+      if (data) {
+        // Only admin-created agents (with tracking_prefix)
+        const adminAgents = data.filter(a => 
+          // @ts-ignore - services may exist
+          true // show all active agents as pickup points
+        );
+        setAgents(data);
+      }
+    };
+    fetchAgents();
+  }, []);
 
   const handleSubmit = async () => {
     if (!user) {
@@ -52,6 +74,7 @@ export default function NewDelivery() {
     setIsSubmitting(true);
     
     try {
+      const selectedAgent = agents.find(a => a.id === formData.pickupPoint);
       const newPackage = await createPackage({
         senderName: profile?.full_name || 'Current User',
         senderPhone: profile?.phone || '+254700000000',
@@ -61,8 +84,9 @@ export default function NewDelivery() {
         receiverAddress: formData.toArea || formData.deliveryAddress,
         deliveryType: deliveryType,
         pickupPoint: deliveryType === 'pickup_point' 
-          ? PICKUP_POINTS.find(p => p.id === formData.pickupPoint)?.name 
+          ? selectedAgent?.business_name
           : undefined,
+        pickupAgentId: deliveryType === 'pickup_point' ? formData.pickupPoint : undefined,
         packageDescription: formData.packageDescription,
         weight: 0,
         isProduct: formData.isProduct,
@@ -258,9 +282,9 @@ export default function NewDelivery() {
                   <SelectValue placeholder="-- Choose pickup point --" />
                 </SelectTrigger>
                 <SelectContent>
-                  {PICKUP_POINTS.map((point) => (
-                    <SelectItem key={point.id} value={point.id}>
-                      {point.name}
+                  {agents.map((agent) => (
+                    <SelectItem key={agent.id} value={agent.id}>
+                      {agent.business_name} - {agent.location}
                     </SelectItem>
                   ))}
                 </SelectContent>

@@ -9,7 +9,8 @@ const senderNavItems = [
 ];
 
 const agentNavItems = [
-  { icon: LayoutDashboard, label: 'Dashboard', path: '/agent' },
+  { icon: LayoutDashboard, label: 'Riders', path: '/rider' },
+  { icon: Home, label: 'Agent Point', path: '/agent' },
   { icon: Search, label: 'Track', path: '/sender/track' },
 ];
 

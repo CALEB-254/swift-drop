@@ -2,6 +2,7 @@ export type DeliveryType = 'pickup_point' | 'doorstep' | 'errand';
 
 export type PackageStatus = 
   | 'pending' 
+  | 'dropped_at_agent'
   | 'picked_up' 
   | 'in_transit' 
   | 'out_for_delivery' 
@@ -121,6 +122,7 @@ export const PACKAGING_COLORS = [
 
 export const STATUS_LABELS: Record<PackageStatus, string> = {
   pending: 'Pending Pickup',
+  dropped_at_agent: 'Dropped at Agent',
   picked_up: 'Picked Up',
   in_transit: 'In Transit',
   out_for_delivery: 'Out for Delivery',
@@ -130,6 +132,7 @@ export const STATUS_LABELS: Record<PackageStatus, string> = {
 
 export const STATUS_COLORS: Record<PackageStatus, string> = {
   pending: 'warning',
+  dropped_at_agent: 'info',
   picked_up: 'info',
   in_transit: 'info',
   out_for_delivery: 'primary',

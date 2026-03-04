@@ -12,7 +12,8 @@ import SenderDashboard from "./pages/sender/SenderDashboard";
 import NewDelivery from "./pages/sender/NewDelivery";
 import TrackPackage from "./pages/sender/TrackPackage";
 import Cart from "./pages/sender/Cart";
-import AgentDashboard from "./pages/agent/AgentDashboard";
+import RiderDashboard from "./pages/rider/RiderDashboard";
+import AgentPickupDashboard from "./pages/agent/AgentPickupDashboard";
 import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
 import ForgotPassword from "./pages/auth/ForgotPassword";
@@ -91,12 +92,22 @@ const App = () => (
               }
             />
             
-            {/* Protected Agent Routes */}
+            {/* Protected Rider Routes (delivery riders) */}
+            <Route
+              path="/rider"
+              element={
+                <ProtectedRoute requiredRole="agent">
+                  <RiderDashboard />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Protected Agent Pickup Point Routes */}
             <Route
               path="/agent"
               element={
                 <ProtectedRoute requiredRole="agent">
-                  <AgentDashboard />
+                  <AgentPickupDashboard />
                 </ProtectedRoute>
               }
             />

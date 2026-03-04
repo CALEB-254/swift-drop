@@ -224,6 +224,7 @@ export function useAgentPackages() {
   const getNextStatus = (currentStatus: PackageStatus): PackageStatus | null => {
     const statusFlow: Record<PackageStatus, PackageStatus | null> = {
       pending: 'picked_up',
+      dropped_at_agent: 'picked_up',
       picked_up: 'in_transit',
       in_transit: 'out_for_delivery',
       out_for_delivery: 'delivered',

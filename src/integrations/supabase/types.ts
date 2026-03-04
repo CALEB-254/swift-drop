@@ -110,6 +110,7 @@ export type Database = {
           packaging_color: string | null
           paid_at: string | null
           payment_status: string
+          pickup_agent_id: string | null
           pickup_point: string | null
           receiver_address: string
           receiver_name: string
@@ -137,6 +138,7 @@ export type Database = {
           packaging_color?: string | null
           paid_at?: string | null
           payment_status?: string
+          pickup_agent_id?: string | null
           pickup_point?: string | null
           receiver_address: string
           receiver_name: string
@@ -164,6 +166,7 @@ export type Database = {
           packaging_color?: string | null
           paid_at?: string | null
           payment_status?: string
+          pickup_agent_id?: string | null
           pickup_point?: string | null
           receiver_address?: string
           receiver_name?: string
@@ -285,6 +288,7 @@ export type Database = {
       delivery_type: "xpress" | "pickup_point" | "doorstep" | "errand"
       package_status:
         | "pending"
+        | "dropped_at_agent"
         | "picked_up"
         | "in_transit"
         | "out_for_delivery"
@@ -421,6 +425,7 @@ export const Constants = {
       delivery_type: ["xpress", "pickup_point", "doorstep", "errand"],
       package_status: [
         "pending",
+        "dropped_at_agent",
         "picked_up",
         "in_transit",
         "out_for_delivery",

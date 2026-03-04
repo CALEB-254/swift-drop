@@ -9,6 +9,7 @@ interface TrackingTimelineProps {
 
 const TIMELINE_STEPS: { status: PackageStatus; icon: React.ElementType }[] = [
   { status: 'pending', icon: Package },
+  { status: 'dropped_at_agent', icon: MapPin },
   { status: 'picked_up', icon: Package },
   { status: 'in_transit', icon: Truck },
   { status: 'out_for_delivery', icon: MapPin },
