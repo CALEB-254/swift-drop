@@ -105,48 +105,48 @@ export function PrinterDrawer({ open, onOpenChange, onPrinterSelected }: Printer
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerContent>
-        <div className="flex items-center justify-between px-4 pt-4">
+      <DrawerContent className="max-h-[85vh]">
+        <div className="flex items-center justify-between px-4 pt-3 pb-2">
           <div className="flex items-center gap-2">
             <div className="w-1 h-6 bg-primary rounded-full" />
-            <DrawerTitle className="text-lg font-bold">Bluetooth Devices</DrawerTitle>
+            <DrawerTitle className="text-base font-bold tracking-tight">Bluetooth Devices</DrawerTitle>
           </div>
           <DrawerClose asChild>
-            <Button variant="ghost" size="icon" className="rounded-full h-8 w-8 bg-muted">
+            <Button variant="ghost" size="icon" className="rounded-full h-8 w-8 bg-muted/60">
               <X className="w-4 h-4" />
             </Button>
           </DrawerClose>
         </div>
 
-        <div className="px-4 py-4 space-y-0 min-h-[200px]">
+        <div className="px-4 pb-4 min-h-[180px]">
           {isScanning && printers.length === 0 && (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+            <div className="flex items-center justify-center py-10">
+              <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
               <span className="ml-2 text-sm text-muted-foreground">Scanning...</span>
             </div>
           )}
 
           {printers.map((printer, index) => (
             <div key={printer.id}>
-              <div className="flex items-center justify-between py-3">
-                <div>
-                  <p className="text-sm font-medium">{printer.name}</p>
-                  <p className="text-xs text-muted-foreground">{printer.id}</p>
+              <div className="flex items-center justify-between py-3.5">
+                <div className="min-w-0 flex-1 mr-3">
+                  <p className="text-sm font-medium truncate">{printer.name}</p>
+                  <p className="text-xs text-muted-foreground font-mono">{printer.id}</p>
                 </div>
                 <Button
                   size="sm"
-                  className="rounded-full px-5 bg-primary text-primary-foreground hover:bg-primary/90"
+                  className="rounded-full px-6 h-9 bg-primary text-primary-foreground font-semibold hover:bg-primary/90 shrink-0"
                   onClick={() => connectPrinter(printer)}
                 >
                   Connect
                 </Button>
               </div>
-              {index < printers.length - 1 && <Separator />}
+              {index < printers.length - 1 && <Separator className="bg-primary/20" />}
             </div>
           ))}
 
           {!isScanning && printers.length === 0 && (
-            <div className="text-center py-8">
+            <div className="text-center py-10">
               <Bluetooth className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
               <p className="text-sm text-muted-foreground">No devices found</p>
               <p className="text-xs text-muted-foreground mt-1">Make sure Bluetooth is enabled</p>
@@ -154,7 +154,7 @@ export function PrinterDrawer({ open, onOpenChange, onPrinterSelected }: Printer
           )}
         </div>
 
-        <DrawerFooter>
+        <DrawerFooter className="pt-0">
           <Button
             variant="outline"
             className="w-full gap-2"
