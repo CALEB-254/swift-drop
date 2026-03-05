@@ -50,139 +50,32 @@ const App = () => (
             <Route path="/auth/verify" element={<VerifyOTP />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
             
-            {/* Protected Sender Routes */}
-            <Route
-              path="/sender"
-              element={
-                <ProtectedRoute requiredRole="sender">
-                  <SenderHome />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/sender/dashboard"
-              element={
-                <ProtectedRoute requiredRole="sender">
-                  <SenderDashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/sender/new"
-              element={
-                <ProtectedRoute requiredRole="sender">
-                  <NewDelivery />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/sender/track"
-              element={
-                <ProtectedRoute requiredRole="sender">
-                  <TrackPackage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/sender/cart"
-              element={
-                <ProtectedRoute requiredRole="sender">
-                  <Cart />
-                </ProtectedRoute>
-              }
-            />
+            {/* Sender Routes */}
+            <Route path="/sender" element={<SenderHome />} />
+            <Route path="/sender/dashboard" element={<SenderDashboard />} />
+            <Route path="/sender/new" element={<NewDelivery />} />
+            <Route path="/sender/track" element={<TrackPackage />} />
+            <Route path="/sender/cart" element={<Cart />} />
             
-            {/* Protected Rider Routes (delivery riders) */}
-            <Route
-              path="/rider"
-              element={
-                <ProtectedRoute requiredRole="agent">
-                  <RiderDashboard />
-                </ProtectedRoute>
-              }
-            />
+            {/* Rider Routes */}
+            <Route path="/rider" element={<RiderDashboard />} />
 
-            {/* Protected Agent Pickup Point Routes */}
-            <Route
-              path="/agent"
-              element={
-                <ProtectedRoute requiredRole="agent">
-                  <AgentPickupDashboard />
-                </ProtectedRoute>
-              }
-            />
+            {/* Agent Pickup Point Routes */}
+            <Route path="/agent" element={<AgentPickupDashboard />} />
             
-            {/* Protected Profile Routes */}
-            <Route
-              path="/profile/edit"
-              element={
-                <ProtectedRoute>
-                  <EditProfile />
-                </ProtectedRoute>
-              }
-            />
+            {/* Profile Routes */}
+            <Route path="/profile/edit" element={<EditProfile />} />
             
-            {/* Protected Shared Routes */}
-            <Route
-              path="/notifications"
-              element={
-                <ProtectedRoute>
-                  <Notifications />
-                </ProtectedRoute>
-              }
-            />
-
-            {/* Protected Settings Routes */}
-            <Route
-              path="/preferences"
-              element={
-                <ProtectedRoute>
-                  <Preferences />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/agents"
-              element={
-                <ProtectedRoute>
-                  <AgentList />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/customers"
-              element={
-                <ProtectedRoute>
-                  <Customers />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/terms"
-              element={
-                <ProtectedRoute>
-                  <Terms />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/feedback"
-              element={
-                <ProtectedRoute>
-                  <Feedback />
-                </ProtectedRoute>
-              }
-            />
+            {/* Shared Routes */}
+            <Route path="/notifications" element={<Notifications />} />
+            <Route path="/preferences" element={<Preferences />} />
+            <Route path="/agents" element={<AgentList />} />
+            <Route path="/customers" element={<Customers />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/feedback" element={<Feedback />} />
 
             {/* Admin Routes */}
-            <Route
-              path="/admin"
-              element={
-                <ProtectedRoute requiredRole="admin">
-                  <AdminDashboard />
-                </ProtectedRoute>
-              }
-            />
+            <Route path="/admin" element={<AdminDashboard />} />
 
             {/* Legacy route redirects */}
             <Route path="/home" element={<Navigate to="/" replace />} />
