@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Search, LayoutDashboard } from 'lucide-react';
+import { Home, Search, LayoutDashboard, User, Bell, Package } from 'lucide-react';
 import { useAuthContext } from '@/contexts/AuthContext';
 
 const senderNavItems = [
@@ -9,9 +9,10 @@ const senderNavItems = [
 ];
 
 const agentNavItems = [
-  { icon: LayoutDashboard, label: 'Riders', path: '/rider' },
-  { icon: Home, label: 'Agent Point', path: '/agent' },
-  { icon: Search, label: 'Track', path: '/sender/track' },
+  { icon: Home, label: 'Home', path: '/agent' },
+  { icon: Package, label: 'Stock', path: '/agent/stock' },
+  { icon: User, label: 'Account', path: '/agent/account' },
+  { icon: Bell, label: 'Notifications', path: '/notifications' },
 ];
 
 export function BottomNav() {

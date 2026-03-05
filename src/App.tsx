@@ -14,6 +14,7 @@ import TrackPackage from "./pages/sender/TrackPackage";
 import Cart from "./pages/sender/Cart";
 import RiderDashboard from "./pages/rider/RiderDashboard";
 import AgentPickupDashboard from "./pages/agent/AgentPickupDashboard";
+import AgentAccountSettings from "./pages/agent/AgentAccountSettings";
 import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
 import ForgotPassword from "./pages/auth/ForgotPassword";
@@ -62,6 +63,8 @@ const App = () => (
 
             {/* Agent Pickup Point Routes */}
             <Route path="/agent" element={<AgentPickupDashboard />} />
+            <Route path="/agent/account" element={<AgentAccountSettings />} />
+            <Route path="/agent/stock" element={<AgentPickupDashboard />} />
             
             {/* Profile Routes */}
             <Route path="/profile/edit" element={<EditProfile />} />
