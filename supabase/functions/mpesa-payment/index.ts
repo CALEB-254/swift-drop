@@ -15,10 +15,10 @@ const MPESA_CALLBACK_URL = Deno.env.get("MPESA_CALLBACK_URL");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
-// M-Pesa API URLs (Production - change to sandbox for testing)
-const MPESA_AUTH_URL = "https://api.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials";
-const MPESA_STK_URL = "https://api.safaricom.co.ke/mpesa/stkpush/v1/processrequest";
-const MPESA_QUERY_URL = "https://api.safaricom.co.ke/mpesa/stkpushquery/v1/query";
+// M-Pesa API URLs (Sandbox - change to api.safaricom.co.ke for production)
+const MPESA_AUTH_URL = "https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials";
+const MPESA_STK_URL = "https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest";
+const MPESA_QUERY_URL = "https://sandbox.safaricom.co.ke/mpesa/stkpushquery/v1/query";
 
 interface PaymentRequest {
   phoneNumber: string;
