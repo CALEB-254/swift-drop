@@ -3,10 +3,13 @@ import { Link, Navigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Package, QrCode, User, Loader2, Printer, CheckCircle, MapPin } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import {
+  Package, QrCode, User, Loader2, MapPin, Search,
+  ArrowDownToLine, ArrowUpFromLine, Truck, PackageOpen, Clock,
+} from 'lucide-react';
 import { PackageCard } from '@/components/PackageCard';
 import { QRScanner } from '@/components/QRScanner';
-import { PrinterDrawer } from '@/components/PrinterDrawer';
 import { BottomNav } from '@/components/BottomNav';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -57,17 +60,43 @@ const mapRow = (row: PackageRow): AgentPackage => ({
   pickupAgentId: row.pickup_agent_id,
 });
 
+interface ActionCardProps {
+  icon: React.ReactNode;
+  label: string;
+  count?: number;
+  onClick?: () => void;
+}
+
+function ActionCard({ icon, label, count, onClick }: ActionCardProps) {
+  return (
+    <Card
+      className="border border-border shadow-card cursor-pointer hover:shadow-md transition-shadow"
+      onClick={onClick}
+    >
+      <CardContent className="p-4 flex flex-col items-center gap-3">
+        <div className="w-16 h-16 rounded-xl bg-secondary flex items-center justify-center">
+          {icon}
+        </div>
+        <p className="font-display text-sm font-semibold text-center leading-tight">{label}</p>
+        {count !== undefined && (
+          <span className="text-xs text-muted-foreground">{count} packages</span>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function AgentPickupDashboard() {
   const { user, profile, loading: authLoading } = useAuth();
   const [agentRecord, setAgentRecord] = useState<{ id: string; business_name: string } | null>(null);
   const [packages, setPackages] = useState<AgentPackage[]>([]);
   const [loading, setLoading] = useState(true);
   const [scannerOpen, setScannerOpen] = useState(false);
-  const [printerOpen, setPrinterOpen] = useState(false);
-  const [processingId, setProcessingId] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState('expected');
+  const [activeTab, setActiveTab] = useState('packages');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeView, setActiveView] = useState<string | null>(null);
 
-  // Fetch agent record for this user
+  // Fetch agent record
   useEffect(() => {
     if (!user) return;
     const fetchAgent = async () => {
@@ -83,7 +112,6 @@ export default function AgentPickupDashboard() {
     fetchAgent();
   }, [user]);
 
-  // Fetch packages assigned to this agent's pickup point
   const fetchPackages = useCallback(async () => {
     if (!agentRecord) return;
     try {
@@ -93,7 +121,6 @@ export default function AgentPickupDashboard() {
         .select('*')
         .eq('pickup_agent_id', agentRecord.id)
         .order('created_at', { ascending: false });
-
       if (error) throw error;
       setPackages((data || []).map(mapRow));
     } catch (err) {
@@ -106,92 +133,67 @@ export default function AgentPickupDashboard() {
   useEffect(() => {
     if (!agentRecord) return;
     fetchPackages();
-
     const channel = supabase
       .channel('agent-pickup-packages')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'packages' }, () => {
         fetchPackages();
       })
       .subscribe();
-
     return () => { supabase.removeChannel(channel); };
   }, [agentRecord, fetchPackages]);
 
-  // Group packages by sender name
-  const groupedBySender = useMemo(() => {
-    const groups: Record<string, AgentPackage[]> = {};
-    packages
-      .filter(p => p.status === 'pending' || p.status === 'dropped_at_agent')
-      .forEach(pkg => {
-        const key = pkg.senderName;
-        if (!groups[key]) groups[key] = [];
-        groups[key].push(pkg);
-      });
-    return groups;
-  }, [packages]);
-
-  const droppedPackages = useMemo(
-    () => packages.filter(p => p.status === 'dropped_at_agent'),
-    [packages]
-  );
-
+  // Categorized packages
+  const pendingPackages = useMemo(() => packages.filter(p => p.status === 'pending'), [packages]);
+  const droppedPackages = useMemo(() => packages.filter(p => p.status === 'dropped_at_agent'), [packages]);
   const collectedPackages = useMemo(
     () => packages.filter(p => !['pending', 'dropped_at_agent', 'cancelled'].includes(p.status)),
     [packages]
   );
+  const doorstepPackages = useMemo(
+    () => packages.filter(p => p.deliveryType === 'doorstep' && (p.status === 'pending' || p.status === 'dropped_at_agent')),
+    [packages]
+  );
 
-  // Handle QR scan - change status to dropped_at_agent
+  // Search filter
+  const filterBySearch = useCallback((pkgs: AgentPackage[]) => {
+    if (!searchQuery.trim()) return pkgs;
+    const q = searchQuery.toLowerCase();
+    return pkgs.filter(p =>
+      p.trackingNumber.toLowerCase().includes(q) ||
+      p.senderName.toLowerCase().includes(q) ||
+      p.receiverName.toLowerCase().includes(q)
+    );
+  }, [searchQuery]);
+
+  // QR scan handler
   const handleScan = async (trackingNumber: string) => {
     setScannerOpen(false);
-    
-    const pkg = packages.find(
-      p => p.trackingNumber.toLowerCase() === trackingNumber.toLowerCase()
-    );
-
+    const pkg = packages.find(p => p.trackingNumber.toLowerCase() === trackingNumber.toLowerCase());
     if (!pkg) {
-      toast.error('Package not found', {
-        description: 'This package is not assigned to your pickup point.',
-      });
+      toast.error('Package not found', { description: 'This package is not assigned to your pickup point.' });
       return;
     }
-
     if (pkg.pickupAgentId !== agentRecord?.id) {
-      toast.error('Not authorized', {
-        description: 'This package belongs to a different agent.',
-      });
+      toast.error('Not authorized', { description: 'This package belongs to a different agent.' });
       return;
     }
-
     if (pkg.status !== 'pending') {
-      toast.info('Already processed', {
-        description: `This package is already "${pkg.status.replace(/_/g, ' ')}".`,
-      });
+      toast.info('Already processed', { description: `This package is already "${pkg.status.replace(/_/g, ' ')}".` });
       return;
     }
-
     try {
-      setProcessingId(pkg.id);
       const { error } = await supabase
         .from('packages')
         .update({ status: 'dropped_at_agent' as PackageStatus })
         .eq('id', pkg.id);
-
       if (error) throw error;
-
-      toast.success('Package received!', {
-        description: `${pkg.trackingNumber} marked as dropped at your point. Receiver will be notified.`,
-      });
-    } catch (err) {
+      toast.success('Package received!', { description: `${pkg.trackingNumber} marked as dropped at your point.` });
+    } catch {
       toast.error('Failed to update package status');
-    } finally {
-      setProcessingId(null);
     }
   };
 
-  // Redirect if not logged in
-  if (!authLoading && !user) {
-    return <Navigate to="/auth/login" replace />;
-  }
+  if (!authLoading && !user) return <Navigate to="/auth/login" replace />;
 
   if (authLoading || loading) {
     return (
@@ -209,171 +211,153 @@ export default function AgentPickupDashboard() {
             <MapPin className="w-16 h-16 text-muted-foreground mb-4" />
             <h2 className="font-display text-xl font-bold mb-2">No Agent Point Found</h2>
             <p className="text-muted-foreground text-center">
-              Your account is not linked to an agent pickup point. Contact an administrator to set up your location.
+              Your account is not linked to an agent pickup point. Contact an administrator.
             </p>
-            <Link to="/">
-              <Button variant="outline" className="mt-6">Go Home</Button>
-            </Link>
+            <Link to="/"><Button variant="outline" className="mt-6">Go Home</Button></Link>
           </CardContent>
         </Card>
       </div>
     );
   }
 
-  const expectedCount = Object.values(groupedBySender).flat().length;
+  // Render a list view for a category
+  if (activeView) {
+    const viewMap: Record<string, { title: string; pkgs: AgentPackage[] }> = {
+      pickup: { title: 'Pickup from Sender', pkgs: filterBySearch(pendingPackages) },
+      give: { title: 'Give to Customer', pkgs: filterBySearch(droppedPackages) },
+      doorstep: { title: 'Doorstep Packages', pkgs: filterBySearch(doorstepPackages) },
+      collected: { title: 'Collected Packages', pkgs: filterBySearch(collectedPackages) },
+      uncollected: { title: 'Uncollected Packages', pkgs: filterBySearch(droppedPackages) },
+    };
+    const view = viewMap[activeView] || { title: 'Packages', pkgs: [] };
+
+    return (
+      <div className="min-h-screen bg-background pb-20">
+        <div className="gradient-hero px-4 py-4">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" className="text-primary-foreground" onClick={() => setActiveView(null)}>
+              <ArrowDownToLine className="w-5 h-5 rotate-90" />
+            </Button>
+            <h1 className="font-display text-lg font-bold text-primary-foreground">{view.title}</h1>
+          </div>
+        </div>
+        <div className="px-4 py-4 space-y-3">
+          {view.pkgs.length > 0 ? (
+            view.pkgs.map(pkg => <PackageCard key={pkg.id} pkg={pkg} showPrint />)
+          ) : (
+            <Card className="border-dashed">
+              <CardContent className="flex flex-col items-center py-12">
+                <Package className="w-12 h-12 text-muted-foreground mb-4" />
+                <p className="text-muted-foreground">No packages found</p>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+        <BottomNav />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      {/* Header */}
-      <div className="gradient-hero text-primary-foreground">
-        <div className="container py-6 px-4">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-primary-foreground/20 flex items-center justify-center">
-                <MapPin className="w-6 h-6" />
-              </div>
-              <div>
-                <p className="text-sm opacity-80">Agent Point</p>
-                <h1 className="font-display font-bold text-lg">{agentRecord.business_name}</h1>
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-primary-foreground hover:bg-primary-foreground/10"
-                onClick={() => setPrinterOpen(true)}
-              >
-                <Printer className="w-5 h-5" />
-              </Button>
-              <Link to="/">
-                <Button variant="ghost" size="sm" className="text-primary-foreground hover:bg-primary-foreground/10">
-                  Home
-                </Button>
-              </Link>
-            </div>
-          </div>
-
-          {/* Stats */}
-          <div className="grid grid-cols-3 gap-3">
-            <Card className="bg-primary-foreground/10 border-0 backdrop-blur-sm">
-              <CardContent className="p-3 text-center">
-                <p className="text-2xl font-display font-bold text-primary-foreground">{expectedCount}</p>
-                <p className="text-xs text-primary-foreground/70">Expected</p>
-              </CardContent>
-            </Card>
-            <Card className="bg-primary-foreground/10 border-0 backdrop-blur-sm">
-              <CardContent className="p-3 text-center">
-                <p className="text-2xl font-display font-bold text-primary-foreground">{droppedPackages.length}</p>
-                <p className="text-xs text-primary-foreground/70">Dropped</p>
-              </CardContent>
-            </Card>
-            <Card className="bg-primary-foreground/10 border-0 backdrop-blur-sm">
-              <CardContent className="p-3 text-center">
-                <p className="text-2xl font-display font-bold text-primary-foreground">{collectedPackages.length}</p>
-                <p className="text-xs text-primary-foreground/70">Collected</p>
-              </CardContent>
-            </Card>
-          </div>
+      {/* Search Bar */}
+      <div className="px-4 pt-4">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+          <Input
+            placeholder="Find package"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10 pr-10 h-12 rounded-xl bg-card border shadow-card"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+            >✕</button>
+          )}
         </div>
       </div>
 
-      {/* Scan Button */}
-      <div className="container px-4 -mt-4">
-        <Button
-          variant="hero"
-          className="w-full h-14 text-lg gap-3 shadow-xl"
-          onClick={() => setScannerOpen(true)}
-        >
-          <QrCode className="w-6 h-6" />
-          Scan Package QR Code
-        </Button>
+      {/* Welcome Section */}
+      <div className="px-4 pt-6 pb-4">
+        <div className="flex items-end justify-between">
+          <div className="flex items-center gap-4">
+            <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
+              <User className="w-8 h-8 text-muted-foreground" />
+            </div>
+            <div>
+              <p className="text-muted-foreground text-sm">Welcome,</p>
+              <h1 className="font-display text-xl font-bold">{profile?.full_name || 'Agent'}</h1>
+            </div>
+          </div>
+          <button
+            onClick={() => setScannerOpen(true)}
+            className="w-14 h-14 rounded-xl border-2 border-border flex items-center justify-center hover:bg-secondary transition-colors"
+          >
+            <QrCode className="w-7 h-7 text-foreground" />
+          </button>
+        </div>
+        <p className="text-muted-foreground mt-3">Here are your packages today.</p>
       </div>
 
       {/* Tabs */}
-      <div className="container py-6 px-4">
+      <div className="px-4">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-3 mb-6">
-            <TabsTrigger value="expected" className="relative">
-              Expected
-              {expectedCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-accent text-accent-foreground text-xs rounded-full flex items-center justify-center">
-                  {expectedCount}
-                </span>
-              )}
-            </TabsTrigger>
-            <TabsTrigger value="dropped">Dropped</TabsTrigger>
-            <TabsTrigger value="collected">Collected</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 mb-6">
+            <TabsTrigger value="packages">Packages</TabsTrigger>
+            <TabsTrigger value="shelf">Shelf packages</TabsTrigger>
           </TabsList>
 
-          {/* Expected - grouped by sender */}
-          <TabsContent value="expected" className="space-y-6">
-            {Object.keys(groupedBySender).length > 0 ? (
-              Object.entries(groupedBySender).map(([senderName, pkgs]) => (
-                <div key={senderName}>
-                  <div className="flex items-center gap-2 mb-3">
-                    <User className="w-4 h-4 text-primary" />
-                    <h3 className="font-display font-semibold text-sm">
-                      {senderName} ({pkgs.length})
-                    </h3>
-                  </div>
-                  <div className="space-y-3">
-                    {pkgs.map(pkg => (
-                      <PackageCard key={pkg.id} pkg={pkg} showPrint>
-                        {pkg.status === 'pending' && (
-                          <p className="text-xs text-warning font-medium">⏳ Awaiting drop-off</p>
-                        )}
-                        {pkg.status === 'dropped_at_agent' && (
-                          <p className="text-xs text-success font-medium">✓ Dropped at your point</p>
-                        )}
-                      </PackageCard>
-                    ))}
-                  </div>
-                </div>
-              ))
-            ) : (
-              <Card className="border-dashed">
-                <CardContent className="flex flex-col items-center justify-center py-12">
-                  <Package className="w-12 h-12 text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground">No packages expected</p>
-                  <p className="text-sm text-muted-foreground">Packages assigned to your point will appear here</p>
-                </CardContent>
-              </Card>
-            )}
+          {/* Packages Tab - Action Cards Grid */}
+          <TabsContent value="packages">
+            <div className="grid grid-cols-2 gap-4">
+              <ActionCard
+                icon={<ArrowDownToLine className="w-8 h-8 text-primary" />}
+                label="Pickup from sender"
+                count={pendingPackages.length}
+                onClick={() => setActiveView('pickup')}
+              />
+              <ActionCard
+                icon={<ArrowUpFromLine className="w-8 h-8 text-primary" />}
+                label="Give to customer"
+                count={droppedPackages.length}
+                onClick={() => setActiveView('give')}
+              />
+              <ActionCard
+                icon={<Truck className="w-8 h-8 text-primary" />}
+                label="Doorstep packages"
+                count={doorstepPackages.length}
+                onClick={() => setActiveView('doorstep')}
+              />
+              <ActionCard
+                icon={<PackageOpen className="w-8 h-8 text-primary" />}
+                label="Collected packages"
+                count={collectedPackages.length}
+                onClick={() => setActiveView('collected')}
+              />
+              <ActionCard
+                icon={<Clock className="w-8 h-8 text-warning" />}
+                label="Uncollected packages"
+                count={droppedPackages.length}
+                onClick={() => setActiveView('uncollected')}
+              />
+            </div>
           </TabsContent>
 
-          {/* Dropped packages */}
-          <TabsContent value="dropped" className="space-y-4">
+          {/* Shelf Tab - Dropped packages ready for pickup */}
+          <TabsContent value="shelf" className="space-y-3">
             {droppedPackages.length > 0 ? (
               droppedPackages.map(pkg => (
                 <PackageCard key={pkg.id} pkg={pkg} showPrint>
-                  <div className="flex items-center gap-2 text-success">
-                    <CheckCircle className="w-4 h-4" />
-                    <span className="text-sm font-medium">Ready for collection by receiver</span>
-                  </div>
+                  <p className="text-xs text-primary font-medium">✓ On shelf — awaiting collection</p>
                 </PackageCard>
               ))
             ) : (
               <Card className="border-dashed">
-                <CardContent className="flex flex-col items-center justify-center py-12">
+                <CardContent className="flex flex-col items-center py-12">
                   <Package className="w-12 h-12 text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground">No dropped packages</p>
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
-
-          {/* Collected packages */}
-          <TabsContent value="collected" className="space-y-4">
-            {collectedPackages.length > 0 ? (
-              collectedPackages.map(pkg => (
-                <PackageCard key={pkg.id} pkg={pkg} showPrint />
-              ))
-            ) : (
-              <Card className="border-dashed">
-                <CardContent className="flex flex-col items-center justify-center py-12">
-                  <CheckCircle className="w-12 h-12 text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground">No collected packages yet</p>
+                  <p className="text-muted-foreground">No packages on shelf</p>
                 </CardContent>
               </Card>
             )}
@@ -381,23 +365,7 @@ export default function AgentPickupDashboard() {
         </Tabs>
       </div>
 
-      {/* QR Scanner */}
-      <QRScanner
-        open={scannerOpen}
-        onClose={() => setScannerOpen(false)}
-        onScan={handleScan}
-      />
-
-      {/* Printer Drawer */}
-      <PrinterDrawer
-        open={printerOpen}
-        onOpenChange={setPrinterOpen}
-        onPrinterSelected={() => {
-          setPrinterOpen(false);
-          toast.success('Printer connected!');
-        }}
-      />
-
+      <QRScanner open={scannerOpen} onClose={() => setScannerOpen(false)} onScan={handleScan} />
       <BottomNav />
     </div>
   );
