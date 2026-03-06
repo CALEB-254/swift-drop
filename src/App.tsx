@@ -15,6 +15,9 @@ import Cart from "./pages/sender/Cart";
 import RiderDashboard from "./pages/rider/RiderDashboard";
 import AgentPickupDashboard from "./pages/agent/AgentPickupDashboard";
 import AgentAccountSettings from "./pages/agent/AgentAccountSettings";
+import AgentPrint from "./pages/agent/AgentPrint";
+import AgentPrintPackage from "./pages/agent/AgentPrintPackage";
+import AgentPrintBusiness from "./pages/agent/AgentPrintBusiness";
 import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
 import ForgotPassword from "./pages/auth/ForgotPassword";
@@ -64,6 +67,9 @@ const App = () => (
             {/* Agent Pickup Point Routes */}
             <Route path="/agent" element={<AgentPickupDashboard />} />
             <Route path="/agent/account" element={<AgentAccountSettings />} />
+            <Route path="/agent/print" element={<AgentPrint />} />
+            <Route path="/agent/print/package" element={<AgentPrintPackage />} />
+            <Route path="/agent/print/business" element={<AgentPrintBusiness />} />
             <Route path="/agent/stock" element={<AgentPickupDashboard />} />
             
             {/* Profile Routes */}

@@ -49,7 +49,7 @@ export default function AgentAccountSettings() {
         {/* Menu Card */}
         <Card className="border border-border shadow-sm">
           <CardContent className="p-0 divide-y divide-border">
-            <Link to="/preferences" className="flex items-center gap-4 px-4 py-4">
+            <Link to="/agent/print" className="flex items-center gap-4 px-4 py-4">
               <Printer className="w-5 h-5 text-muted-foreground" />
               <span className="flex-1 font-medium">Print</span>
               <ChevronRight className="w-5 h-5 text-muted-foreground" />
