@@ -178,9 +178,9 @@ export default function NewDelivery() {
                 <SelectValue placeholder="-- Choose area --" />
               </SelectTrigger>
               <SelectContent>
-                {AREAS.map((area) => (
-                  <SelectItem key={area} value={area}>
-                    {area}
+                {agents.map((agent) => (
+                  <SelectItem key={agent.id} value={agent.location}>
+                    {agent.business_name} - {agent.location}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -302,9 +302,9 @@ export default function NewDelivery() {
                     <SelectValue placeholder="-- Choose area --" />
                   </SelectTrigger>
                   <SelectContent>
-                    {AREAS.map((area) => (
-                      <SelectItem key={area} value={area}>
-                        {area}
+                    {agents.map((agent) => (
+                      <SelectItem key={agent.id} value={agent.location}>
+                        {agent.business_name} - {agent.location}
                       </SelectItem>
                     ))}
                   </SelectContent>
