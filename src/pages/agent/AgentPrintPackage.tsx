@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
-import { ChevronLeft, Search, ScanLine, Printer, Loader2 } from 'lucide-react';
+import { ChevronLeft, Search, ScanLine, Printer, Loader2, Package, Bike, ShoppingBag, ChevronRight, X } from 'lucide-react';
 import { BottomNav } from '@/components/BottomNav';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -11,6 +11,13 @@ import { PackageReceipt } from '@/components/PackageReceipt';
 import { ReceiptPreviewDrawer } from '@/components/ReceiptPreviewDrawer';
 import { QRScanner } from '@/components/QRScanner';
 import { toPng } from 'html-to-image';
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
+
+const SCAN_OPTIONS = [
+  { key: 'pickup_point', label: 'Mtaani', icon: Package },
+  { key: 'doorstep', label: 'Doorstep', icon: Bike },
+  { key: 'errand', label: 'Errand', icon: ShoppingBag },
+] as const;
 
 export default function AgentPrintPackage() {
   const navigate = useNavigate();
@@ -20,6 +27,8 @@ export default function AgentPrintPackage() {
   const [showScanner, setShowScanner] = useState(false);
   const [showReceipt, setShowReceipt] = useState(false);
   const [isPrinting, setIsPrinting] = useState(false);
+  const [showScanOptions, setShowScanOptions] = useState(false);
+  const [selectedScanType, setSelectedScanType] = useState<string | null>(null);
   const receiptRef = useRef<HTMLDivElement>(null);
 
   const searchPackage = async (searchQuery: string) => {
@@ -49,10 +58,47 @@ export default function AgentPrintPackage() {
     }
   };
 
-  const handleScan = (result: string) => {
+  const handleSelectScanType = (type: string) => {
+    setSelectedScanType(type);
+    setShowScanOptions(false);
+    setShowScanner(true);
+  };
+
+  const handleScan = async (result: string) => {
     setShowScanner(false);
     setQuery(result);
-    searchPackage(result);
+
+    if (!selectedScanType) {
+      searchPackage(result);
+      return;
+    }
+
+    // Validate scanned package matches selected delivery type
+    setSearching(true);
+    setPkg(null);
+    try {
+      const { data, error } = await supabase
+        .from('packages')
+        .select('*')
+        .or(`tracking_number.ilike.%${result}%,receiver_phone.ilike.%${result}%`)
+        .limit(1)
+        .maybeSingle();
+
+      if (error) throw error;
+      if (!data) {
+        toast.error('No package found');
+      } else if (data.delivery_type !== selectedScanType) {
+        toast.error('Action not allowed — package delivery type does not match');
+      } else {
+        setPkg(data);
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error('Search failed');
+    } finally {
+      setSearching(false);
+      setSelectedScanType(null);
+    }
   };
 
   const handlePrint = async () => {
@@ -101,7 +147,7 @@ export default function AgentPrintPackage() {
         </div>
 
         {/* Scan QR */}
-        <Button variant="outline" className="w-full gap-2" onClick={() => setShowScanner(true)}>
+        <Button variant="outline" className="w-full gap-2" onClick={() => setShowScanOptions(true)}>
           <ScanLine className="w-4 h-4" />
           Scan Package QR Code
         </Button>
@@ -132,11 +178,38 @@ export default function AgentPrintPackage() {
         )}
       </div>
 
+      {/* Scan Options Drawer */}
+      <Drawer open={showScanOptions} onOpenChange={setShowScanOptions}>
+        <DrawerContent>
+          <DrawerHeader className="flex items-center gap-2">
+            <div className="w-1 h-6 bg-primary rounded-full" />
+            <DrawerTitle>Scan QR Code</DrawerTitle>
+          </DrawerHeader>
+          <div className="px-4 pb-6 space-y-2">
+            {SCAN_OPTIONS.map((opt) => (
+              <Card
+                key={opt.key}
+                className="border border-border cursor-pointer hover:bg-muted/50 transition-colors"
+                onClick={() => handleSelectScanType(opt.key)}
+              >
+                <CardContent className="p-4 flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                    <opt.icon className="w-5 h-5 text-foreground" />
+                  </div>
+                  <span className="flex-1 font-medium">{opt.label}</span>
+                  <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </DrawerContent>
+      </Drawer>
+
       {/* QR Scanner */}
       <QRScanner
         open={showScanner}
         onScan={handleScan}
-        onClose={() => setShowScanner(false)}
+        onClose={() => { setShowScanner(false); setSelectedScanType(null); }}
       />
 
       {/* Receipt Drawer */}
