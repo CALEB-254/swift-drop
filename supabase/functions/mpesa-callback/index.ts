@@ -33,75 +33,81 @@ serve(async (req) => {
     console.log("M-Pesa Callback received:", JSON.stringify(callback, null, 2));
 
     const { stkCallback } = callback.Body;
-    const { ResultCode, ResultDesc, CallbackMetadata } = stkCallback;
+    const { ResultCode, ResultDesc, CheckoutRequestID, CallbackMetadata } = stkCallback;
+
+    if (!CheckoutRequestID) {
+      console.warn("No CheckoutRequestID in callback");
+      return new Response(
+        JSON.stringify({ ResultCode: 1, ResultDesc: "Missing CheckoutRequestID" }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    // Find packages matching this specific CheckoutRequestID
+    const { data: packages, error: queryError } = await supabase
+      .from("packages")
+      .select("id, user_id")
+      .eq("checkout_request_id", CheckoutRequestID)
+      .eq("payment_status", "processing");
+
+    if (queryError || !packages || packages.length === 0) {
+      console.warn("No packages found for CheckoutRequestID:", CheckoutRequestID);
+      return new Response(
+        JSON.stringify({ ResultCode: 1, ResultDesc: "No matching packages" }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    const packageIds = packages.map((p) => p.id);
 
     // Extract receipt number from callback metadata
     let mpesaReceiptNumber = "";
-    let transactionDate = "";
-    let phoneNumber = "";
-    let amount = 0;
 
     if (CallbackMetadata?.Item) {
       for (const item of CallbackMetadata.Item) {
-        switch (item.Name) {
-          case "MpesaReceiptNumber":
-            mpesaReceiptNumber = String(item.Value || "");
-            break;
-          case "TransactionDate":
-            transactionDate = String(item.Value || "");
-            break;
-          case "PhoneNumber":
-            phoneNumber = String(item.Value || "");
-            break;
-          case "Amount":
-            amount = Number(item.Value || 0);
-            break;
+        if (item.Name === "MpesaReceiptNumber") {
+          mpesaReceiptNumber = String(item.Value || "");
         }
       }
     }
 
     if (ResultCode === 0) {
-      // Payment successful
       console.log("Payment successful:", mpesaReceiptNumber);
 
-      // Update packages with payment status
       const { error } = await supabase
         .from("packages")
         .update({
           payment_status: "paid",
           mpesa_receipt_number: mpesaReceiptNumber,
           paid_at: new Date().toISOString(),
+          checkout_request_id: null, // Clear after use
         })
-        .eq("payment_status", "processing");
+        .in("id", packageIds);
 
       if (error) {
         console.error("Error updating packages:", error);
       }
     } else {
-      // Payment failed
       console.log("Payment failed:", ResultDesc);
 
       await supabase
         .from("packages")
-        .update({ payment_status: "pending" })
-        .eq("payment_status", "processing");
+        .update({
+          payment_status: "pending",
+          checkout_request_id: null,
+        })
+        .in("id", packageIds);
     }
 
-    // M-Pesa expects a response
     return new Response(
       JSON.stringify({ ResultCode: 0, ResultDesc: "Accepted" }),
-      {
-        headers: { "Content-Type": "application/json" },
-      }
+      { status: 200, headers: { "Content-Type": "application/json" } }
     );
   } catch (error: any) {
     console.error("Callback error:", error);
     return new Response(
       JSON.stringify({ ResultCode: 1, ResultDesc: error.message }),
-      {
-        status: 200, // M-Pesa expects 200 even for errors
-        headers: { "Content-Type": "application/json" },
-      }
+      { status: 200, headers: { "Content-Type": "application/json" } }
     );
   }
 });

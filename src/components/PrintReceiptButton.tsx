@@ -97,11 +97,17 @@ export function PrintReceiptButton({ pkg, variant = 'outline', size = 'sm' }: Pr
   );
 }
 
+function escapeHtml(text: string): string {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
 function printViaBrowser(receiptRef: React.RefObject<HTMLDivElement | null>, pkg: ReceiptPkg) {
   const receiptHtml = receiptRef.current?.innerHTML || generateReceiptHTML(pkg);
   const printWindow = window.open('', '_blank');
   if (printWindow) {
-    printWindow.document.write(`<!DOCTYPE html><html><head><title>Receipt - ${pkg.trackingNumber}</title>
+    printWindow.document.write(`<!DOCTYPE html><html><head><title>Receipt - ${escapeHtml(pkg.trackingNumber)}</title>
       <style>body{margin:0;padding:20px;font-family:monospace;display:flex;justify-content:center}@media print{body{padding:0}}</style>
       </head><body>${receiptHtml}</body></html>`);
     printWindow.document.close();
@@ -376,16 +382,16 @@ function generateReceiptHTML(pkg: ReceiptPkg) {
     </div>
     <div style="text-align:center;margin-bottom:16px">
       <p style="font-size:12px;color:#666">Tracking Number</p>
-      <p style="font-weight:bold;font-size:18px">${pkg.trackingNumber}</p>
+      <p style="font-weight:bold;font-size:18px">${escapeHtml(pkg.trackingNumber)}</p>
     </div>
     <div style="border-top:1px dashed #ccc;border-bottom:1px dashed #ccc;padding:16px 0;font-size:14px">
-      <p><strong>From:</strong> ${pkg.senderName}</p>
-      <p><strong>To:</strong> ${pkg.receiverName}</p>
-      <p><strong>Address:</strong> ${pkg.receiverAddress}</p>
-      ${pkg.packageDescription ? `<p><strong>Package:</strong> ${pkg.packageDescription}</p>` : ''}
+      <p><strong>From:</strong> ${escapeHtml(pkg.senderName)}</p>
+      <p><strong>To:</strong> ${escapeHtml(pkg.receiverName)}</p>
+      <p><strong>Address:</strong> ${escapeHtml(pkg.receiverAddress)}</p>
+      ${pkg.packageDescription ? `<p><strong>Package:</strong> ${escapeHtml(pkg.packageDescription)}</p>` : ''}
     </div>
     <div style="padding:16px 0;text-align:center">
-      <p style="font-size:20px;font-weight:bold">TOTAL: KES ${pkg.cost.toLocaleString()}</p>
+      <p style="font-size:20px;font-weight:bold">TOTAL: KES ${escapeHtml(pkg.cost.toLocaleString())}</p>
     </div>
     <div style="text-align:center;font-size:12px;color:#666">
       <p>Thank you for choosing SwiftDrop!</p>
