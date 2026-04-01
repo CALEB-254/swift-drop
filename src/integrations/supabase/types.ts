@@ -98,6 +98,7 @@ export type Database = {
       packages: {
         Row: {
           agent_id: string | null
+          checkout_request_id: string | null
           commission: number | null
           cost: number
           created_at: string
@@ -126,6 +127,7 @@ export type Database = {
         }
         Insert: {
           agent_id?: string | null
+          checkout_request_id?: string | null
           commission?: number | null
           cost: number
           created_at?: string
@@ -154,6 +156,7 @@ export type Database = {
         }
         Update: {
           agent_id?: string | null
+          checkout_request_id?: string | null
           commission?: number | null
           cost?: number
           created_at?: string
