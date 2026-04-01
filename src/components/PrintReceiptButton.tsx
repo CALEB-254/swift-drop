@@ -382,16 +382,16 @@ function generateReceiptHTML(pkg: ReceiptPkg) {
     </div>
     <div style="text-align:center;margin-bottom:16px">
       <p style="font-size:12px;color:#666">Tracking Number</p>
-      <p style="font-weight:bold;font-size:18px">${pkg.trackingNumber}</p>
+      <p style="font-weight:bold;font-size:18px">${escapeHtml(pkg.trackingNumber)}</p>
     </div>
     <div style="border-top:1px dashed #ccc;border-bottom:1px dashed #ccc;padding:16px 0;font-size:14px">
-      <p><strong>From:</strong> ${pkg.senderName}</p>
-      <p><strong>To:</strong> ${pkg.receiverName}</p>
-      <p><strong>Address:</strong> ${pkg.receiverAddress}</p>
-      ${pkg.packageDescription ? `<p><strong>Package:</strong> ${pkg.packageDescription}</p>` : ''}
+      <p><strong>From:</strong> ${escapeHtml(pkg.senderName)}</p>
+      <p><strong>To:</strong> ${escapeHtml(pkg.receiverName)}</p>
+      <p><strong>Address:</strong> ${escapeHtml(pkg.receiverAddress)}</p>
+      ${pkg.packageDescription ? `<p><strong>Package:</strong> ${escapeHtml(pkg.packageDescription)}</p>` : ''}
     </div>
     <div style="padding:16px 0;text-align:center">
-      <p style="font-size:20px;font-weight:bold">TOTAL: KES ${pkg.cost.toLocaleString()}</p>
+      <p style="font-size:20px;font-weight:bold">TOTAL: KES ${escapeHtml(pkg.cost.toLocaleString())}</p>
     </div>
     <div style="text-align:center;font-size:12px;color:#666">
       <p>Thank you for choosing SwiftDrop!</p>
