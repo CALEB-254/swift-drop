@@ -97,11 +97,17 @@ export function PrintReceiptButton({ pkg, variant = 'outline', size = 'sm' }: Pr
   );
 }
 
+function escapeHtml(text: string): string {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
 function printViaBrowser(receiptRef: React.RefObject<HTMLDivElement | null>, pkg: ReceiptPkg) {
   const receiptHtml = receiptRef.current?.innerHTML || generateReceiptHTML(pkg);
   const printWindow = window.open('', '_blank');
   if (printWindow) {
-    printWindow.document.write(`<!DOCTYPE html><html><head><title>Receipt - ${pkg.trackingNumber}</title>
+    printWindow.document.write(`<!DOCTYPE html><html><head><title>Receipt - ${escapeHtml(pkg.trackingNumber)}</title>
       <style>body{margin:0;padding:20px;font-family:monospace;display:flex;justify-content:center}@media print{body{padding:0}}</style>
       </head><body>${receiptHtml}</body></html>`);
     printWindow.document.close();
