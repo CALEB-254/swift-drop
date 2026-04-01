@@ -43,8 +43,8 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <Routes>
-            {/* Welcome page (landing page for unauthenticated users) */}
-            <Route path="/" element={<Welcome />} />
+            {/* Login page as landing */}
+            <Route path="/" element={<Login />} />
             
             {/* Auth Routes */}
             <Route path="/auth/login" element={<Login />} />
