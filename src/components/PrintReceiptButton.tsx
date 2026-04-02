@@ -167,8 +167,8 @@ function escposQRCode(data: string): number[] {
 
   // Model 2
   bytes.push(GS, 0x28, 0x6B, 4, 0, 0x31, 0x41, 0x32, 0x00);
-  // Size – 6 dots
-  bytes.push(GS, 0x28, 0x6B, 3, 0, 0x31, 0x43, 0x06);
+  // Size – 8 dots (larger for 576-dot width)
+  bytes.push(GS, 0x28, 0x6B, 3, 0, 0x31, 0x43, 0x08);
   // Error correction – Level H
   bytes.push(GS, 0x28, 0x6B, 3, 0, 0x31, 0x45, 0x33);
   // Store data
