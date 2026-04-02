@@ -357,7 +357,7 @@ async function printViaBluetooth(pkg: ReceiptPkg) {
       const characteristics = await service.getCharacteristics();
       for (const char of characteristics) {
         if (char.properties.write || char.properties.writeWithoutResponse) {
-          const chunkSize = 100;
+          const chunkSize = 200;
           for (let i = 0; i < data.length; i += chunkSize) {
             const chunk = data.slice(i, i + chunkSize);
             if (char.properties.writeWithoutResponse) {
