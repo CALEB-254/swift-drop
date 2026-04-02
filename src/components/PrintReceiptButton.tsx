@@ -210,8 +210,10 @@ function generateReceiptBytes(pkg: ReceiptPkg): Uint8Array {
 
   const bytes: number[] = [];
 
-  // Init
+  // Init & set 80mm line spacing
   bytes.push(...escposInit());
+  // Set print area width to 576 dots
+  bytes.push(GS, 0x57, 0x40, 0x02); // GS W nL nH = 576
 
   // ── Header ──
   bytes.push(...escposAlignCenter());
