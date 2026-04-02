@@ -184,11 +184,11 @@ function textToBytes(text: string): number[] {
   return Array.from(new TextEncoder().encode(text));
 }
 
-function line(char = '-', width = 32): number[] {
+function line(char = '-', width = 48): number[] {
   return textToBytes(char.repeat(width) + '\n');
 }
 
-function padRow(left: string, right: string, width = 32): string {
+function padRow(left: string, right: string, width = 48): string {
   const gap = width - left.length - right.length;
   return left + ' '.repeat(Math.max(1, gap)) + right + '\n';
 }
