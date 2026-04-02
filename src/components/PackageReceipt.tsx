@@ -36,8 +36,8 @@ export const PackageReceipt = forwardRef<HTMLDivElement, PackageReceiptProps>(
     return (
       <div 
         ref={ref}
-        className="bg-white p-6 max-w-[320px] mx-auto text-black"
-        style={{ fontFamily: 'monospace', fontSize: '12px' }}
+        className="bg-white p-4 max-w-[380px] mx-auto text-black"
+        style={{ fontFamily: 'monospace', fontSize: '11px', width: '380px' }}
       >
         {/* Header */}
         <div className="text-center border-b border-black pb-3 mb-3">

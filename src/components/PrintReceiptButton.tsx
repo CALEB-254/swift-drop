@@ -167,8 +167,8 @@ function escposQRCode(data: string): number[] {
 
   // Model 2
   bytes.push(GS, 0x28, 0x6B, 4, 0, 0x31, 0x41, 0x32, 0x00);
-  // Size – 6 dots
-  bytes.push(GS, 0x28, 0x6B, 3, 0, 0x31, 0x43, 0x06);
+  // Size – 8 dots (larger for 576-dot width)
+  bytes.push(GS, 0x28, 0x6B, 3, 0, 0x31, 0x43, 0x08);
   // Error correction – Level H
   bytes.push(GS, 0x28, 0x6B, 3, 0, 0x31, 0x45, 0x33);
   // Store data
@@ -184,11 +184,11 @@ function textToBytes(text: string): number[] {
   return Array.from(new TextEncoder().encode(text));
 }
 
-function line(char = '-', width = 32): number[] {
+function line(char = '-', width = 48): number[] {
   return textToBytes(char.repeat(width) + '\n');
 }
 
-function padRow(left: string, right: string, width = 32): string {
+function padRow(left: string, right: string, width = 48): string {
   const gap = width - left.length - right.length;
   return left + ' '.repeat(Math.max(1, gap)) + right + '\n';
 }
@@ -210,8 +210,10 @@ function generateReceiptBytes(pkg: ReceiptPkg): Uint8Array {
 
   const bytes: number[] = [];
 
-  // Init
+  // Init & set 80mm line spacing
   bytes.push(...escposInit());
+  // Set print area width to 576 dots
+  bytes.push(GS, 0x57, 0x40, 0x02); // GS W nL nH = 576
 
   // ── Header ──
   bytes.push(...escposAlignCenter());
@@ -355,7 +357,7 @@ async function printViaBluetooth(pkg: ReceiptPkg) {
       const characteristics = await service.getCharacteristics();
       for (const char of characteristics) {
         if (char.properties.write || char.properties.writeWithoutResponse) {
-          const chunkSize = 100;
+          const chunkSize = 200;
           for (let i = 0; i < data.length; i += chunkSize) {
             const chunk = data.slice(i, i + chunkSize);
             if (char.properties.writeWithoutResponse) {
