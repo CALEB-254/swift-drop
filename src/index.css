@@ -68,31 +68,31 @@
   }
 
   .dark {
-    --background: 220 20% 8%;
-    --foreground: 210 20% 98%;
+    --background: 150 20% 4%;
+    --foreground: 0 0% 95%;
 
-    --card: 220 20% 12%;
-    --card-foreground: 210 20% 98%;
+    --card: 150 15% 8%;
+    --card-foreground: 0 0% 95%;
 
-    --popover: 220 20% 12%;
-    --popover-foreground: 210 20% 98%;
+    --popover: 150 15% 8%;
+    --popover-foreground: 0 0% 95%;
 
-    --primary: 142 76% 45%;
+    --primary: 145 63% 45%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 220 15% 18%;
-    --secondary-foreground: 210 20% 90%;
+    --secondary: 150 15% 12%;
+    --secondary-foreground: 0 0% 85%;
 
-    --muted: 220 15% 20%;
-    --muted-foreground: 220 10% 60%;
+    --muted: 150 10% 12%;
+    --muted-foreground: 150 5% 55%;
 
-    --accent: 142 76% 45%;
+    --accent: 145 63% 45%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --success: 142 76% 45%;
+    --success: 145 63% 45%;
     --success-foreground: 0 0% 100%;
 
     --warning: 38 92% 55%;
@@ -101,20 +101,20 @@
     --info: 199 89% 55%;
     --info-foreground: 0 0% 100%;
 
-    --border: 220 15% 22%;
-    --input: 220 15% 22%;
-    --ring: 142 76% 45%;
+    --border: 150 10% 15%;
+    --input: 150 10% 15%;
+    --ring: 145 63% 45%;
 
-    --sidebar-background: 220 20% 10%;
-    --sidebar-foreground: 210 20% 90%;
-    --sidebar-primary: 142 76% 45%;
+    --sidebar-background: 150 15% 6%;
+    --sidebar-foreground: 0 0% 90%;
+    --sidebar-primary: 145 63% 45%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 15% 15%;
-    --sidebar-accent-foreground: 210 20% 90%;
-    --sidebar-border: 220 15% 22%;
-    --sidebar-ring: 142 76% 45%;
+    --sidebar-accent: 150 15% 10%;
+    --sidebar-accent-foreground: 0 0% 90%;
+    --sidebar-border: 150 10% 15%;
+    --sidebar-ring: 145 63% 45%;
 
-    --gradient-hero: linear-gradient(180deg, hsl(142 76% 36%) 0%, hsl(142 76% 42%) 100%);
+    --gradient-hero: linear-gradient(180deg, hsl(145 63% 35%) 0%, hsl(145 63% 48%) 100%);
   }
 }
 
