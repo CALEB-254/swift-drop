@@ -1,15 +1,15 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Link, Navigate } from 'react-router-dom';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import {
   Package, QrCode, User, Loader2, MapPin, Search,
-  ArrowDownToLine, ArrowUpFromLine, Truck, PackageOpen, Clock,
+  ArrowDownToLine, ArrowUpFromLine, Truck, PackageOpen, Clock, PackageCheck,
 } from 'lucide-react';
 import { PackageCard } from '@/components/PackageCard';
-import { QRScanner } from '@/components/QRScanner';
+
 import { BottomNav } from '@/components/BottomNav';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -87,11 +87,12 @@ function ActionCard({ icon, label, count, onClick }: ActionCardProps) {
 }
 
 export default function AgentPickupDashboard() {
+  const navigate = useNavigate();
   const { user, profile, loading: authLoading } = useAuth();
   const [agentRecord, setAgentRecord] = useState<{ id: string; business_name: string } | null>(null);
   const [packages, setPackages] = useState<AgentPackage[]>([]);
   const [loading, setLoading] = useState(true);
-  const [scannerOpen, setScannerOpen] = useState(false);
+  
   const [activeTab, setActiveTab] = useState('packages');
   const [searchQuery, setSearchQuery] = useState('');
   const [activeView, setActiveView] = useState<string | null>(null);
@@ -153,6 +154,10 @@ export default function AgentPickupDashboard() {
     () => packages.filter(p => p.deliveryType === 'doorstep' && (p.status === 'pending' || p.status === 'dropped_at_agent')),
     [packages]
   );
+  const parcelPackages = useMemo(
+    () => packages.filter(p => p.deliveryType === 'pickup_point' && p.status === 'pending'),
+    [packages]
+  );
 
   // Search filter
   const filterBySearch = useCallback((pkgs: AgentPackage[]) => {
@@ -165,33 +170,6 @@ export default function AgentPickupDashboard() {
     );
   }, [searchQuery]);
 
-  // QR scan handler
-  const handleScan = async (trackingNumber: string) => {
-    setScannerOpen(false);
-    const pkg = packages.find(p => p.trackingNumber.toLowerCase() === trackingNumber.toLowerCase());
-    if (!pkg) {
-      toast.error('Package not found', { description: 'This package is not assigned to your pickup point.' });
-      return;
-    }
-    if (pkg.pickupAgentId !== agentRecord?.id) {
-      toast.error('Not authorized', { description: 'This package belongs to a different agent.' });
-      return;
-    }
-    if (pkg.status !== 'pending') {
-      toast.info('Already processed', { description: `This package is already "${pkg.status.replace(/_/g, ' ')}".` });
-      return;
-    }
-    try {
-      const { error } = await supabase
-        .from('packages')
-        .update({ status: 'dropped_at_agent' as PackageStatus })
-        .eq('id', pkg.id);
-      if (error) throw error;
-      toast.success('Package received!', { description: `${pkg.trackingNumber} marked as dropped at your point.` });
-    } catch {
-      toast.error('Failed to update package status');
-    }
-  };
 
   if (!authLoading && !user) return <Navigate to="/auth/login" replace />;
 
@@ -226,6 +204,7 @@ export default function AgentPickupDashboard() {
       pickup: { title: 'Pickup from Sender', pkgs: filterBySearch(pendingPackages) },
       give: { title: 'Give to Customer', pkgs: filterBySearch(droppedPackages) },
       doorstep: { title: 'Doorstep Packages', pkgs: filterBySearch(doorstepPackages) },
+      parcel: { title: 'Pick Parcel Packages', pkgs: filterBySearch(parcelPackages) },
       collected: { title: 'Collected Packages', pkgs: filterBySearch(collectedPackages) },
       uncollected: { title: 'Uncollected Packages', pkgs: filterBySearch(droppedPackages) },
     };
@@ -292,7 +271,7 @@ export default function AgentPickupDashboard() {
             </div>
           </div>
           <button
-            onClick={() => setScannerOpen(true)}
+            onClick={() => navigate('/agent/scan')}
             className="w-14 h-14 rounded-xl border-2 border-border flex items-center justify-center hover:bg-secondary transition-colors"
           >
             <QrCode className="w-7 h-7 text-foreground" />
@@ -325,16 +304,20 @@ export default function AgentPickupDashboard() {
                 onClick={() => setActiveView('give')}
               />
               <ActionCard
-                icon={<Truck className="w-8 h-8 text-primary" />}
-                label="Doorstep packages"
-                count={doorstepPackages.length}
-                onClick={() => setActiveView('doorstep')}
+                icon={<PackageCheck className="w-8 h-8 text-primary" />}
+                label="Pick parcel Packages"
+                count={parcelPackages.length}
+                onClick={() => setActiveView('parcel')}
               />
               <ActionCard
                 icon={<PackageOpen className="w-8 h-8 text-primary" />}
                 label="Collected packages"
                 count={collectedPackages.length}
                 onClick={() => setActiveView('collected')}
+              />
+              <ActionCard
+                icon={<Clock className="w-8 h-8 text-warning" />}
+                label="Uncollected packages"
               />
               <ActionCard
                 icon={<Clock className="w-8 h-8 text-warning" />}
@@ -365,7 +348,6 @@ export default function AgentPickupDashboard() {
         </Tabs>
       </div>
 
-      <QRScanner open={scannerOpen} onClose={() => setScannerOpen(false)} onScan={handleScan} />
       <BottomNav />
     </div>
   );

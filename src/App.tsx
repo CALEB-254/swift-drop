@@ -18,6 +18,11 @@ import AgentAccountSettings from "./pages/agent/AgentAccountSettings";
 import AgentPrint from "./pages/agent/AgentPrint";
 import AgentPrintPackage from "./pages/agent/AgentPrintPackage";
 import AgentPrintBusiness from "./pages/agent/AgentPrintBusiness";
+import AgentScan from "./pages/agent/AgentScan";
+import AgentScanMtaani from "./pages/agent/AgentScanMtaani";
+import AgentScanDoorstep from "./pages/agent/AgentScanDoorstep";
+import AgentScanErrand from "./pages/agent/AgentScanErrand";
+import AgentScanSack from "./pages/agent/AgentScanSack";
 import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
 import ForgotPassword from "./pages/auth/ForgotPassword";
@@ -70,6 +75,11 @@ const App = () => (
             <Route path="/agent/print" element={<AgentPrint />} />
             <Route path="/agent/print/package" element={<AgentPrintPackage />} />
             <Route path="/agent/print/business" element={<AgentPrintBusiness />} />
+            <Route path="/agent/scan" element={<AgentScan />} />
+            <Route path="/agent/scan/mtaani" element={<AgentScanMtaani />} />
+            <Route path="/agent/scan/doorstep" element={<AgentScanDoorstep />} />
+            <Route path="/agent/scan/errand" element={<AgentScanErrand />} />
+            <Route path="/agent/scan/sack" element={<AgentScanSack />} />
             <Route path="/agent/stock" element={<AgentPickupDashboard />} />
             
             {/* Profile Routes */}

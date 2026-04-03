@@ -1,55 +1,56 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
 import { BottomNav } from '@/components/BottomNav';
-import { ArrowLeft, Bluetooth, Bell, HelpCircle, Info, Loader2, Printer } from 'lucide-react';
+import { ChevronLeft, Bluetooth, Printer, Info, RefreshCw, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
 export default function Preferences() {
+  const navigate = useNavigate();
   const { user } = useAuthContext();
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const [bluetoothEnabled, setBluetoothEnabled] = useState(true);
-  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [connectedPrinter, setConnectedPrinter] = useState<string | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
 
   useEffect(() => {
     if (!user) return;
-    
     const fetchPreferences = async () => {
       const { data } = await supabase
         .from('user_preferences')
         .select('*')
         .eq('user_id', user.id)
         .maybeSingle();
-      
       if (data) {
         setBluetoothEnabled(data.bluetooth_enabled ?? true);
-        setNotificationsEnabled(data.notifications_enabled ?? true);
       }
-      
-      // Check saved printer
       const savedPrinter = localStorage.getItem('bt_printer_name');
       if (savedPrinter) setConnectedPrinter(savedPrinter);
-      
       setLoading(false);
     };
-    
     fetchPreferences();
   }, [user]);
+
+  const toggleBluetooth = async (enabled: boolean) => {
+    setBluetoothEnabled(enabled);
+    if (!user) return;
+    await supabase
+      .from('user_preferences')
+      .upsert({
+        user_id: user.id,
+        bluetooth_enabled: enabled,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'user_id' });
+  };
 
   const connectPrinter = async () => {
     if (!('bluetooth' in navigator)) {
       toast.error('Bluetooth is not supported on this device');
       return;
     }
-
     setIsConnecting(true);
     try {
       const device = await (navigator as any).bluetooth.requestDevice({
@@ -62,7 +63,6 @@ export default function Preferences() {
           'e7810a71-73ae-499d-8c15-faa9aef0c3f2',
         ]
       });
-
       if (device) {
         const name = device.name || 'Bluetooth Printer';
         localStorage.setItem('bt_printer_id', device.id);
@@ -79,158 +79,109 @@ export default function Preferences() {
     }
   };
 
-  const disconnectPrinter = () => {
+  const troubleshoot = () => {
     localStorage.removeItem('bt_printer_id');
     localStorage.removeItem('bt_printer_name');
     setConnectedPrinter(null);
-    toast.success('Printer disconnected');
+    toast.success('Cache cleared. Try reconnecting your printer.');
   };
 
-  const savePreferences = async () => {
-    if (!user) return;
-    setSaving(true);
-    try {
-      const { error } = await supabase
-        .from('user_preferences')
-        .upsert({
-          user_id: user.id,
-          bluetooth_enabled: bluetoothEnabled,
-          notifications_enabled: notificationsEnabled,
-          updated_at: new Date().toISOString(),
-        }, { onConflict: 'user_id' });
-      if (error) throw error;
-      toast.success('Preferences saved');
-    } catch {
-      toast.error('Failed to save preferences');
-    } finally {
-      setSaving(false);
-    }
-  };
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      <div className="gradient-hero px-4 py-6">
-        <div className="flex items-center gap-3">
-          <Link to="/sender" className="p-2 -ml-2">
-            <ArrowLeft className="w-6 h-6 text-primary-foreground" />
-          </Link>
-          <h1 className="font-display text-xl font-bold text-primary-foreground">Preferences</h1>
-        </div>
+      {/* Header */}
+      <div className="px-4 pt-4 pb-3 border-b border-border flex items-center gap-3">
+        <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+          <ChevronLeft className="w-5 h-5" />
+        </Button>
+        <h1 className="font-display text-lg font-bold">Settings</h1>
       </div>
 
-      <div className="px-4 py-6 space-y-4">
-        {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      <div className="px-4 pt-6 space-y-6">
+        {/* Printer Section */}
+        <div>
+          <h2 className="font-display font-semibold text-sm text-muted-foreground uppercase tracking-wider mb-4">Printer</h2>
+          
+          <div className="space-y-4">
+            {/* Bluetooth Status */}
+            <div className="flex items-center gap-4">
+              <Bluetooth className="w-5 h-5 text-muted-foreground" />
+              <div className="flex-1">
+                <p className="font-medium">Bluetooth Status</p>
+                <p className="text-sm text-muted-foreground">Handle bluetooth connection</p>
+              </div>
+              <Switch checked={bluetoothEnabled} onCheckedChange={toggleBluetooth} />
+            </div>
+
+            {/* Printer Connection */}
+            <div className="flex items-center gap-4">
+              <Printer className="w-5 h-5 text-muted-foreground" />
+              <div className="flex-1">
+                <p className="font-medium">Printer Connection</p>
+                <p className="text-sm text-muted-foreground">
+                  {connectedPrinter
+                    ? `Connected to ${connectedPrinter}`
+                    : 'You are currently not connected to any printer'}
+                </p>
+              </div>
+              <Button
+                variant="default"
+                size="sm"
+                className="rounded-full px-5"
+                onClick={connectPrinter}
+                disabled={isConnecting || !bluetoothEnabled}
+              >
+                {isConnecting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Connect'}
+              </Button>
+            </div>
           </div>
-        ) : (
-          <>
-            <Card className="border-0 shadow-card">
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Bluetooth className="w-5 h-5" />
-                  Bluetooth Printing
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="bluetooth" className="flex-1">
-                    <span className="font-medium">Enable Bluetooth</span>
-                    <p className="text-sm text-muted-foreground">Allow connecting to Bluetooth printers</p>
-                  </Label>
-                  <Switch id="bluetooth" checked={bluetoothEnabled} onCheckedChange={setBluetoothEnabled} />
-                </div>
-                
-                {bluetoothEnabled && (
-                  <div className="pt-2 border-t">
-                    {connectedPrinter ? (
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Printer className="w-4 h-4 text-primary" />
-                          <div>
-                            <p className="text-sm font-medium">{connectedPrinter}</p>
-                            <p className="text-xs text-muted-foreground">Connected</p>
-                          </div>
-                        </div>
-                        <Button variant="outline" size="sm" onClick={disconnectPrinter}>
-                          Disconnect
-                        </Button>
-                      </div>
-                    ) : (
-                      <Button 
-                        variant="outline" 
-                        className="w-full gap-2" 
-                        onClick={connectPrinter}
-                        disabled={isConnecting}
-                      >
-                        {isConnecting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Bluetooth className="w-4 h-4" />}
-                        Connect Printer
-                      </Button>
-                    )}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+        </div>
 
-            <Card className="border-0 shadow-card">
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Bell className="w-5 h-5" />
-                  Notifications
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="notifications" className="flex-1">
-                    <span className="font-medium">Push Notifications</span>
-                    <p className="text-sm text-muted-foreground">Receive updates about your deliveries</p>
-                  </Label>
-                  <Switch id="notifications" checked={notificationsEnabled} onCheckedChange={setNotificationsEnabled} />
-                </div>
-              </CardContent>
-            </Card>
+        <div className="border-t border-border" />
 
-            <Card className="border-0 shadow-card">
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <HelpCircle className="w-5 h-5" />
-                  Support
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <Link to="/feedback" className="flex items-center justify-between p-3 bg-secondary rounded-lg hover:bg-secondary/80">
-                  <span>Contact Support</span>
-                  <ArrowLeft className="w-4 h-4 rotate-180" />
-                </Link>
-                <Link to="/terms" className="flex items-center justify-between p-3 bg-secondary rounded-lg hover:bg-secondary/80">
-                  <span>Help Center</span>
-                  <ArrowLeft className="w-4 h-4 rotate-180" />
-                </Link>
-              </CardContent>
-            </Card>
+        {/* About Agent App */}
+        <div>
+          <h2 className="font-display font-semibold text-sm text-muted-foreground uppercase tracking-wider mb-4">About Agent App</h2>
+          
+          <div className="space-y-4">
+            {/* App Version */}
+            <div className="flex items-center gap-4">
+              <Info className="w-5 h-5 text-muted-foreground" />
+              <div className="flex-1">
+                <p className="font-medium">App version</p>
+                <p className="text-sm text-muted-foreground">Current app Version is 1.0.0</p>
+              </div>
+            </div>
 
-            <Card className="border-0 shadow-card">
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Info className="w-5 h-5" />
-                  About
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center space-y-2">
-                  <p className="font-semibold">SwiftDrop</p>
-                  <p className="text-sm text-muted-foreground">Version 1.0.0</p>
-                  <p className="text-xs text-muted-foreground">Fast and reliable package delivery across Kenya</p>
-                </div>
-              </CardContent>
-            </Card>
+            {/* Troubleshooting */}
+            <div className="flex items-center gap-4">
+              <RefreshCw className="w-5 h-5 text-muted-foreground" />
+              <div className="flex-1">
+                <p className="font-medium">Trouble Shooting</p>
+                <p className="text-sm text-muted-foreground">Trouble shoot the app</p>
+              </div>
+              <Button
+                variant="default"
+                size="sm"
+                className="rounded-full px-5"
+                onClick={troubleshoot}
+              >
+                Troubleshoot
+              </Button>
+            </div>
+          </div>
+        </div>
 
-            <Button onClick={savePreferences} className="w-full h-12" disabled={saving}>
-              {saving ? (<><Loader2 className="w-4 h-4 mr-2 animate-spin" />Saving...</>) : 'Save Preferences'}
-            </Button>
-          </>
-        )}
+        <div className="border-t border-border" />
       </div>
+
       <BottomNav />
     </div>
   );
