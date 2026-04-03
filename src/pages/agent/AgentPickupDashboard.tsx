@@ -1,12 +1,12 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Link, Navigate } from 'react-router-dom';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import {
   Package, QrCode, User, Loader2, MapPin, Search,
-  ArrowDownToLine, ArrowUpFromLine, Truck, PackageOpen, Clock,
+  ArrowDownToLine, ArrowUpFromLine, Truck, PackageOpen, Clock, PackageCheck,
 } from 'lucide-react';
 import { PackageCard } from '@/components/PackageCard';
 import { QRScanner } from '@/components/QRScanner';
