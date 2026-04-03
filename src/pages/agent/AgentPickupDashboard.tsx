@@ -275,7 +275,7 @@ export default function AgentPickupDashboard() {
             </div>
           </div>
           <button
-            onClick={() => setScannerOpen(true)}
+            onClick={() => navigate('/agent/scan')}
             className="w-14 h-14 rounded-xl border-2 border-border flex items-center justify-center hover:bg-secondary transition-colors"
           >
             <QrCode className="w-7 h-7 text-foreground" />
