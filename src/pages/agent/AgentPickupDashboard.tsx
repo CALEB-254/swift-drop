@@ -9,7 +9,7 @@ import {
   ArrowDownToLine, ArrowUpFromLine, Truck, PackageOpen, Clock, PackageCheck,
 } from 'lucide-react';
 import { PackageCard } from '@/components/PackageCard';
-import { QRScanner } from '@/components/QRScanner';
+
 import { BottomNav } from '@/components/BottomNav';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
