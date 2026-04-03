@@ -208,6 +208,7 @@ export default function AgentPickupDashboard() {
       pickup: { title: 'Pickup from Sender', pkgs: filterBySearch(pendingPackages) },
       give: { title: 'Give to Customer', pkgs: filterBySearch(droppedPackages) },
       doorstep: { title: 'Doorstep Packages', pkgs: filterBySearch(doorstepPackages) },
+      parcel: { title: 'Pick Parcel Packages', pkgs: filterBySearch(parcelPackages) },
       collected: { title: 'Collected Packages', pkgs: filterBySearch(collectedPackages) },
       uncollected: { title: 'Uncollected Packages', pkgs: filterBySearch(droppedPackages) },
     };
