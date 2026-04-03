@@ -170,10 +170,6 @@ export default function AgentPickupDashboard() {
     );
   }, [searchQuery]);
 
-    } catch {
-      toast.error('Failed to update package status');
-    }
-  };
 
   if (!authLoading && !user) return <Navigate to="/auth/login" replace />;
 
