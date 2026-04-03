@@ -155,7 +155,7 @@ export default function AgentPickupDashboard() {
     [packages]
   );
   const parcelPackages = useMemo(
-    () => packages.filter(p => (p.deliveryType === 'xpress' || p.deliveryType === 'pickup_point') && p.status === 'pending'),
+    () => packages.filter(p => p.deliveryType === 'pickup_point' && p.status === 'pending'),
     [packages]
   );
 
