@@ -154,6 +154,10 @@ export default function AgentPickupDashboard() {
     () => packages.filter(p => p.deliveryType === 'doorstep' && (p.status === 'pending' || p.status === 'dropped_at_agent')),
     [packages]
   );
+  const parcelPackages = useMemo(
+    () => packages.filter(p => (p.deliveryType === 'xpress' || p.deliveryType === 'pickup_point') && p.status === 'pending'),
+    [packages]
+  );
 
   // Search filter
   const filterBySearch = useCallback((pkgs: AgentPackage[]) => {
