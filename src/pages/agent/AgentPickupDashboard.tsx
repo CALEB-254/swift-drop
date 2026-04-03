@@ -170,29 +170,6 @@ export default function AgentPickupDashboard() {
     );
   }, [searchQuery]);
 
-  // QR scan handler
-  const handleScan = async (trackingNumber: string) => {
-    setScannerOpen(false);
-    const pkg = packages.find(p => p.trackingNumber.toLowerCase() === trackingNumber.toLowerCase());
-    if (!pkg) {
-      toast.error('Package not found', { description: 'This package is not assigned to your pickup point.' });
-      return;
-    }
-    if (pkg.pickupAgentId !== agentRecord?.id) {
-      toast.error('Not authorized', { description: 'This package belongs to a different agent.' });
-      return;
-    }
-    if (pkg.status !== 'pending') {
-      toast.info('Already processed', { description: `This package is already "${pkg.status.replace(/_/g, ' ')}".` });
-      return;
-    }
-    try {
-      const { error } = await supabase
-        .from('packages')
-        .update({ status: 'dropped_at_agent' as PackageStatus })
-        .eq('id', pkg.id);
-      if (error) throw error;
-      toast.success('Package received!', { description: `${pkg.trackingNumber} marked as dropped at your point.` });
     } catch {
       toast.error('Failed to update package status');
     }
