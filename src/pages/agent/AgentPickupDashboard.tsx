@@ -308,16 +308,20 @@ export default function AgentPickupDashboard() {
                 onClick={() => setActiveView('give')}
               />
               <ActionCard
-                icon={<Truck className="w-8 h-8 text-primary" />}
-                label="Doorstep packages"
-                count={doorstepPackages.length}
-                onClick={() => setActiveView('doorstep')}
+                icon={<PackageCheck className="w-8 h-8 text-primary" />}
+                label="Pick parcel Packages"
+                count={parcelPackages.length}
+                onClick={() => setActiveView('parcel')}
               />
               <ActionCard
                 icon={<PackageOpen className="w-8 h-8 text-primary" />}
                 label="Collected packages"
                 count={collectedPackages.length}
                 onClick={() => setActiveView('collected')}
+              />
+              <ActionCard
+                icon={<Clock className="w-8 h-8 text-warning" />}
+                label="Uncollected packages"
               />
               <ActionCard
                 icon={<Clock className="w-8 h-8 text-warning" />}
