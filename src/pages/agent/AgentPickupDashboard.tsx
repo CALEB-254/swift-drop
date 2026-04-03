@@ -92,7 +92,7 @@ export default function AgentPickupDashboard() {
   const [agentRecord, setAgentRecord] = useState<{ id: string; business_name: string } | null>(null);
   const [packages, setPackages] = useState<AgentPackage[]>([]);
   const [loading, setLoading] = useState(true);
-  const [scannerOpen, setScannerOpen] = useState(false);
+  
   const [activeTab, setActiveTab] = useState('packages');
   const [searchQuery, setSearchQuery] = useState('');
   const [activeView, setActiveView] = useState<string | null>(null);
