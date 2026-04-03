@@ -352,7 +352,6 @@ export default function AgentPickupDashboard() {
         </Tabs>
       </div>
 
-      <QRScanner open={scannerOpen} onClose={() => setScannerOpen(false)} onScan={handleScan} />
       <BottomNav />
     </div>
   );
