@@ -87,6 +87,7 @@ function ActionCard({ icon, label, count, onClick }: ActionCardProps) {
 }
 
 export default function AgentPickupDashboard() {
+  const navigate = useNavigate();
   const { user, profile, loading: authLoading } = useAuth();
   const [agentRecord, setAgentRecord] = useState<{ id: string; business_name: string } | null>(null);
   const [packages, setPackages] = useState<AgentPackage[]>([]);
