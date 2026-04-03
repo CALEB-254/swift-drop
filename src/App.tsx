@@ -75,6 +75,11 @@ const App = () => (
             <Route path="/agent/print" element={<AgentPrint />} />
             <Route path="/agent/print/package" element={<AgentPrintPackage />} />
             <Route path="/agent/print/business" element={<AgentPrintBusiness />} />
+            <Route path="/agent/scan" element={<AgentScan />} />
+            <Route path="/agent/scan/mtaani" element={<AgentScanMtaani />} />
+            <Route path="/agent/scan/doorstep" element={<AgentScanDoorstep />} />
+            <Route path="/agent/scan/errand" element={<AgentScanErrand />} />
+            <Route path="/agent/scan/sack" element={<AgentScanSack />} />
             <Route path="/agent/stock" element={<AgentPickupDashboard />} />
             
             {/* Profile Routes */}
