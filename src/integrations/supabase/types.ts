@@ -86,6 +86,36 @@ export type Database = {
         }
         Relationships: []
       }
+      broadcast_notifications: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          sent_by: string
+          target_type: string
+          target_user_ids: string[] | null
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          sent_by: string
+          target_type?: string
+          target_user_ids?: string[] | null
+          title: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          sent_by?: string
+          target_type?: string
+          target_user_ids?: string[] | null
+          title?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
@@ -122,6 +152,7 @@ export type Database = {
       packages: {
         Row: {
           agent_id: string | null
+          assigned_rider_id: string | null
           checkout_request_id: string | null
           commission: number | null
           cost: number
@@ -151,6 +182,7 @@ export type Database = {
         }
         Insert: {
           agent_id?: string | null
+          assigned_rider_id?: string | null
           checkout_request_id?: string | null
           commission?: number | null
           cost: number
@@ -180,6 +212,7 @@ export type Database = {
         }
         Update: {
           agent_id?: string | null
+          assigned_rider_id?: string | null
           checkout_request_id?: string | null
           commission?: number | null
           cost?: number
@@ -207,7 +240,15 @@ export type Database = {
           user_id?: string
           weight?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "packages_assigned_rider_id_fkey"
+            columns: ["assigned_rider_id"]
+            isOneToOne: false
+            referencedRelation: "riders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -293,6 +334,51 @@ export type Database = {
           updated_at?: string
           valid_from?: string
           valid_until?: string | null
+        }
+        Relationships: []
+      }
+      riders: {
+        Row: {
+          created_at: string
+          full_name: string
+          id: string
+          is_online: boolean | null
+          is_verified: boolean | null
+          license_plate: string | null
+          phone: string
+          rating: number | null
+          total_deliveries: number | null
+          updated_at: string
+          user_id: string
+          vehicle_type: string | null
+        }
+        Insert: {
+          created_at?: string
+          full_name: string
+          id?: string
+          is_online?: boolean | null
+          is_verified?: boolean | null
+          license_plate?: string | null
+          phone: string
+          rating?: number | null
+          total_deliveries?: number | null
+          updated_at?: string
+          user_id: string
+          vehicle_type?: string | null
+        }
+        Update: {
+          created_at?: string
+          full_name?: string
+          id?: string
+          is_online?: boolean | null
+          is_verified?: boolean | null
+          license_plate?: string | null
+          phone?: string
+          rating?: number | null
+          total_deliveries?: number | null
+          updated_at?: string
+          user_id?: string
+          vehicle_type?: string | null
         }
         Relationships: []
       }
