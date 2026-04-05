@@ -50,6 +50,7 @@ import { format, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
 import { STATUS_LABELS, DELIVERY_TYPES, PackageStatus } from '@/types/delivery';
 import { toast } from 'sonner';
 import { DateRange } from 'react-day-picker';
+import { SupportTicketForm } from '@/components/SupportTicketForm';
 
 const STATUS_FILTERS: { value: PackageStatus | 'all'; label: string }[] = [
   { value: 'all', label: 'All' },
