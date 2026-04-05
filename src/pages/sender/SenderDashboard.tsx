@@ -381,6 +381,11 @@ export default function SenderDashboard() {
         </Card>
       </div>
 
+      {/* Support Ticket */}
+      <div className="px-4 mb-4">
+        <SupportTicketForm />
+      </div>
+
       {/* Packages Section */}
       <div className="px-4">
         <div className="flex items-center justify-between mb-4">
