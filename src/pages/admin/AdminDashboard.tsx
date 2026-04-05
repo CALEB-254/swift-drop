@@ -6,7 +6,7 @@ import { useAuthContext } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import {
   LayoutDashboard, Users, Package, DollarSign, Settings, HeadphonesIcon,
-  Megaphone, Shield, Loader2, RefreshCw, Truck, Store,
+  Megaphone, Shield, Loader2, RefreshCw, Truck, Store, Bell, Search,
 } from 'lucide-react';
 import { AdminOverview } from '@/components/admin/AdminOverview';
 import { AdminUsers } from '@/components/admin/AdminUsers';
@@ -19,6 +19,8 @@ import { AdminConfig } from '@/components/admin/AdminConfig';
 import { AdminSupport } from '@/components/admin/AdminSupport';
 import { AdminPromos } from '@/components/admin/AdminPromos';
 import { AdminSecurity } from '@/components/admin/AdminSecurity';
+import { AdminNotifications } from '@/components/admin/AdminNotifications';
+import { AdminGlobalSearch } from '@/components/admin/AdminGlobalSearch';
 
 export interface AdminData {
   packages: any[];
@@ -45,11 +47,13 @@ export interface AdminData {
 
 const TABS = [
   { value: 'overview', label: 'Overview', icon: LayoutDashboard, roles: ['super_admin', 'operations_admin', 'finance_admin', 'support_admin'] },
+  { value: 'search', label: 'Search', icon: Search, roles: ['super_admin', 'operations_admin', 'finance_admin', 'support_admin'] },
   { value: 'users', label: 'Users', icon: Users, roles: ['super_admin', 'operations_admin'] },
   { value: 'orders', label: 'Orders', icon: Package, roles: ['super_admin', 'operations_admin'] },
   { value: 'finance', label: 'Finance', icon: DollarSign, roles: ['super_admin', 'finance_admin'] },
   { value: 'riders', label: 'Riders', icon: Truck, roles: ['super_admin', 'operations_admin'] },
   { value: 'vendors', label: 'Agents', icon: Store, roles: ['super_admin', 'operations_admin'] },
+  { value: 'notifications', label: 'Notify', icon: Bell, roles: ['super_admin', 'operations_admin'] },
   { value: 'support', label: 'Support', icon: HeadphonesIcon, roles: ['super_admin', 'support_admin'] },
   { value: 'promos', label: 'Promos', icon: Megaphone, roles: ['super_admin', 'finance_admin'] },
   { value: 'config', label: 'Config', icon: Settings, roles: ['super_admin'] },
@@ -116,7 +120,7 @@ export default function AdminDashboard() {
   };
 
   const canAccess = (roles: string[]) => {
-    if (!data.adminLevel) return true; // fallback: show all
+    if (!data.adminLevel) return true;
     return roles.includes(data.adminLevel);
   };
 
@@ -132,7 +136,6 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      {/* Header */}
       <div className="gradient-hero px-4 py-6">
         <div className="flex items-center justify-between">
           <div>
@@ -166,11 +169,13 @@ export default function AdminDashboard() {
           </div>
 
           <TabsContent value="overview"><AdminOverview data={data} onRefresh={fetchAllData} /></TabsContent>
+          <TabsContent value="search"><AdminGlobalSearch data={data} /></TabsContent>
           <TabsContent value="users"><AdminUsers data={data} onRefresh={fetchAllData} /></TabsContent>
           <TabsContent value="orders"><AdminOrders data={data} onRefresh={fetchAllData} /></TabsContent>
           <TabsContent value="finance"><AdminFinance data={data} onRefresh={fetchAllData} /></TabsContent>
           <TabsContent value="riders"><AdminRiders data={data} onRefresh={fetchAllData} /></TabsContent>
           <TabsContent value="vendors"><AdminVendors data={data} onRefresh={fetchAllData} /></TabsContent>
+          <TabsContent value="notifications"><AdminNotifications data={data} onRefresh={fetchAllData} /></TabsContent>
           <TabsContent value="support"><AdminSupport data={data} onRefresh={fetchAllData} /></TabsContent>
           <TabsContent value="promos"><AdminPromos data={data} onRefresh={fetchAllData} /></TabsContent>
           <TabsContent value="config"><AdminConfig data={data} onRefresh={fetchAllData} /></TabsContent>
