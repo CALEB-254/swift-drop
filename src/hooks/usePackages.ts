@@ -198,6 +198,7 @@ export function usePackages() {
       commission,
       is_product: data.isProduct || false,
       pickup_agent_id: data.pickupAgentId || null,
+      cod_amount: data.codAmount || 0,
     };
 
     const { data: newPackage, error: insertError } = await supabase
