@@ -95,6 +95,7 @@ export interface CreatePackageData {
   packagingColor?: string;
   weight?: number;
   isProduct?: boolean;
+  codAmount?: number;
 }
 
 export function usePackages() {
