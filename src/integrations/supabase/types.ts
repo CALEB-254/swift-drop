@@ -154,6 +154,8 @@ export type Database = {
           agent_id: string | null
           assigned_rider_id: string | null
           checkout_request_id: string | null
+          cod_amount: number | null
+          cod_collected: boolean | null
           commission: number | null
           cost: number
           created_at: string
@@ -184,6 +186,8 @@ export type Database = {
           agent_id?: string | null
           assigned_rider_id?: string | null
           checkout_request_id?: string | null
+          cod_amount?: number | null
+          cod_collected?: boolean | null
           commission?: number | null
           cost: number
           created_at?: string
@@ -214,6 +218,8 @@ export type Database = {
           agent_id?: string | null
           assigned_rider_id?: string | null
           checkout_request_id?: string | null
+          cod_amount?: number | null
+          cod_collected?: boolean | null
           commission?: number | null
           cost?: number
           created_at?: string
@@ -536,6 +542,112 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      wallet_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          description: string | null
+          id: string
+          reference: string | null
+          status: string
+          type: string
+          wallet_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          reference?: string | null
+          status?: string
+          type?: string
+          wallet_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          reference?: string | null
+          status?: string
+          type?: string
+          wallet_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wallet_transactions_wallet_id_fkey"
+            columns: ["wallet_id"]
+            isOneToOne: false
+            referencedRelation: "wallets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wallets: {
+        Row: {
+          balance: number
+          created_at: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          balance?: number
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          balance?: number
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      withdrawal_requests: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          mpesa_receipt: string | null
+          phone: string
+          status: string
+          updated_at: string
+          wallet_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          mpesa_receipt?: string | null
+          phone: string
+          status?: string
+          updated_at?: string
+          wallet_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          mpesa_receipt?: string | null
+          phone?: string
+          status?: string
+          updated_at?: string
+          wallet_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "withdrawal_requests_wallet_id_fkey"
+            columns: ["wallet_id"]
+            isOneToOne: false
+            referencedRelation: "wallets"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
