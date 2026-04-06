@@ -66,6 +66,7 @@ const App = () => (
             <Route path="/sender/new" element={<NewDelivery />} />
             <Route path="/sender/track" element={<TrackPackage />} />
             <Route path="/sender/cart" element={<Cart />} />
+            <Route path="/sender/pochi" element={<Pochi />} />
             
             {/* Rider Routes */}
             <Route path="/rider" element={<RiderDashboard />} />
