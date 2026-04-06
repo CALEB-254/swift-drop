@@ -93,6 +93,7 @@ export default function NewDelivery() {
         isProduct: formData.isProduct,
         packageValue: parseFloat(formData.packageValue) || undefined,
         packagingColor: formData.packagingColor || undefined,
+        codAmount: parseFloat(formData.codAmount) || 0,
       });
 
       toast.success('Delivery added to cart!', {
