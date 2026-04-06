@@ -12,6 +12,7 @@ import SenderDashboard from "./pages/sender/SenderDashboard";
 import NewDelivery from "./pages/sender/NewDelivery";
 import TrackPackage from "./pages/sender/TrackPackage";
 import Cart from "./pages/sender/Cart";
+import Pochi from "./pages/sender/Pochi";
 import RiderDashboard from "./pages/rider/RiderDashboard";
 import AgentPickupDashboard from "./pages/agent/AgentPickupDashboard";
 import AgentAccountSettings from "./pages/agent/AgentAccountSettings";
