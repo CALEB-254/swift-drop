@@ -12,6 +12,7 @@ import SenderDashboard from "./pages/sender/SenderDashboard";
 import NewDelivery from "./pages/sender/NewDelivery";
 import TrackPackage from "./pages/sender/TrackPackage";
 import Cart from "./pages/sender/Cart";
+import Pochi from "./pages/sender/Pochi";
 import RiderDashboard from "./pages/rider/RiderDashboard";
 import AgentPickupDashboard from "./pages/agent/AgentPickupDashboard";
 import AgentAccountSettings from "./pages/agent/AgentAccountSettings";
@@ -65,6 +66,7 @@ const App = () => (
             <Route path="/sender/new" element={<NewDelivery />} />
             <Route path="/sender/track" element={<TrackPackage />} />
             <Route path="/sender/cart" element={<Cart />} />
+            <Route path="/sender/pochi" element={<Pochi />} />
             
             {/* Rider Routes */}
             <Route path="/rider" element={<RiderDashboard />} />
