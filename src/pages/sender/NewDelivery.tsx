@@ -328,6 +328,24 @@ export default function NewDelivery() {
           )}
         </div>
 
+        {/* Collect on Delivery */}
+        <div>
+          <h3 className="section-accent font-semibold mb-4">Collect on Delivery (COD)</h3>
+          <div className="space-y-2">
+            <Label>Amount receiver should pay before getting the package</Label>
+            <Input
+              placeholder="0 = No COD"
+              type="number"
+              value={formData.codAmount}
+              onChange={(e) => setFormData({ ...formData, codAmount: e.target.value })}
+              className="input-accent"
+            />
+            <p className="text-xs text-muted-foreground">
+              This amount will be collected from the receiver and deposited to your Pochi wallet.
+            </p>
+          </div>
+        </div>
+
         {/* Submit Button */}
         <div className="pt-4">
           <Button 
