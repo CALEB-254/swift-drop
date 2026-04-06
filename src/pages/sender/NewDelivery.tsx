@@ -35,8 +35,9 @@ export default function NewDelivery() {
     packageDescription: '',
     packageValue: '',
     packagingColor: '',
-    pickupPoint: '', // stores agent id
+    pickupPoint: '',
     deliveryAddress: '',
+    codAmount: '',
   });
 
   // Fetch agents for pickup point selection
