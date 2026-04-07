@@ -4,9 +4,9 @@ import { useAuthContext } from '@/contexts/AuthContext';
 
 const senderNavItems = [
   { icon: Home, label: 'Home', path: '/sender' },
+   { icon: Package, label: 'Dashboard', path: '/sender/dashboard' },
   { icon: Search, label: 'Track', path: '/sender/track' },
   { icon: Wallet, label: 'Pochi', path: '/sender/pochi' },
-  { icon: Bell, label: 'Notifications', path: '/notifications' },
 ];
 
 const agentNavItems = [
