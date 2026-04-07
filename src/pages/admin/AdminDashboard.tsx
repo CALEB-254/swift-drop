@@ -22,6 +22,11 @@ import { AdminPromos } from '@/components/admin/AdminPromos';
 import { AdminSecurity } from '@/components/admin/AdminSecurity';
 import { AdminNotifications } from '@/components/admin/AdminNotifications';
 import { AdminGlobalSearch } from '@/components/admin/AdminGlobalSearch';
+import { AdminZones } from '@/components/admin/AdminZones';
+import { AdminAuditLogs } from '@/components/admin/AdminAuditLogs';
+import { AdminRefunds } from '@/components/admin/AdminRefunds';
+import { AdminSLA } from '@/components/admin/AdminSLA';
+import { AdminBulkActions } from '@/components/admin/AdminBulkActions';
 
 export interface AdminData {
   packages: any[];
