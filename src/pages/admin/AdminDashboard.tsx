@@ -186,9 +186,14 @@ export default function AdminDashboard() {
           <TabsContent value="finance"><AdminFinance data={data} onRefresh={fetchAllData} /></TabsContent>
           <TabsContent value="riders"><AdminRiders data={data} onRefresh={fetchAllData} /></TabsContent>
           <TabsContent value="vendors"><AdminVendors data={data} onRefresh={fetchAllData} /></TabsContent>
+          <TabsContent value="zones"><AdminZones data={data} onRefresh={fetchAllData} /></TabsContent>
+          <TabsContent value="bulk"><AdminBulkActions data={data} onRefresh={fetchAllData} /></TabsContent>
+          <TabsContent value="sla"><AdminSLA data={data} onRefresh={fetchAllData} /></TabsContent>
+          <TabsContent value="refunds"><AdminRefunds data={data} onRefresh={fetchAllData} /></TabsContent>
           <TabsContent value="notifications"><AdminNotifications data={data} onRefresh={fetchAllData} /></TabsContent>
           <TabsContent value="support"><AdminSupport data={data} onRefresh={fetchAllData} /></TabsContent>
           <TabsContent value="promos"><AdminPromos data={data} onRefresh={fetchAllData} /></TabsContent>
+          <TabsContent value="audit"><AdminAuditLogs data={data} onRefresh={fetchAllData} /></TabsContent>
           <TabsContent value="config"><AdminConfig data={data} onRefresh={fetchAllData} /></TabsContent>
           <TabsContent value="security"><AdminSecurity data={data} onRefresh={fetchAllData} /></TabsContent>
         </Tabs>
