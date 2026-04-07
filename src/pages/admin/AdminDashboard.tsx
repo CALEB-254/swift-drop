@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import {
   LayoutDashboard, Users, Package, DollarSign, Settings, HeadphonesIcon,
   Megaphone, Shield, Loader2, RefreshCw, Truck, Store, Bell, Search,
+  MapPin, FileText, RotateCcw, Activity, Layers,
 } from 'lucide-react';
 import { AdminOverview } from '@/components/admin/AdminOverview';
 import { AdminUsers } from '@/components/admin/AdminUsers';
