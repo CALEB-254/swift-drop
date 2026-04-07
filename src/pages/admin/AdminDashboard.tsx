@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import {
   LayoutDashboard, Users, Package, DollarSign, Settings, HeadphonesIcon,
   Megaphone, Shield, Loader2, RefreshCw, Truck, Store, Bell, Search,
+  MapPin, FileText, RotateCcw, Activity, Layers,
 } from 'lucide-react';
 import { AdminOverview } from '@/components/admin/AdminOverview';
 import { AdminUsers } from '@/components/admin/AdminUsers';
@@ -21,6 +22,11 @@ import { AdminPromos } from '@/components/admin/AdminPromos';
 import { AdminSecurity } from '@/components/admin/AdminSecurity';
 import { AdminNotifications } from '@/components/admin/AdminNotifications';
 import { AdminGlobalSearch } from '@/components/admin/AdminGlobalSearch';
+import { AdminZones } from '@/components/admin/AdminZones';
+import { AdminAuditLogs } from '@/components/admin/AdminAuditLogs';
+import { AdminRefunds } from '@/components/admin/AdminRefunds';
+import { AdminSLA } from '@/components/admin/AdminSLA';
+import { AdminBulkActions } from '@/components/admin/AdminBulkActions';
 
 export interface AdminData {
   packages: any[];
@@ -53,9 +59,14 @@ const TABS = [
   { value: 'finance', label: 'Finance', icon: DollarSign, roles: ['super_admin', 'finance_admin'] },
   { value: 'riders', label: 'Riders', icon: Truck, roles: ['super_admin', 'operations_admin'] },
   { value: 'vendors', label: 'Agents', icon: Store, roles: ['super_admin', 'operations_admin'] },
+  { value: 'zones', label: 'Zones', icon: MapPin, roles: ['super_admin', 'operations_admin'] },
+  { value: 'bulk', label: 'Bulk', icon: Layers, roles: ['super_admin', 'operations_admin'] },
+  { value: 'sla', label: 'SLA', icon: Activity, roles: ['super_admin', 'operations_admin', 'finance_admin'] },
+  { value: 'refunds', label: 'Refunds', icon: RotateCcw, roles: ['super_admin', 'finance_admin', 'support_admin'] },
   { value: 'notifications', label: 'Notify', icon: Bell, roles: ['super_admin', 'operations_admin'] },
   { value: 'support', label: 'Support', icon: HeadphonesIcon, roles: ['super_admin', 'support_admin'] },
   { value: 'promos', label: 'Promos', icon: Megaphone, roles: ['super_admin', 'finance_admin'] },
+  { value: 'audit', label: 'Audit', icon: FileText, roles: ['super_admin'] },
   { value: 'config', label: 'Config', icon: Settings, roles: ['super_admin'] },
   { value: 'security', label: 'Security', icon: Shield, roles: ['super_admin'] },
 ];
@@ -175,9 +186,14 @@ export default function AdminDashboard() {
           <TabsContent value="finance"><AdminFinance data={data} onRefresh={fetchAllData} /></TabsContent>
           <TabsContent value="riders"><AdminRiders data={data} onRefresh={fetchAllData} /></TabsContent>
           <TabsContent value="vendors"><AdminVendors data={data} onRefresh={fetchAllData} /></TabsContent>
+          <TabsContent value="zones"><AdminZones data={data} onRefresh={fetchAllData} /></TabsContent>
+          <TabsContent value="bulk"><AdminBulkActions data={data} onRefresh={fetchAllData} /></TabsContent>
+          <TabsContent value="sla"><AdminSLA data={data} onRefresh={fetchAllData} /></TabsContent>
+          <TabsContent value="refunds"><AdminRefunds data={data} onRefresh={fetchAllData} /></TabsContent>
           <TabsContent value="notifications"><AdminNotifications data={data} onRefresh={fetchAllData} /></TabsContent>
           <TabsContent value="support"><AdminSupport data={data} onRefresh={fetchAllData} /></TabsContent>
           <TabsContent value="promos"><AdminPromos data={data} onRefresh={fetchAllData} /></TabsContent>
+          <TabsContent value="audit"><AdminAuditLogs data={data} onRefresh={fetchAllData} /></TabsContent>
           <TabsContent value="config"><AdminConfig data={data} onRefresh={fetchAllData} /></TabsContent>
           <TabsContent value="security"><AdminSecurity data={data} onRefresh={fetchAllData} /></TabsContent>
         </Tabs>
