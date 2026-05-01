@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, Search, Package, User, Phone, MapPin, Clock, Copy, Check, Loader2, QrCode } from 'lucide-react';
 import { usePackages, Package as PackageType } from '@/hooks/usePackages';
 import { TrackingTimeline } from '@/components/TrackingTimeline';
+import { PackageJourney } from '@/components/PackageJourney';
 import { StatusBadge } from '@/components/StatusBadge';
 import { QRScanner } from '@/components/QRScanner';
 import { BottomNav } from '@/components/BottomNav';
@@ -162,6 +163,16 @@ const TrackPackage = forwardRef<HTMLDivElement>(function TrackPackage(_, ref) {
               </CardHeader>
               <CardContent>
                 <TrackingTimeline currentStatus={pkg.status} />
+              </CardContent>
+            </Card>
+
+            {/* Package Journey - timestamped events */}
+            <Card className="border-0 shadow-card">
+              <CardHeader>
+                <CardTitle className="font-display text-lg">Package Journey</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <PackageJourney trackingNumber={pkg.trackingNumber} />
               </CardContent>
             </Card>
 

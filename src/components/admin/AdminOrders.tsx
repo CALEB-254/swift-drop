@@ -10,7 +10,7 @@ import { PackageQRCode } from '@/components/PackageQRCode';
 import { PrintReceiptButton } from '@/components/PrintReceiptButton';
 import { DownloadReceiptButton } from '@/components/DownloadReceiptButton';
 import { ShareWhatsAppButton } from '@/components/ShareWhatsAppButton';
-import { Search, Edit, QrCode, Save, RefreshCw, Truck } from 'lucide-react';
+import { Search, Edit, QrCode, Save, RefreshCw, Truck, Plus } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
@@ -28,6 +28,15 @@ export function AdminOrders({ data, onRefresh }: Props) {
   const [riders, setRiders] = useState<any[]>([]);
   const [assignPkg, setAssignPkg] = useState<any>(null);
   const [selectedRider, setSelectedRider] = useState('');
+  const [showCreate, setShowCreate] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [newPkg, setNewPkg] = useState({
+    user_id: '', sender_name: '', sender_phone: '',
+    receiver_name: '', receiver_phone: '', receiver_address: '',
+    delivery_type: 'doorstep', cost: '200', package_description: '',
+  });
+
+  const senderUsers = data.users.filter((u: any) => u.role === 'sender');
 
   useEffect(() => {
     supabase.from('riders').select('*').then(({ data }) => setRiders(data || []));
@@ -84,8 +93,44 @@ export function AdminOrders({ data, onRefresh }: Props) {
 
   const getRiderName = (riderId: string) => riders.find(r => r.id === riderId)?.full_name || 'Unknown';
 
+  const generateTracking = () => `SWF-ADM-${Math.floor(1000 + Math.random() * 9000)}`;
+
+  const createPackage = async () => {
+    if (!newPkg.user_id || !newPkg.sender_name || !newPkg.sender_phone || !newPkg.receiver_name || !newPkg.receiver_phone || !newPkg.receiver_address) {
+      toast.error('Fill all required fields'); return;
+    }
+    setCreating(true);
+    try {
+      const cost = Number(newPkg.cost) || 0;
+      const { error } = await supabase.from('packages').insert({
+        tracking_number: generateTracking(),
+        user_id: newPkg.user_id,
+        sender_name: newPkg.sender_name,
+        sender_phone: newPkg.sender_phone,
+        receiver_name: newPkg.receiver_name,
+        receiver_phone: newPkg.receiver_phone,
+        receiver_address: newPkg.receiver_address,
+        delivery_type: newPkg.delivery_type as any,
+        cost,
+        commission: cost * 0.1,
+        package_description: newPkg.package_description || null,
+      });
+      if (error) { toast.error(error.message); return; }
+      toast.success('Package created');
+      setShowCreate(false);
+      setNewPkg({ user_id: '', sender_name: '', sender_phone: '', receiver_name: '', receiver_phone: '', receiver_address: '', delivery_type: 'doorstep', cost: '200', package_description: '' });
+      onRefresh();
+    } finally {
+      setCreating(false);
+    }
+  };
+
   return (
     <div className="space-y-3 mt-4">
+      <Button className="w-full gap-2" onClick={() => setShowCreate(true)}>
+        <Plus className="w-4 h-4" /> Create Package
+      </Button>
+
       <div className="flex gap-2">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -248,6 +293,77 @@ export function AdminOrders({ data, onRefresh }: Props) {
             </div>
             <Button className="w-full gap-2" onClick={assignRider} disabled={!selectedRider}>
               <Truck className="w-4 h-4" /> Assign Rider
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Create Package Dialog */}
+      <Dialog open={showCreate} onOpenChange={setShowCreate}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto">
+          <DialogHeader><DialogTitle>Create Package</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-2">
+              <Label>Sender Account *</Label>
+              <Select value={newPkg.user_id} onValueChange={v => {
+                const u = senderUsers.find((x: any) => x.user_id === v);
+                setNewPkg(p => ({ ...p, user_id: v, sender_name: u?.full_name || p.sender_name, sender_phone: u?.phone || p.sender_phone }));
+              }}>
+                <SelectTrigger><SelectValue placeholder="Select sender" /></SelectTrigger>
+                <SelectContent>
+                  {senderUsers.map((u: any) => (
+                    <SelectItem key={u.user_id} value={u.user_id}>{u.full_name} — {u.phone}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-2">
+                <Label>Sender Name *</Label>
+                <Input value={newPkg.sender_name} onChange={e => setNewPkg(p => ({ ...p, sender_name: e.target.value }))} />
+              </div>
+              <div className="space-y-2">
+                <Label>Sender Phone *</Label>
+                <Input value={newPkg.sender_phone} onChange={e => setNewPkg(p => ({ ...p, sender_phone: e.target.value }))} />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-2">
+                <Label>Receiver Name *</Label>
+                <Input value={newPkg.receiver_name} onChange={e => setNewPkg(p => ({ ...p, receiver_name: e.target.value }))} />
+              </div>
+              <div className="space-y-2">
+                <Label>Receiver Phone *</Label>
+                <Input value={newPkg.receiver_phone} onChange={e => setNewPkg(p => ({ ...p, receiver_phone: e.target.value }))} />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Receiver Address *</Label>
+              <Input value={newPkg.receiver_address} onChange={e => setNewPkg(p => ({ ...p, receiver_address: e.target.value }))} />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-2">
+                <Label>Delivery Type</Label>
+                <Select value={newPkg.delivery_type} onValueChange={v => setNewPkg(p => ({ ...p, delivery_type: v }))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="doorstep">Doorstep</SelectItem>
+                    <SelectItem value="pickup_point">Pickup Point</SelectItem>
+                    <SelectItem value="errand">Errand</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Cost (KES)</Label>
+                <Input type="number" value={newPkg.cost} onChange={e => setNewPkg(p => ({ ...p, cost: e.target.value }))} />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Description</Label>
+              <Input value={newPkg.package_description} onChange={e => setNewPkg(p => ({ ...p, package_description: e.target.value }))} placeholder="Optional" />
+            </div>
+            <Button className="w-full gap-2" onClick={createPackage} disabled={creating}>
+              <Plus className="w-4 h-4" /> {creating ? 'Creating...' : 'Create Package'}
             </Button>
           </div>
         </DialogContent>

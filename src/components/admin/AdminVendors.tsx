@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Trash2, MapPin, Edit } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -15,10 +16,12 @@ export function AdminVendors({ data, onRefresh }: Props) {
   const [showNew, setShowNew] = useState(false);
   const [editAgent, setEditAgent] = useState<any>(null);
   const [form, setForm] = useState({
-    business_name: '', location: '', phone: '', address: '', operating_hours: '', tracking_prefix: 'D01',
+    business_name: '', location: '', phone: '', address: '', operating_hours: '', tracking_prefix: 'D01', user_id: '',
   });
 
-  const resetForm = () => setForm({ business_name: '', location: '', phone: '', address: '', operating_hours: '', tracking_prefix: 'D01' });
+  const resetForm = () => setForm({ business_name: '', location: '', phone: '', address: '', operating_hours: '', tracking_prefix: 'D01', user_id: '' });
+
+  const agentUserOptions = data.users.filter((u: any) => u.role === 'agent');
 
   const openEdit = (agent: any) => {
     const prefix = agent.services?.find((s: string) => s.startsWith('tracking_prefix:'))?.split(':')[1] || 'D01';
@@ -30,6 +33,7 @@ export function AdminVendors({ data, onRefresh }: Props) {
       address: agent.address || '',
       operating_hours: agent.operating_hours || '',
       tracking_prefix: prefix,
+      user_id: agent.user_id || '',
     });
   };
 
@@ -37,11 +41,15 @@ export function AdminVendors({ data, onRefresh }: Props) {
     if (!form.business_name || !form.location || !form.phone) {
       toast.error('Fill required fields'); return;
     }
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    let ownerId = form.user_id;
+    if (!ownerId) {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { toast.error('Not signed in'); return; }
+      ownerId = user.id;
+    }
 
     const { error } = await supabase.from('agents').insert({
-      user_id: user.id,
+      user_id: ownerId,
       business_name: form.business_name,
       location: form.location,
       phone: form.phone,
@@ -82,6 +90,18 @@ export function AdminVendors({ data, onRefresh }: Props) {
 
   const AgentForm = ({ onSubmit, submitLabel }: { onSubmit: () => void; submitLabel: string }) => (
     <div className="space-y-4">
+      <div className="space-y-2">
+        <Label>Owner Account (agent user)</Label>
+        <Select value={form.user_id || 'self'} onValueChange={v => setForm(p => ({ ...p, user_id: v === 'self' ? '' : v }))}>
+          <SelectTrigger><SelectValue placeholder="Assign to agent user" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="self">My account (admin)</SelectItem>
+            {agentUserOptions.map((u: any) => (
+              <SelectItem key={u.user_id} value={u.user_id}>{u.full_name} — {u.phone}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
       <div className="space-y-2">
         <Label>Business Name *</Label>
         <Input value={form.business_name} onChange={e => setForm(p => ({ ...p, business_name: e.target.value }))} placeholder="e.g. Central Hub" />
