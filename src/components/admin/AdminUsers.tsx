@@ -19,7 +19,7 @@ export function AdminUsers({ data, onRefresh }: Props) {
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [showCreate, setShowCreate] = useState(false);
   const [creating, setCreating] = useState(false);
-  const [newUser, setNewUser] = useState({ full_name: '', phone: '', email: '', password: '', role: 'sender' });
+  const [newUser, setNewUser] = useState({ full_name: '', phone: '', email: '', password: '', role: 'sender', admin_role: 'operations_admin' });
 
   const filtered = data.users.filter(u => {
     const matchesSearch = !search || 
@@ -53,40 +53,22 @@ export function AdminUsers({ data, onRefresh }: Props) {
     }
     setCreating(true);
     try {
-      // Sign up the user
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: newUser.email,
-        password: newUser.password,
-        options: { data: { full_name: newUser.full_name, phone: newUser.phone, role: newUser.role } }
+      const { data: result, error } = await supabase.functions.invoke('admin-create-user', {
+        body: {
+          email: newUser.email,
+          password: newUser.password,
+          full_name: newUser.full_name,
+          phone: newUser.phone,
+          role: newUser.role,
+          admin_role: newUser.admin_role,
+        },
       });
-      if (authError) { toast.error(authError.message); return; }
-      if (!authData.user) { toast.error('Failed to create user'); return; }
-
-      // Create profile
-      await supabase.from('profiles').upsert({
-        user_id: authData.user.id,
-        full_name: newUser.full_name,
-        phone: newUser.phone,
-        role: newUser.role as any,
-      }, { onConflict: 'user_id' });
-
-      // Create role entry
-      await supabase.from('user_roles').upsert({
-        user_id: authData.user.id,
-        role: newUser.role as any,
-      }, { onConflict: 'user_id,role' });
-
-      // If admin role, create admin level
-      if (newUser.role === 'admin') {
-        await supabase.from('admin_levels').upsert({
-          user_id: authData.user.id,
-          admin_role: 'operations_admin' as any,
-        }, { onConflict: 'user_id' });
-      }
+      if (error) { toast.error(error.message || 'Failed to create user'); return; }
+      if (result?.error) { toast.error(result.error); return; }
 
       toast.success(`${newUser.role} account created successfully`);
       setShowCreate(false);
-      setNewUser({ full_name: '', phone: '', email: '', password: '', role: 'sender' });
+      setNewUser({ full_name: '', phone: '', email: '', password: '', role: 'sender', admin_role: 'operations_admin' });
       onRefresh();
     } catch (err: any) {
       toast.error(err.message || 'Failed to create user');
@@ -208,10 +190,25 @@ export function AdminUsers({ data, onRefresh }: Props) {
                 <SelectContent>
                   <SelectItem value="sender">Sender</SelectItem>
                   <SelectItem value="agent">Agent</SelectItem>
+                  <SelectItem value="rider">Rider</SelectItem>
                   <SelectItem value="admin">Admin</SelectItem>
                 </SelectContent>
               </Select>
             </div>
+            {newUser.role === 'admin' && (
+              <div className="space-y-2">
+                <Label>Admin Level *</Label>
+                <Select value={newUser.admin_role} onValueChange={v => setNewUser(p => ({ ...p, admin_role: v }))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="super_admin">Super Admin</SelectItem>
+                    <SelectItem value="operations_admin">Operations Admin</SelectItem>
+                    <SelectItem value="finance_admin">Finance Admin</SelectItem>
+                    <SelectItem value="support_admin">Support Admin</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <Button className="w-full gap-2" onClick={createUser} disabled={creating}>
               <Plus className="w-4 h-4" /> {creating ? 'Creating...' : 'Create User'}
             </Button>
