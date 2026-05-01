@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { BottomNav } from '@/components/BottomNav';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import {
@@ -146,7 +145,7 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen bg-background pb-8">
       <div className="gradient-hero px-4 py-6">
         <div className="flex items-center justify-between">
           <div>
@@ -199,7 +198,6 @@ export default function AdminDashboard() {
         </Tabs>
       </div>
 
-      <BottomNav />
     </div>
   );
 }
