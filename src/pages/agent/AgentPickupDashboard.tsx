@@ -383,6 +383,7 @@ export default function AgentPickupDashboard() {
               droppedPackages.map(pkg => (
                 <PackageCard key={pkg.id} pkg={pkg} showPrint>
                   <p className="text-xs text-primary font-medium">✓ On shelf — awaiting collection</p>
+                  {renderCODAction(pkg)}
                 </PackageCard>
               ))
             ) : (
