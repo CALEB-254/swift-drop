@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import {
   Package, QrCode, User, Loader2, MapPin, Search,
   ArrowDownToLine, ArrowUpFromLine, Truck, PackageOpen, Clock, PackageCheck,
+  AlertCircle, Wallet, CheckCircle2,
 } from 'lucide-react';
 import { PackageCard } from '@/components/PackageCard';
 
@@ -38,6 +39,8 @@ interface AgentPackage {
   status: PackageStatus;
   createdAt: Date;
   pickupAgentId: string | null;
+  codAmount: number;
+  codCollected: boolean;
 }
 
 const mapRow = (row: PackageRow): AgentPackage => ({
@@ -58,6 +61,8 @@ const mapRow = (row: PackageRow): AgentPackage => ({
   status: row.status,
   createdAt: new Date(row.created_at),
   pickupAgentId: row.pickup_agent_id,
+  codAmount: row.cod_amount ? Number(row.cod_amount) : 0,
+  codCollected: !!row.cod_collected,
 });
 
 interface ActionCardProps {
@@ -92,6 +97,7 @@ export default function AgentPickupDashboard() {
   const [agentRecord, setAgentRecord] = useState<{ id: string; business_name: string } | null>(null);
   const [packages, setPackages] = useState<AgentPackage[]>([]);
   const [loading, setLoading] = useState(true);
+  const [collectingId, setCollectingId] = useState<string | null>(null);
   
   const [activeTab, setActiveTab] = useState('packages');
   const [searchQuery, setSearchQuery] = useState('');
@@ -181,22 +187,60 @@ export default function AgentPickupDashboard() {
     );
   }
 
-  if (!agentRecord) {
+  const collectCOD = async (pkg: AgentPackage) => {
+    setCollectingId(pkg.id);
+    try {
+      const { error } = await supabase
+        .from('packages')
+        .update({ cod_collected: true } as any)
+        .eq('id', pkg.id);
+      if (error) throw error;
+      toast.success(`COD KES ${pkg.codAmount.toLocaleString()} collected`, {
+        description: `Credited to ${pkg.senderName}'s wallet`,
+      });
+      fetchPackages();
+    } catch (e: any) {
+      toast.error('Failed to mark COD collected', { description: e.message });
+    } finally {
+      setCollectingId(null);
+    }
+  };
+
+  const renderCODAction = (pkg: AgentPackage) => {
+    if (!pkg.codAmount || pkg.codAmount <= 0) return null;
+    if (pkg.codCollected) {
+      return (
+        <div className="flex items-center gap-2 text-xs text-primary font-medium">
+          <CheckCircle2 className="w-4 h-4" /> COD KES {pkg.codAmount.toLocaleString()} collected
+        </div>
+      );
+    }
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <Card className="border-0 shadow-card max-w-md w-full">
-          <CardContent className="flex flex-col items-center py-12">
-            <MapPin className="w-16 h-16 text-muted-foreground mb-4" />
-            <h2 className="font-display text-xl font-bold mb-2">No Agent Point Found</h2>
-            <p className="text-muted-foreground text-center">
-              Your account is not linked to an agent pickup point. Contact an administrator.
-            </p>
-            <Link to="/"><Button variant="outline" className="mt-6">Go Home</Button></Link>
-          </CardContent>
-        </Card>
-      </div>
+      <Button
+        size="sm"
+        className="w-full gap-2"
+        disabled={collectingId === pkg.id}
+        onClick={() => collectCOD(pkg)}
+      >
+        <Wallet className="w-4 h-4" />
+        {collectingId === pkg.id ? 'Processing...' : `Collect COD KES ${pkg.codAmount.toLocaleString()}`}
+      </Button>
     );
-  }
+  };
+
+  const NoAgentBanner = () => (
+    <Card className="border-warning/40 bg-warning/5 mx-4 mt-4">
+      <CardContent className="flex items-start gap-3 p-4">
+        <AlertCircle className="w-5 h-5 text-warning flex-shrink-0 mt-0.5" />
+        <div className="flex-1">
+          <p className="font-display font-semibold text-sm">No Agent Point Linked</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            Your account isn't linked to a pickup point yet. Contact an administrator to create one for you.
+          </p>
+        </div>
+      </CardContent>
+    </Card>
+  );
 
   // Render a list view for a category
   if (activeView) {
@@ -222,7 +266,11 @@ export default function AgentPickupDashboard() {
         </div>
         <div className="px-4 py-4 space-y-3">
           {view.pkgs.length > 0 ? (
-            view.pkgs.map(pkg => <PackageCard key={pkg.id} pkg={pkg} showPrint />)
+            view.pkgs.map(pkg => (
+              <PackageCard key={pkg.id} pkg={pkg} showPrint>
+                {renderCODAction(pkg)}
+              </PackageCard>
+            ))
           ) : (
             <Card className="border-dashed">
               <CardContent className="flex flex-col items-center py-12">
@@ -239,6 +287,7 @@ export default function AgentPickupDashboard() {
 
   return (
     <div className="min-h-screen bg-background pb-20">
+      {!agentRecord && <NoAgentBanner />}
       {/* Search Bar */}
       <div className="px-4 pt-4">
         <div className="relative">
