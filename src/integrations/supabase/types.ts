@@ -770,7 +770,72 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      agents_public: {
+        Row: {
+          address: string | null
+          business_name: string | null
+          id: string | null
+          is_active: boolean | null
+          latitude: number | null
+          location: string | null
+          longitude: number | null
+          operating_hours: string | null
+          services: string[] | null
+        }
+        Insert: {
+          address?: string | null
+          business_name?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          latitude?: number | null
+          location?: string | null
+          longitude?: number | null
+          operating_hours?: string | null
+          services?: string[] | null
+        }
+        Update: {
+          address?: string | null
+          business_name?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          latitude?: number | null
+          location?: string | null
+          longitude?: number | null
+          operating_hours?: string | null
+          services?: string[] | null
+        }
+        Relationships: []
+      }
+      promo_codes_public: {
+        Row: {
+          code: string | null
+          description: string | null
+          discount_type: string | null
+          discount_value: number | null
+          id: string | null
+          valid_from: string | null
+          valid_until: string | null
+        }
+        Insert: {
+          code?: string | null
+          description?: string | null
+          discount_type?: string | null
+          discount_value?: number | null
+          id?: string | null
+          valid_from?: string | null
+          valid_until?: string | null
+        }
+        Update: {
+          code?: string | null
+          description?: string | null
+          discount_type?: string | null
+          discount_value?: number | null
+          id?: string | null
+          valid_from?: string | null
+          valid_until?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       get_admin_level: {
