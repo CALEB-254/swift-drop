@@ -38,6 +38,7 @@ export default function NewDelivery() {
     pickupPoint: '',
     deliveryAddress: '',
     codAmount: '',
+    collectCash: false,
   });
 
   // Fetch agents for pickup point selection
@@ -331,18 +332,41 @@ export default function NewDelivery() {
         {/* Collect on Delivery */}
         <div>
           <h3 className="section-accent font-semibold mb-4">Collect on Delivery (COD)</h3>
-          <div className="space-y-2">
-            <Label>Amount receiver should pay before getting the package</Label>
-            <Input
-              placeholder="0 = No COD"
-              type="number"
-              value={formData.codAmount}
-              onChange={(e) => setFormData({ ...formData, codAmount: e.target.value })}
-              className="input-accent"
-            />
-            <p className="text-xs text-muted-foreground">
-              This amount will be collected from the receiver and deposited to your Pochi wallet.
-            </p>
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="collectCash"
+                checked={formData.collectCash}
+                onCheckedChange={(checked) => {
+                  const isChecked = checked === true;
+                  setFormData({
+                    ...formData,
+                    collectCash: isChecked,
+                    codAmount: isChecked
+                      ? (formData.codAmount || formData.packageValue || '')
+                      : '',
+                  });
+                }}
+              />
+              <Label htmlFor="collectCash" className="cursor-pointer">
+                Collect my cash from receiver
+              </Label>
+            </div>
+            {formData.collectCash && (
+              <div className="space-y-2">
+                <Label>Amount to collect (editable)</Label>
+                <Input
+                  placeholder="Amount"
+                  type="number"
+                  value={formData.codAmount}
+                  onChange={(e) => setFormData({ ...formData, codAmount: e.target.value })}
+                  className="input-accent"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Defaults to your package value. This amount will be collected from the receiver and deposited to your Pochi wallet.
+                </p>
+              </div>
+            )}
           </div>
         </div>
 
