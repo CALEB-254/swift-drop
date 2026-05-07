@@ -38,6 +38,7 @@ export default function NewDelivery() {
     pickupPoint: '',
     deliveryAddress: '',
     codAmount: '',
+    collectCash: false,
   });
 
   // Fetch agents for pickup point selection
