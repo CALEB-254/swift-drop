@@ -126,7 +126,7 @@ export default function Login() {
                       />
                       <Button type="button" variant="ghost" size="icon"
                         className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 text-primary-foreground/50"
-                        onClick={() => setShowPassword(!showPassword)}>
+                        onClick={() => setShowPassword(!showPassword)} aria-label={showPassword ? "Hide password" : "Show password"}>
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </Button>
                     </div>
@@ -206,7 +206,7 @@ export default function Login() {
                         className="h-11 pr-12 bg-transparent border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/30 focus:border-primary" />
                       <Button type="button" variant="ghost" size="icon"
                         className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 text-primary-foreground/50"
-                        onClick={() => setShowPassword(!showPassword)}>
+                        onClick={() => setShowPassword(!showPassword)} aria-label={showPassword ? "Hide password" : "Show password"}>
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </Button>
                     </div>
@@ -260,7 +260,7 @@ export default function Login() {
                       className="h-12 pr-12 bg-transparent border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/30 focus:border-primary" />
                     <Button type="button" variant="ghost" size="icon"
                       className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 text-primary-foreground/50"
-                      onClick={() => setShowPassword(!showPassword)}>
+                      onClick={() => setShowPassword(!showPassword)} aria-label={showPassword ? "Hide password" : "Show password"}>
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </Button>
                   </div>
