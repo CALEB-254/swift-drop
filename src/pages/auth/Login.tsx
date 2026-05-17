@@ -69,6 +69,7 @@ export default function Login() {
 
   return (
     <div className="min-h-screen bg-[hsl(220,20%,8%)] flex items-center justify-center p-4 overflow-hidden">
+      <h1 className="sr-only">{isLogin ? 'Sign in to SwiftDrop' : 'Create your SwiftDrop account'}</h1>
       {/* Container */}
       <div className="relative w-full max-w-md md:max-w-4xl min-h-[600px] md:min-h-[500px] rounded-2xl overflow-hidden shadow-2xl border border-primary/30"
         style={{ boxShadow: '0 0 40px hsl(var(--primary) / 0.15), 0 0 80px hsl(var(--primary) / 0.05)' }}>

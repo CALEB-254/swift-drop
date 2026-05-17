@@ -24,6 +24,7 @@ export default function SenderHome() {
 
   return (
     <div className="min-h-screen bg-background pb-20">
+      <h1 className="sr-only">Send a Package — Choose Delivery Type</h1>
       {/* Header with Map Background */}
       <div className="gradient-hero relative overflow-hidden">
         <div 
@@ -56,7 +57,7 @@ export default function SenderHome() {
       </div>
 
       {/* Delivery Types */}
-      <div className="px-4 py-6">
+      <main className="px-4 py-6">
         <div className="mb-4">
           <h2 className="font-display text-lg font-semibold">Choose Delivery Type</h2>
           <p className="text-sm text-muted-foreground">Select one delivery mode, that fits you</p>
@@ -73,7 +74,7 @@ export default function SenderHome() {
             />
           ))}
         </div>
-      </div>
+      </main>
 
       <HelpButton />
       <BottomNav />

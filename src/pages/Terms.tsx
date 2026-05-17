@@ -8,7 +8,7 @@
      <div className="min-h-screen bg-background pb-20">
        <div className="gradient-hero px-4 py-6">
          <div className="flex items-center gap-3">
-           <Link to="/sender" className="p-2 -ml-2">
+           <Link to="/sender" className="p-2 -ml-2" aria-label="Back">
              <ArrowLeft className="w-6 h-6 text-primary-foreground" />
            </Link>
            <h1 className="font-display text-xl font-bold text-primary-foreground">

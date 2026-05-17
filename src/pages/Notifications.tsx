@@ -152,6 +152,7 @@ export default function Notifications() {
               size="icon"
               onClick={() => navigate(-1)}
               className="text-primary-foreground hover:bg-primary-foreground/10"
+              aria-label="Back"
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>

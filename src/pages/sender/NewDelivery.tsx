@@ -117,14 +117,14 @@ export default function NewDelivery() {
       <div className="bg-card border-b border-border sticky top-0 z-40">
         <div className="flex items-center justify-between p-4">
           <div className="flex items-center gap-4">
-            <Link to="/sender">
-              <button className="text-primary">
+            <Link to="/sender" aria-label="Back">
+              <button className="text-primary" aria-label="Back">
                 <ArrowLeft className="w-6 h-6" />
               </button>
             </Link>
             <h1 className="font-display text-lg font-semibold">SwiftDrop</h1>
           </div>
-          <button className="p-2">
+          <button className="p-2" aria-label="Cart">
             <ShoppingCart className="w-6 h-6" />
           </button>
         </div>
@@ -170,7 +170,7 @@ export default function NewDelivery() {
 
         {/* From Area Section */}
         <div>
-          <h3 className="section-accent font-semibold mb-4">Where Are You Sending From?</h3>
+          <h2 className="section-accent font-semibold mb-4">Where Are You Sending From?</h2>
           <div className="space-y-2">
             <Label>From Area</Label>
             <Select
@@ -193,7 +193,7 @@ export default function NewDelivery() {
 
         {/* Package Section */}
         <div>
-          <h3 className="section-accent font-semibold mb-4">Package</h3>
+          <h2 className="section-accent font-semibold mb-4">Package</h2>
           
           {/* Package/Product Toggle */}
           <div className="flex items-center gap-4 mb-4 bg-muted rounded-lg p-1 w-fit">
@@ -272,7 +272,7 @@ export default function NewDelivery() {
 
         {/* To Area Section */}
         <div>
-          <h3 className="section-accent font-semibold mb-4">Where Are You Sending To?</h3>
+          <h2 className="section-accent font-semibold mb-4">Where Are You Sending To?</h2>
           
           {deliveryType === 'pickup_point' ? (
             <div className="space-y-2">
@@ -331,7 +331,7 @@ export default function NewDelivery() {
 
         {/* Collect on Delivery */}
         <div>
-          <h3 className="section-accent font-semibold mb-4">Collect on Delivery (COD)</h3>
+          <h2 className="section-accent font-semibold mb-4">Collect on Delivery (COD)</h2>
           <div className="space-y-3">
             <div className="flex items-center gap-2">
               <Checkbox
