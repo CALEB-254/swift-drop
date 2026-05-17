@@ -1,0 +1,15 @@
+# SwiftDrop Delivery
+
+> Fast and reliable package delivery service across Kenya with real-time tracking, agent pickup points, and doorstep delivery.
+
+SwiftDrop connects senders, riders, and pickup-point agents. Users can create deliveries, pay via M-Pesa, track packages with QR codes, and collect cash on delivery via the Pochi wallet.
+
+## Pages
+
+- [Sign in](/auth/login): Sign in or create an account to send or deliver packages.
+- [Sign up](/auth/signup): Register as a sender or delivery agent.
+- [Terms & Conditions](/terms): Service terms, payment, liability, and privacy.
+
+## Optional
+
+- [Forgot password](/auth/forgot-password): Reset your account password.
