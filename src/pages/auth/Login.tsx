@@ -69,6 +69,7 @@ export default function Login() {
 
   return (
     <div className="min-h-screen bg-[hsl(220,20%,8%)] flex items-center justify-center p-4 overflow-hidden">
+      <h1 className="sr-only">{isLogin ? 'Sign in to SwiftDrop' : 'Create your SwiftDrop account'}</h1>
       {/* Container */}
       <div className="relative w-full max-w-md md:max-w-4xl min-h-[600px] md:min-h-[500px] rounded-2xl overflow-hidden shadow-2xl border border-primary/30"
         style={{ boxShadow: '0 0 40px hsl(var(--primary) / 0.15), 0 0 80px hsl(var(--primary) / 0.05)' }}>
@@ -125,7 +126,7 @@ export default function Login() {
                       />
                       <Button type="button" variant="ghost" size="icon"
                         className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 text-primary-foreground/50"
-                        onClick={() => setShowPassword(!showPassword)}>
+                        onClick={() => setShowPassword(!showPassword)} aria-label={showPassword ? "Hide password" : "Show password"}>
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </Button>
                     </div>
@@ -205,7 +206,7 @@ export default function Login() {
                         className="h-11 pr-12 bg-transparent border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/30 focus:border-primary" />
                       <Button type="button" variant="ghost" size="icon"
                         className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 text-primary-foreground/50"
-                        onClick={() => setShowPassword(!showPassword)}>
+                        onClick={() => setShowPassword(!showPassword)} aria-label={showPassword ? "Hide password" : "Show password"}>
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </Button>
                     </div>
@@ -259,7 +260,7 @@ export default function Login() {
                       className="h-12 pr-12 bg-transparent border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/30 focus:border-primary" />
                     <Button type="button" variant="ghost" size="icon"
                       className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 text-primary-foreground/50"
-                      onClick={() => setShowPassword(!showPassword)}>
+                      onClick={() => setShowPassword(!showPassword)} aria-label={showPassword ? "Hide password" : "Show password"}>
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </Button>
                   </div>

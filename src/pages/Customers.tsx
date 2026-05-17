@@ -79,7 +79,7 @@
      <div className="min-h-screen bg-background pb-20">
        <div className="gradient-hero px-4 py-6">
          <div className="flex items-center gap-3 mb-4">
-           <Link to="/sender" className="p-2 -ml-2">
+          <Link to="/sender" className="p-2 -ml-2" aria-label="Back">
              <ArrowLeft className="w-6 h-6 text-primary-foreground" />
            </Link>
            <h1 className="font-display text-xl font-bold text-primary-foreground">
@@ -111,9 +111,9 @@
            <Card className="border-0 shadow-card">
              <CardContent className="flex flex-col items-center justify-center py-12">
                <User className="w-16 h-16 text-muted-foreground mb-4" />
-               <h3 className="font-display font-semibold text-lg mb-2">
+                <h2 className="font-display font-semibold text-lg mb-2">
                  {searchQuery ? 'No customers found' : 'No customers yet'}
-               </h3>
+                </h2>
                <p className="text-muted-foreground text-center">
                  {searchQuery 
                    ? 'Try a different search term' 
@@ -130,7 +130,7 @@
                      <div className="flex-1">
                        <div className="flex items-center gap-2">
                          <User className="w-4 h-4 text-primary" />
-                         <h3 className="font-semibold">{customer.receiver_name}</h3>
+                          <h2 className="font-semibold">{customer.receiver_name}</h2>
                        </div>
                        <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
                          <Phone className="w-4 h-4" />

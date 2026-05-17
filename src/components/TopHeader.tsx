@@ -55,7 +55,7 @@ export function TopHeader() {
         SwiftDrop
       </span>
       <div className="flex items-center gap-2">
-        <Link to="/notifications" className="p-2 relative">
+        <Link to="/notifications" className="p-2 relative" aria-label="Notifications">
           <Bell className="w-6 h-6 text-primary-foreground" />
           {notificationCount > 0 && (
             <span className="absolute -top-0.5 -right-0.5 bg-destructive text-destructive-foreground text-xs rounded-full min-w-[18px] h-[18px] flex items-center justify-center font-medium px-1">
@@ -63,7 +63,7 @@ export function TopHeader() {
             </span>
           )}
         </Link>
-        <Link to="/sender/cart" className="p-2 relative">
+        <Link to="/sender/cart" className="p-2 relative" aria-label="Cart">
           <ShoppingCart className="w-6 h-6 text-primary-foreground" />
           {cartCount > 0 && (
             <span className="absolute -top-0.5 -right-0.5 bg-destructive text-destructive-foreground text-xs rounded-full min-w-[18px] h-[18px] flex items-center justify-center font-medium px-1">
