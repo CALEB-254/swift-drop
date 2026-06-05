@@ -180,7 +180,7 @@ export default function AdminDashboard() {
 
           <TabsContent value="overview"><AdminOverview data={data} onRefresh={fetchAllData} /></TabsContent>
           <TabsContent value="search"><AdminGlobalSearch data={data} /></TabsContent>
-          <TabsContent value="users"><AdminUsers data={data} onRefresh={fetchAllData} /></TabsContent>
+          <TabsContent value="users"><AdminUsers data={data} onRefresh={fetchAllData} adminLevel={data.adminLevel} /></TabsContent>
           <TabsContent value="orders"><AdminOrders data={data} onRefresh={fetchAllData} /></TabsContent>
           <TabsContent value="finance"><AdminFinance data={data} onRefresh={fetchAllData} /></TabsContent>
           <TabsContent value="riders"><AdminRiders data={data} onRefresh={fetchAllData} /></TabsContent>
