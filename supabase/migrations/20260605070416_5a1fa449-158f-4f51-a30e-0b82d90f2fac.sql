@@ -1,0 +1,1 @@
+ALTER TABLE public.agents DROP CONSTRAINT IF EXISTS agents_user_id_key;
