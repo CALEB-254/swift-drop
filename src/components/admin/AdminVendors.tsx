@@ -12,6 +12,72 @@ import type { AdminData } from '@/pages/admin/AdminDashboard';
 
 interface Props { data: AdminData; onRefresh: () => void; }
 
+interface AgentFormProps {
+  form: {
+    business_name: string;
+    location: string;
+    phone: string;
+    address: string;
+    operating_hours: string;
+    tracking_prefix: string;
+    user_id: string;
+  };
+  setForm: React.Dispatch<React.SetStateAction<AgentFormProps['form']>>;
+  agentUserOptions: any[];
+  onSubmit: () => void;
+  submitLabel: string;
+}
+
+function AgentForm({ form, setForm, agentUserOptions, onSubmit, submitLabel }: AgentFormProps) {
+  return (
+    <div className="space-y-4">
+      <div className="space-y-2">
+        <Label>Owner Account (agent user)</Label>
+        <Select value={form.user_id || 'self'} onValueChange={v => setForm(p => ({ ...p, user_id: v === 'self' ? '' : v }))}>
+          <SelectTrigger><SelectValue placeholder="Assign to agent user" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="self">My account (admin)</SelectItem>
+            {agentUserOptions.map((u: any) => (
+              <SelectItem key={u.user_id} value={u.user_id}>{u.full_name} — {u.phone}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="space-y-2">
+        <Label>Business Name *</Label>
+        <Input value={form.business_name} onChange={e => setForm(p => ({ ...p, business_name: e.target.value }))} placeholder="e.g. Central Hub" />
+      </div>
+      <div className="space-y-2">
+        <Label>Location *</Label>
+        <Input value={form.location} onChange={e => setForm(p => ({ ...p, location: e.target.value }))} placeholder="e.g. Nairobi CBD" />
+      </div>
+      <div className="space-y-2">
+        <Label>Phone *</Label>
+        <Input value={form.phone} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))} placeholder="+254..." />
+      </div>
+      <div className="space-y-2">
+        <Label>Address</Label>
+        <Input value={form.address} onChange={e => setForm(p => ({ ...p, address: e.target.value }))} />
+      </div>
+      <div className="space-y-2">
+        <Label>Operating Hours</Label>
+        <Input value={form.operating_hours} onChange={e => setForm(p => ({ ...p, operating_hours: e.target.value }))} placeholder="Mon-Sat 8AM-6PM" />
+      </div>
+      <div className="space-y-2">
+        <Label>Tracking Prefix</Label>
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-mono text-muted-foreground">SWF-</span>
+          <Input value={form.tracking_prefix} onChange={e => setForm(p => ({ ...p, tracking_prefix: e.target.value.toUpperCase() }))} className="w-24 font-mono" maxLength={4} />
+          <span className="text-sm font-mono text-muted-foreground">-XXXX</span>
+        </div>
+      </div>
+      <Button className="w-full gap-2" onClick={onSubmit}>
+        <Plus className="w-4 h-4" /> {submitLabel}
+      </Button>
+    </div>
+  );
+}
+
 export function AdminVendors({ data, onRefresh }: Props) {
   const [showNew, setShowNew] = useState(false);
   const [editAgent, setEditAgent] = useState<any>(null);
@@ -88,54 +154,6 @@ export function AdminVendors({ data, onRefresh }: Props) {
     onRefresh();
   };
 
-  const AgentForm = ({ onSubmit, submitLabel }: { onSubmit: () => void; submitLabel: string }) => (
-    <div className="space-y-4">
-      <div className="space-y-2">
-        <Label>Owner Account (agent user)</Label>
-        <Select value={form.user_id || 'self'} onValueChange={v => setForm(p => ({ ...p, user_id: v === 'self' ? '' : v }))}>
-          <SelectTrigger><SelectValue placeholder="Assign to agent user" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="self">My account (admin)</SelectItem>
-            {agentUserOptions.map((u: any) => (
-              <SelectItem key={u.user_id} value={u.user_id}>{u.full_name} — {u.phone}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      <div className="space-y-2">
-        <Label>Business Name *</Label>
-        <Input value={form.business_name} onChange={e => setForm(p => ({ ...p, business_name: e.target.value }))} placeholder="e.g. Central Hub" />
-      </div>
-      <div className="space-y-2">
-        <Label>Location *</Label>
-        <Input value={form.location} onChange={e => setForm(p => ({ ...p, location: e.target.value }))} placeholder="e.g. Nairobi CBD" />
-      </div>
-      <div className="space-y-2">
-        <Label>Phone *</Label>
-        <Input value={form.phone} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))} placeholder="+254..." />
-      </div>
-      <div className="space-y-2">
-        <Label>Address</Label>
-        <Input value={form.address} onChange={e => setForm(p => ({ ...p, address: e.target.value }))} />
-      </div>
-      <div className="space-y-2">
-        <Label>Operating Hours</Label>
-        <Input value={form.operating_hours} onChange={e => setForm(p => ({ ...p, operating_hours: e.target.value }))} placeholder="Mon-Sat 8AM-6PM" />
-      </div>
-      <div className="space-y-2">
-        <Label>Tracking Prefix</Label>
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-mono text-muted-foreground">SWF-</span>
-          <Input value={form.tracking_prefix} onChange={e => setForm(p => ({ ...p, tracking_prefix: e.target.value.toUpperCase() }))} className="w-24 font-mono" maxLength={4} />
-          <span className="text-sm font-mono text-muted-foreground">-XXXX</span>
-        </div>
-      </div>
-      <Button className="w-full gap-2" onClick={onSubmit}>
-        <Plus className="w-4 h-4" /> {submitLabel}
-      </Button>
-    </div>
-  );
-
   return (
     <div className="space-y-3 mt-4">
       <Button className="w-full gap-2" onClick={() => { resetForm(); setShowNew(true); }}>
@@ -184,7 +202,7 @@ export function AdminVendors({ data, onRefresh }: Props) {
       <Dialog open={showNew} onOpenChange={setShowNew}>
         <DialogContent>
           <DialogHeader><DialogTitle>Create Agent Pickup Point</DialogTitle></DialogHeader>
-          <AgentForm onSubmit={createAgent} submitLabel="Create" />
+          <AgentForm form={form} setForm={setForm} agentUserOptions={agentUserOptions} onSubmit={createAgent} submitLabel="Create" />
         </DialogContent>
       </Dialog>
 
@@ -192,7 +210,7 @@ export function AdminVendors({ data, onRefresh }: Props) {
       <Dialog open={!!editAgent} onOpenChange={open => { if (!open) { setEditAgent(null); resetForm(); } }}>
         <DialogContent>
           <DialogHeader><DialogTitle>Edit Agent</DialogTitle></DialogHeader>
-          <AgentForm onSubmit={updateAgent} submitLabel="Save Changes" />
+          <AgentForm form={form} setForm={setForm} agentUserOptions={agentUserOptions} onSubmit={updateAgent} submitLabel="Save Changes" />
         </DialogContent>
       </Dialog>
     </div>
