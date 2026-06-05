@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type Dispatch, type SetStateAction } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,7 +22,7 @@ interface AgentFormProps {
     tracking_prefix: string;
     user_id: string;
   };
-  setForm: React.Dispatch<React.SetStateAction<AgentFormProps['form']>>;
+  setForm: Dispatch<SetStateAction<AgentFormProps['form']>>;
   agentUserOptions: any[];
   onSubmit: () => void;
   submitLabel: string;
