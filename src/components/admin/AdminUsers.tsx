@@ -11,9 +11,10 @@ import { format } from 'date-fns';
 import { toast } from 'sonner';
 import type { AdminData } from '@/pages/admin/AdminDashboard';
 
-interface Props { data: AdminData; onRefresh: () => void; }
+interface Props { data: AdminData; onRefresh: () => void; adminLevel?: string | null; }
 
-export function AdminUsers({ data, onRefresh }: Props) {
+export function AdminUsers({ data, onRefresh, adminLevel }: Props) {
+  const isSuperAdmin = adminLevel === 'super_admin';
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [selectedUser, setSelectedUser] = useState<any>(null);
@@ -47,6 +48,9 @@ export function AdminUsers({ data, onRefresh }: Props) {
   const createUser = async () => {
     if (!newUser.full_name || !newUser.phone || !newUser.email || !newUser.password) {
       toast.error('Fill all required fields'); return;
+    }
+    if (newUser.role === 'admin' && !isSuperAdmin) {
+      toast.error('Only a super admin can create admin accounts'); return;
     }
     if (newUser.password.length < 6) {
       toast.error('Password must be at least 6 characters'); return;
@@ -191,11 +195,11 @@ export function AdminUsers({ data, onRefresh }: Props) {
                   <SelectItem value="sender">Sender</SelectItem>
                   <SelectItem value="agent">Agent</SelectItem>
                   <SelectItem value="rider">Rider</SelectItem>
-                  <SelectItem value="admin">Admin</SelectItem>
+                  {isSuperAdmin && <SelectItem value="admin">Admin</SelectItem>}
                 </SelectContent>
               </Select>
             </div>
-            {newUser.role === 'admin' && (
+            {newUser.role === 'admin' && isSuperAdmin && (
               <div className="space-y-2">
                 <Label>Admin Level *</Label>
                 <Select value={newUser.admin_role} onValueChange={v => setNewUser(p => ({ ...p, admin_role: v }))}>

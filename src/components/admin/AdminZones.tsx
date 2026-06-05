@@ -18,6 +18,8 @@ interface Zone {
   description: string | null;
   delivery_fee: number;
   is_active: boolean;
+  is_cbd?: boolean;
+  supports_doorstep?: boolean;
 }
 
 export function AdminZones({ data, onRefresh }: Props) {
@@ -25,7 +27,7 @@ export function AdminZones({ data, onRefresh }: Props) {
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Zone | null>(null);
-  const [form, setForm] = useState({ name: '', description: '', delivery_fee: '150' });
+  const [form, setForm] = useState({ name: '', description: '', delivery_fee: '200', is_cbd: false, supports_doorstep: true });
   const [saving, setSaving] = useState(false);
 
   useEffect(() => { fetchZones(); }, []);
@@ -60,7 +62,9 @@ export function AdminZones({ data, onRefresh }: Props) {
       const { error } = await supabase.from('zones').update({
         name: form.name,
         description: form.description || null,
-        delivery_fee: parseFloat(form.delivery_fee) || 150,
+        delivery_fee: parseFloat(form.delivery_fee) || 200,
+        is_cbd: form.is_cbd,
+        supports_doorstep: form.supports_doorstep,
       }).eq('id', editing.id);
 
       if (error) toast.error(error.message);
@@ -72,7 +76,9 @@ export function AdminZones({ data, onRefresh }: Props) {
       const { data: newZone, error } = await supabase.from('zones').insert({
         name: form.name,
         description: form.description || null,
-        delivery_fee: parseFloat(form.delivery_fee) || 150,
+        delivery_fee: parseFloat(form.delivery_fee) || 200,
+        is_cbd: form.is_cbd,
+        supports_doorstep: form.supports_doorstep,
       }).select().single();
 
       if (error) toast.error(error.message);
@@ -85,7 +91,7 @@ export function AdminZones({ data, onRefresh }: Props) {
     setSaving(false);
     setDialogOpen(false);
     setEditing(null);
-    setForm({ name: '', description: '', delivery_fee: '150' });
+    setForm({ name: '', description: '', delivery_fee: '200', is_cbd: false, supports_doorstep: true });
     fetchZones();
   };
 
@@ -105,7 +111,13 @@ export function AdminZones({ data, onRefresh }: Props) {
 
   const openEdit = (zone: Zone) => {
     setEditing(zone);
-    setForm({ name: zone.name, description: zone.description || '', delivery_fee: String(zone.delivery_fee) });
+    setForm({
+      name: zone.name,
+      description: zone.description || '',
+      delivery_fee: String(zone.delivery_fee),
+      is_cbd: !!zone.is_cbd,
+      supports_doorstep: zone.supports_doorstep !== false,
+    });
     setDialogOpen(true);
   };
 
@@ -115,7 +127,7 @@ export function AdminZones({ data, onRefresh }: Props) {
     <div className="space-y-4 mt-4">
       <div className="flex items-center justify-between">
         <h2 className="font-display font-bold">Delivery Zones</h2>
-        <Button size="sm" onClick={() => { setEditing(null); setForm({ name: '', description: '', delivery_fee: '150' }); setDialogOpen(true); }}>
+        <Button size="sm" onClick={() => { setEditing(null); setForm({ name: '', description: '', delivery_fee: '200', is_cbd: false, supports_doorstep: true }); setDialogOpen(true); }}>
           <Plus className="w-4 h-4 mr-1" /> Add Zone
         </Button>
       </div>
@@ -138,7 +150,12 @@ export function AdminZones({ data, onRefresh }: Props) {
                   </div>
                   <div>
                     <p className="text-sm font-medium">{zone.name}</p>
-                    <p className="text-[10px] text-muted-foreground">KES {zone.delivery_fee} • {zone.description || 'No description'}</p>
+                    <p className="text-[10px] text-muted-foreground">
+                      KES {zone.delivery_fee}
+                      {zone.is_cbd && ' • CBD (origin)'}
+                      {zone.supports_doorstep && ' • Doorstep'}
+                      {' • '}{zone.description || 'No description'}
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-1">
@@ -173,6 +190,20 @@ export function AdminZones({ data, onRefresh }: Props) {
             <div className="space-y-2">
               <Label>Delivery Fee (KES)</Label>
               <Input type="number" value={form.delivery_fee} onChange={e => setForm({ ...form, delivery_fee: e.target.value })} />
+            </div>
+            <div className="flex items-center justify-between rounded-lg border p-3">
+              <div>
+                <Label className="text-sm">Mark as CBD (origin zone)</Label>
+                <p className="text-[11px] text-muted-foreground">CBD-origin deliveries use this zone's destination fee. Only one allowed.</p>
+              </div>
+              <Switch checked={form.is_cbd} onCheckedChange={v => setForm({ ...form, is_cbd: v })} />
+            </div>
+            <div className="flex items-center justify-between rounded-lg border p-3">
+              <div>
+                <Label className="text-sm">Available for Doorstep delivery</Label>
+                <p className="text-[11px] text-muted-foreground">If off, this zone won't be selectable as a doorstep destination.</p>
+              </div>
+              <Switch checked={form.supports_doorstep} onCheckedChange={v => setForm({ ...form, supports_doorstep: v })} />
             </div>
             <Button onClick={handleSave} disabled={saving} className="w-full">
               {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}

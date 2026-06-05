@@ -21,7 +21,9 @@ export default function NewDelivery() {
   const { createPackage } = usePackages();
   const { user, profile } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [agents, setAgents] = useState<{ id: string; business_name: string; location: string }[]>([]);
+  const [agents, setAgents] = useState<{ id: string; business_name: string; location: string; zone_id: string | null }[]>([]);
+  const [zones, setZones] = useState<{ id: string; name: string; delivery_fee: number; is_cbd: boolean; supports_doorstep: boolean }[]>([]);
+  const [destZoneId, setDestZoneId] = useState<string>('');
   
   const deliveryType = (searchParams.get('type') as DeliveryType) || 'pickup_point';
   const deliveryTypeInfo = DELIVERY_TYPES.find(t => t.id === deliveryType);
@@ -46,20 +48,37 @@ export default function NewDelivery() {
     const fetchAgents = async () => {
       const { data } = await supabase
         .from('agents')
-        .select('id, business_name, location')
+        .select('id, business_name, location, zone_id')
         .eq('is_active', true)
         .order('business_name');
-      if (data) {
-        // Only admin-created agents (with tracking_prefix)
-        const adminAgents = data.filter(a => 
-          // @ts-ignore - services may exist
-          true // show all active agents as pickup points
-        );
-        setAgents(data);
-      }
+      if (data) setAgents(data as any);
     };
     fetchAgents();
+    supabase
+      .from('zones')
+      .select('id, name, delivery_fee, is_cbd, supports_doorstep')
+      .eq('is_active', true)
+      .order('name')
+      .then(({ data }) => setZones((data as any) || []));
   }, []);
+
+  // Identify the origin (from-area) agent's zone
+  const fromAgent = agents.find(a => a.location === formData.fromArea);
+  const fromZone = zones.find(z => z.id === fromAgent?.zone_id);
+  const cbdZone = zones.find(z => z.is_cbd);
+  const destZone = zones.find(z => z.id === destZoneId);
+
+  // Pricing logic
+  const computeCost = (): number => {
+    if (deliveryType === 'pickup_point') return 150;
+    if (deliveryType === 'errand') return 200;
+    // Doorstep
+    if (!destZone) return deliveryTypeInfo?.cost || 300;
+    const fromIsCbd = fromZone?.is_cbd ?? (cbdZone && fromAgent?.zone_id === cbdZone.id);
+    if (fromIsCbd) return Number(destZone.delivery_fee) || 300;
+    return 200;
+  };
+  const computedCost = computeCost();
 
   const handleSubmit = async () => {
     if (!user) {
@@ -95,6 +114,7 @@ export default function NewDelivery() {
         packageValue: parseFloat(formData.packageValue) || undefined,
         packagingColor: formData.packagingColor || undefined,
         codAmount: parseFloat(formData.codAmount) || 0,
+        cost: computedCost,
       });
 
       toast.success('Delivery added to cart!', {
@@ -295,6 +315,26 @@ export default function NewDelivery() {
             </div>
           ) : (
             <div className="space-y-4">
+              {deliveryType === 'doorstep' && (
+                <div className="space-y-2">
+                  <Label>Destination Zone</Label>
+                  <Select value={destZoneId} onValueChange={setDestZoneId}>
+                    <SelectTrigger className="input-accent">
+                      <SelectValue placeholder="-- Choose destination zone --" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {zones.filter(z => z.supports_doorstep).map(z => (
+                        <SelectItem key={z.id} value={z.id}>
+                          {z.name} — KES {z.delivery_fee}{z.is_cbd ? ' (CBD)' : ''}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-[11px] text-muted-foreground">
+                    From CBD → uses destination zone's fee. From any other zone → flat KES 200.
+                  </p>
+                </div>
+              )}
               <div className="space-y-2">
                 <Label>Area</Label>
                 <Select
@@ -378,7 +418,7 @@ export default function NewDelivery() {
             className="w-full"
             size="lg"
           >
-            {isSubmitting ? 'Creating Delivery...' : `Create Delivery - KES ${deliveryTypeInfo?.cost || 150}`}
+            {isSubmitting ? 'Creating Delivery...' : `Create Delivery - KES ${computedCost}`}
           </Button>
         </div>
       </div>

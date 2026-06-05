@@ -53,6 +53,7 @@ export type Database = {
           services: string[] | null
           updated_at: string
           user_id: string
+          zone_id: string | null
         }
         Insert: {
           address?: string | null
@@ -68,6 +69,7 @@ export type Database = {
           services?: string[] | null
           updated_at?: string
           user_id: string
+          zone_id?: string | null
         }
         Update: {
           address?: string | null
@@ -83,8 +85,17 @@ export type Database = {
           services?: string[] | null
           updated_at?: string
           user_id?: string
+          zone_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "agents_zone_id_fkey"
+            columns: ["zone_id"]
+            isOneToOne: false
+            referencedRelation: "zones"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       audit_logs: {
         Row: {
@@ -745,7 +756,9 @@ export type Database = {
           description: string | null
           id: string
           is_active: boolean
+          is_cbd: boolean
           name: string
+          supports_doorstep: boolean
           updated_at: string
         }
         Insert: {
@@ -754,7 +767,9 @@ export type Database = {
           description?: string | null
           id?: string
           is_active?: boolean
+          is_cbd?: boolean
           name: string
+          supports_doorstep?: boolean
           updated_at?: string
         }
         Update: {
@@ -763,7 +778,9 @@ export type Database = {
           description?: string | null
           id?: string
           is_active?: boolean
+          is_cbd?: boolean
           name?: string
+          supports_doorstep?: boolean
           updated_at?: string
         }
         Relationships: []

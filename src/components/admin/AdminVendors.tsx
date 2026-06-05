@@ -1,4 +1,4 @@
-import { useState, type Dispatch, type SetStateAction } from 'react';
+import { useState, useEffect, type Dispatch, type SetStateAction } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,6 +22,7 @@ interface AgentRecord {
   operating_hours?: string | null;
   services?: string[] | null;
   is_active?: boolean | null;
+  zone_id?: string | null;
 }
 
 interface AgentOwnerOption {
@@ -29,6 +30,12 @@ interface AgentOwnerOption {
   full_name?: string | null;
   phone?: string | null;
   role?: string | null;
+}
+
+interface ZoneOption {
+  id: string;
+  name: string;
+  is_cbd?: boolean | null;
 }
 
 interface AgentFormProps {
@@ -40,14 +47,16 @@ interface AgentFormProps {
     operating_hours: string;
     tracking_prefix: string;
     user_id: string;
+    zone_id: string;
   };
   setForm: Dispatch<SetStateAction<AgentFormProps['form']>>;
   agentUserOptions: AgentOwnerOption[];
+  zoneOptions: ZoneOption[];
   onSubmit: () => void;
   submitLabel: string;
 }
 
-function AgentForm({ form, setForm, agentUserOptions, onSubmit, submitLabel }: AgentFormProps) {
+function AgentForm({ form, setForm, agentUserOptions, zoneOptions, onSubmit, submitLabel }: AgentFormProps) {
   return (
     <div className="space-y-4">
       <div className="space-y-2">
@@ -58,6 +67,18 @@ function AgentForm({ form, setForm, agentUserOptions, onSubmit, submitLabel }: A
             <SelectItem value="self">My account (admin)</SelectItem>
             {agentUserOptions.map((u) => (
               <SelectItem key={u.user_id} value={u.user_id}>{u.full_name} — {u.phone}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="space-y-2">
+        <Label>Zone *</Label>
+        <Select value={form.zone_id || 'none'} onValueChange={v => setForm(p => ({ ...p, zone_id: v === 'none' ? '' : v }))}>
+          <SelectTrigger><SelectValue placeholder="Select zone" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="none">— No zone —</SelectItem>
+            {zoneOptions.map((z) => (
+              <SelectItem key={z.id} value={z.id}>{z.name}{z.is_cbd ? ' (CBD)' : ''}</SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -100,11 +121,18 @@ function AgentForm({ form, setForm, agentUserOptions, onSubmit, submitLabel }: A
 export function AdminVendors({ data, onRefresh }: Props) {
   const [showNew, setShowNew] = useState(false);
   const [editAgent, setEditAgent] = useState<AgentRecord | null>(null);
+  const [zones, setZones] = useState<ZoneOption[]>([]);
   const [form, setForm] = useState({
-    business_name: '', location: '', phone: '', address: '', operating_hours: '', tracking_prefix: 'D01', user_id: '',
+    business_name: '', location: '', phone: '', address: '', operating_hours: '', tracking_prefix: 'D01', user_id: '', zone_id: '',
   });
 
-  const resetForm = () => setForm({ business_name: '', location: '', phone: '', address: '', operating_hours: '', tracking_prefix: 'D01', user_id: '' });
+  const resetForm = () => setForm({ business_name: '', location: '', phone: '', address: '', operating_hours: '', tracking_prefix: 'D01', user_id: '', zone_id: '' });
+
+  useEffect(() => {
+    supabase.from('zones').select('id, name, is_cbd').eq('is_active', true).order('name').then(({ data }) => {
+      setZones((data as ZoneOption[]) || []);
+    });
+  }, []);
 
   const agentUserOptions = data.users.filter((u): u is AgentOwnerOption => u.role === 'agent');
 
@@ -119,6 +147,7 @@ export function AdminVendors({ data, onRefresh }: Props) {
       operating_hours: agent.operating_hours || '',
       tracking_prefix: prefix,
       user_id: agent.user_id || '',
+      zone_id: agent.zone_id || '',
     });
   };
 
@@ -141,6 +170,7 @@ export function AdminVendors({ data, onRefresh }: Props) {
       address: form.address || null,
       operating_hours: form.operating_hours || null,
       services: [`tracking_prefix:${form.tracking_prefix}`],
+      zone_id: form.zone_id || null,
     });
     if (error) { toast.error(error.message); return; }
     toast.success('Agent created!');
@@ -158,6 +188,8 @@ export function AdminVendors({ data, onRefresh }: Props) {
       address: form.address || null,
       operating_hours: form.operating_hours || null,
       services: [`tracking_prefix:${form.tracking_prefix}`],
+      user_id: form.user_id || editAgent.user_id,
+      zone_id: form.zone_id || null,
     }).eq('id', editAgent.id);
     if (error) { toast.error(error.message); return; }
     toast.success('Agent updated!');
@@ -221,7 +253,7 @@ export function AdminVendors({ data, onRefresh }: Props) {
       <Dialog open={showNew} onOpenChange={setShowNew}>
         <DialogContent>
           <DialogHeader><DialogTitle>Create Agent Pickup Point</DialogTitle></DialogHeader>
-          <AgentForm form={form} setForm={setForm} agentUserOptions={agentUserOptions} onSubmit={createAgent} submitLabel="Create" />
+          <AgentForm form={form} setForm={setForm} agentUserOptions={agentUserOptions} zoneOptions={zones} onSubmit={createAgent} submitLabel="Create" />
         </DialogContent>
       </Dialog>
 
@@ -229,7 +261,7 @@ export function AdminVendors({ data, onRefresh }: Props) {
       <Dialog open={!!editAgent} onOpenChange={open => { if (!open) { setEditAgent(null); resetForm(); } }}>
         <DialogContent>
           <DialogHeader><DialogTitle>Edit Agent</DialogTitle></DialogHeader>
-          <AgentForm form={form} setForm={setForm} agentUserOptions={agentUserOptions} onSubmit={updateAgent} submitLabel="Save Changes" />
+          <AgentForm form={form} setForm={setForm} agentUserOptions={agentUserOptions} zoneOptions={zones} onSubmit={updateAgent} submitLabel="Save Changes" />
         </DialogContent>
       </Dialog>
     </div>
