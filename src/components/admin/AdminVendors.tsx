@@ -12,6 +12,25 @@ import type { AdminData } from '@/pages/admin/AdminDashboard';
 
 interface Props { data: AdminData; onRefresh: () => void; }
 
+interface AgentRecord {
+  id: string;
+  user_id?: string | null;
+  business_name: string;
+  location: string;
+  phone: string;
+  address?: string | null;
+  operating_hours?: string | null;
+  services?: string[] | null;
+  is_active?: boolean | null;
+}
+
+interface AgentOwnerOption {
+  user_id: string;
+  full_name?: string | null;
+  phone?: string | null;
+  role?: string | null;
+}
+
 interface AgentFormProps {
   form: {
     business_name: string;
@@ -23,7 +42,7 @@ interface AgentFormProps {
     user_id: string;
   };
   setForm: Dispatch<SetStateAction<AgentFormProps['form']>>;
-  agentUserOptions: any[];
+  agentUserOptions: AgentOwnerOption[];
   onSubmit: () => void;
   submitLabel: string;
 }
@@ -37,7 +56,7 @@ function AgentForm({ form, setForm, agentUserOptions, onSubmit, submitLabel }: A
           <SelectTrigger><SelectValue placeholder="Assign to agent user" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="self">My account (admin)</SelectItem>
-            {agentUserOptions.map((u: any) => (
+            {agentUserOptions.map((u) => (
               <SelectItem key={u.user_id} value={u.user_id}>{u.full_name} — {u.phone}</SelectItem>
             ))}
           </SelectContent>
@@ -80,16 +99,16 @@ function AgentForm({ form, setForm, agentUserOptions, onSubmit, submitLabel }: A
 
 export function AdminVendors({ data, onRefresh }: Props) {
   const [showNew, setShowNew] = useState(false);
-  const [editAgent, setEditAgent] = useState<any>(null);
+  const [editAgent, setEditAgent] = useState<AgentRecord | null>(null);
   const [form, setForm] = useState({
     business_name: '', location: '', phone: '', address: '', operating_hours: '', tracking_prefix: 'D01', user_id: '',
   });
 
   const resetForm = () => setForm({ business_name: '', location: '', phone: '', address: '', operating_hours: '', tracking_prefix: 'D01', user_id: '' });
 
-  const agentUserOptions = data.users.filter((u: any) => u.role === 'agent');
+  const agentUserOptions = data.users.filter((u): u is AgentOwnerOption => u.role === 'agent');
 
-  const openEdit = (agent: any) => {
+  const openEdit = (agent: AgentRecord) => {
     const prefix = agent.services?.find((s: string) => s.startsWith('tracking_prefix:'))?.split(':')[1] || 'D01';
     setEditAgent(agent);
     setForm({
