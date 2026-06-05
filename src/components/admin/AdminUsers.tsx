@@ -49,6 +49,9 @@ export function AdminUsers({ data, onRefresh, adminLevel }: Props) {
     if (!newUser.full_name || !newUser.phone || !newUser.email || !newUser.password) {
       toast.error('Fill all required fields'); return;
     }
+    if (newUser.role === 'admin' && !isSuperAdmin) {
+      toast.error('Only a super admin can create admin accounts'); return;
+    }
     if (newUser.password.length < 6) {
       toast.error('Password must be at least 6 characters'); return;
     }
