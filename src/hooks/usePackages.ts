@@ -96,6 +96,7 @@ export interface CreatePackageData {
   weight?: number;
   isProduct?: boolean;
   codAmount?: number;
+  cost?: number;
 }
 
 export function usePackages() {
@@ -175,7 +176,9 @@ export function usePackages() {
       throw new Error('You must be logged in to create a delivery');
     }
 
-    const cost = getCostByType(data.deliveryType);
+    const cost = typeof data.cost === 'number' && !Number.isNaN(data.cost)
+      ? data.cost
+      : getCostByType(data.deliveryType);
     const commission = cost * DELIVERY_PRICING.commissionRate;
     const trackingNumber = generateTrackingNumber();
 
