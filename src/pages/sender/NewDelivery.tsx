@@ -95,7 +95,6 @@ export default function NewDelivery() {
     setIsSubmitting(true);
     
     try {
-      const selectedAgent = agents.find(a => a.id === formData.pickupPoint);
       const newPackage = await createPackage({
         senderName: profile?.full_name || 'Current User',
         senderPhone: profile?.phone || '+254700000000',
