@@ -1,0 +1,1 @@
+ALTER TABLE public.zones ADD COLUMN IF NOT EXISTS area text NOT NULL DEFAULT 'Nairobi';

@@ -751,6 +751,7 @@ export type Database = {
       }
       zones: {
         Row: {
+          area: string
           created_at: string
           delivery_fee: number
           description: string | null
@@ -762,6 +763,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          area?: string
           created_at?: string
           delivery_fee?: number
           description?: string | null
@@ -773,6 +775,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          area?: string
           created_at?: string
           delivery_fee?: number
           description?: string | null
