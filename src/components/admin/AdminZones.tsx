@@ -20,6 +20,7 @@ interface Zone {
   is_active: boolean;
   is_cbd?: boolean;
   supports_doorstep?: boolean;
+  area?: string | null;
 }
 
 export function AdminZones({ data, onRefresh }: Props) {
@@ -27,7 +28,7 @@ export function AdminZones({ data, onRefresh }: Props) {
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Zone | null>(null);
-  const [form, setForm] = useState({ name: '', description: '', delivery_fee: '200', is_cbd: false, supports_doorstep: true });
+  const [form, setForm] = useState({ name: '', area: 'Nairobi', description: '', delivery_fee: '200', is_cbd: false, supports_doorstep: true });
   const [saving, setSaving] = useState(false);
 
   useEffect(() => { fetchZones(); }, []);
@@ -61,6 +62,7 @@ export function AdminZones({ data, onRefresh }: Props) {
     if (editing) {
       const { error } = await supabase.from('zones').update({
         name: form.name,
+        area: form.area || 'Nairobi',
         description: form.description || null,
         delivery_fee: parseFloat(form.delivery_fee) || 200,
         is_cbd: form.is_cbd,
@@ -75,11 +77,12 @@ export function AdminZones({ data, onRefresh }: Props) {
     } else {
       const { data: newZone, error } = await supabase.from('zones').insert({
         name: form.name,
+        area: form.area || 'Nairobi',
         description: form.description || null,
         delivery_fee: parseFloat(form.delivery_fee) || 200,
         is_cbd: form.is_cbd,
         supports_doorstep: form.supports_doorstep,
-      }).select().single();
+      } as any).select().single();
 
       if (error) toast.error(error.message);
       else {
@@ -91,7 +94,7 @@ export function AdminZones({ data, onRefresh }: Props) {
     setSaving(false);
     setDialogOpen(false);
     setEditing(null);
-    setForm({ name: '', description: '', delivery_fee: '200', is_cbd: false, supports_doorstep: true });
+    setForm({ name: '', area: 'Nairobi', description: '', delivery_fee: '200', is_cbd: false, supports_doorstep: true });
     fetchZones();
   };
 
@@ -113,6 +116,7 @@ export function AdminZones({ data, onRefresh }: Props) {
     setEditing(zone);
     setForm({
       name: zone.name,
+      area: zone.area || 'Nairobi',
       description: zone.description || '',
       delivery_fee: String(zone.delivery_fee),
       is_cbd: !!zone.is_cbd,
@@ -127,7 +131,7 @@ export function AdminZones({ data, onRefresh }: Props) {
     <div className="space-y-4 mt-4">
       <div className="flex items-center justify-between">
         <h2 className="font-display font-bold">Delivery Zones</h2>
-        <Button size="sm" onClick={() => { setEditing(null); setForm({ name: '', description: '', delivery_fee: '200', is_cbd: false, supports_doorstep: true }); setDialogOpen(true); }}>
+        <Button size="sm" onClick={() => { setEditing(null); setForm({ name: '', area: 'Nairobi', description: '', delivery_fee: '200', is_cbd: false, supports_doorstep: true }); setDialogOpen(true); }}>
           <Plus className="w-4 h-4 mr-1" /> Add Zone
         </Button>
       </div>
@@ -151,6 +155,7 @@ export function AdminZones({ data, onRefresh }: Props) {
                   <div>
                     <p className="text-sm font-medium">{zone.name}</p>
                     <p className="text-[10px] text-muted-foreground">
+                      {zone.area || 'Nairobi'} • 
                       KES {zone.delivery_fee}
                       {zone.is_cbd && ' • CBD (origin)'}
                       {zone.supports_doorstep && ' • Doorstep'}
@@ -182,6 +187,11 @@ export function AdminZones({ data, onRefresh }: Props) {
             <div className="space-y-2">
               <Label>Zone Name *</Label>
               <Input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="e.g. Nairobi CBD" />
+            </div>
+            <div className="space-y-2">
+              <Label>Area (City) *</Label>
+              <Input value={form.area} onChange={e => setForm({ ...form, area: e.target.value })} placeholder="e.g. Nairobi, Mombasa, Kisumu" />
+              <p className="text-[11px] text-muted-foreground">Senders pick an area first, then zones within that area.</p>
             </div>
             <div className="space-y-2">
               <Label>Description</Label>

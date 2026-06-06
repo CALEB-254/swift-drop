@@ -22,7 +22,8 @@ export default function NewDelivery() {
   const { user, profile } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [agents, setAgents] = useState<{ id: string; business_name: string; location: string; zone_id: string | null }[]>([]);
-  const [zones, setZones] = useState<{ id: string; name: string; delivery_fee: number; is_cbd: boolean; supports_doorstep: boolean }[]>([]);
+  const [zones, setZones] = useState<{ id: string; name: string; delivery_fee: number; is_cbd: boolean; supports_doorstep: boolean; area: string }[]>([]);
+  const [destArea, setDestArea] = useState<string>('');
   const [destZoneId, setDestZoneId] = useState<string>('');
   
   const deliveryType = (searchParams.get('type') as DeliveryType) || 'pickup_point';
@@ -56,27 +57,29 @@ export default function NewDelivery() {
     fetchAgents();
     supabase
       .from('zones')
-      .select('id, name, delivery_fee, is_cbd, supports_doorstep')
+      .select('id, name, delivery_fee, is_cbd, supports_doorstep, area')
       .eq('is_active', true)
       .order('name')
       .then(({ data }) => setZones((data as any) || []));
   }, []);
 
-  // Identify the origin (from-area) agent's zone
-  const fromAgent = agents.find(a => a.location === formData.fromArea);
-  const fromZone = zones.find(z => z.id === fromAgent?.zone_id);
-  const cbdZone = zones.find(z => z.is_cbd);
+  const allAreas = Array.from(new Set(zones.map(z => z.area).filter(Boolean)));
+  const zonesInArea = zones.filter(z => z.area === destArea);
   const destZone = zones.find(z => z.id === destZoneId);
+  const selectedAgent = agents.find(a => a.id === formData.pickupPoint);
+  const selectedAgentZone = zones.find(z => z.id === selectedAgent?.zone_id);
 
-  // Pricing logic
+  const clampDoorstep = (fee: number) => Math.min(410, Math.max(250, fee));
+
   const computeCost = (): number => {
-    if (deliveryType === 'pickup_point') return 150;
     if (deliveryType === 'errand') return 200;
+    if (deliveryType === 'pickup_point') {
+      if (!selectedAgent) return 0;
+      return Number(selectedAgentZone?.delivery_fee) || 0;
+    }
     // Doorstep
-    if (!destZone) return deliveryTypeInfo?.cost || 300;
-    const fromIsCbd = fromZone?.is_cbd ?? (cbdZone && fromAgent?.zone_id === cbdZone.id);
-    if (fromIsCbd) return Number(destZone.delivery_fee) || 300;
-    return 200;
+    if (!destZone) return 0;
+    return clampDoorstep(Number(destZone.delivery_fee) || 250);
   };
   const computedCost = computeCost();
 
@@ -95,7 +98,6 @@ export default function NewDelivery() {
     setIsSubmitting(true);
     
     try {
-      const selectedAgent = agents.find(a => a.id === formData.pickupPoint);
       const newPackage = await createPackage({
         senderName: profile?.full_name || 'Current User',
         senderPhone: profile?.phone || '+254700000000',
@@ -294,79 +296,99 @@ export default function NewDelivery() {
         <div>
           <h2 className="section-accent font-semibold mb-4">Where Are You Sending To?</h2>
           
-          {deliveryType === 'pickup_point' ? (
+          <div className="space-y-4">
+            {/* Step 1: Area (city) */}
             <div className="space-y-2">
-              <Label>Pickup Point</Label>
+              <Label>Area</Label>
               <Select
-                value={formData.pickupPoint}
-                onValueChange={(value) => setFormData({ ...formData, pickupPoint: value })}
+                value={destArea}
+                onValueChange={(value) => {
+                  setDestArea(value);
+                  setDestZoneId('');
+                  setFormData({ ...formData, pickupPoint: '', toArea: value });
+                }}
               >
                 <SelectTrigger className="input-accent">
-                  <SelectValue placeholder="-- Choose pickup point --" />
+                  <SelectValue placeholder="-- Choose area (e.g. Nairobi) --" />
                 </SelectTrigger>
                 <SelectContent>
-                  {agents.map((agent) => (
-                    <SelectItem key={agent.id} value={agent.id}>
-                      {agent.business_name} - {agent.location}
-                    </SelectItem>
+                  {allAreas.map((area) => (
+                    <SelectItem key={area} value={area}>{area}</SelectItem>
                   ))}
+                  {allAreas.length === 0 && (
+                    <div className="px-3 py-2 text-xs text-muted-foreground">No areas configured yet</div>
+                  )}
                 </SelectContent>
               </Select>
             </div>
-          ) : (
-            <div className="space-y-4">
-              {deliveryType === 'doorstep' && (
-                <div className="space-y-2">
-                  <Label>Destination Zone</Label>
-                  <Select value={destZoneId} onValueChange={setDestZoneId}>
-                    <SelectTrigger className="input-accent">
-                      <SelectValue placeholder="-- Choose destination zone --" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {zones.filter(z => z.supports_doorstep).map(z => (
-                        <SelectItem key={z.id} value={z.id}>
-                          {z.name} — KES {z.delivery_fee}{z.is_cbd ? ' (CBD)' : ''}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-[11px] text-muted-foreground">
-                    From CBD → uses destination zone's fee. From any other zone → flat KES 200.
-                  </p>
-                </div>
-              )}
+
+            {/* Step 2: Delivery Location (zone) */}
+            {destArea && (
               <div className="space-y-2">
-                <Label>Area</Label>
+                <Label>Delivery Location</Label>
                 <Select
-                  value={formData.toArea}
-                  onValueChange={(value) => setFormData({ ...formData, toArea: value })}
+                  value={destZoneId}
+                  onValueChange={(value) => {
+                    setDestZoneId(value);
+                    setFormData({ ...formData, pickupPoint: '' });
+                  }}
                 >
                   <SelectTrigger className="input-accent">
-                    <SelectValue placeholder="-- Choose area --" />
+                    <SelectValue placeholder="-- Choose delivery location --" />
                   </SelectTrigger>
                   <SelectContent>
-                    {agents.map((agent) => (
-                      <SelectItem key={agent.id} value={agent.location}>
-                        {agent.business_name} - {agent.location}
-                      </SelectItem>
-                    ))}
+                    {zonesInArea
+                      .filter(z => deliveryType === 'doorstep' ? z.supports_doorstep : true)
+                      .map(z => (
+                        <SelectItem key={z.id} value={z.id}>
+                          {z.name}
+                          {deliveryType === 'doorstep'
+                            ? ` — KES ${clampDoorstep(Number(z.delivery_fee))}`
+                            : ` — KES ${Number(z.delivery_fee)}`}
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
               </div>
+            )}
 
-              {deliveryType === 'doorstep' && (
-                <div className="space-y-2">
-                  <Label>Delivery Address</Label>
-                  <Textarea
-                    placeholder="Enter full delivery address"
-                    value={formData.deliveryAddress}
-                    onChange={(e) => setFormData({ ...formData, deliveryAddress: e.target.value })}
-                    className="input-accent"
-                  />
-                </div>
-              )}
-            </div>
-          )}
+            {/* Step 3: Agent Pickup Point (pickup_point only) */}
+            {deliveryType === 'pickup_point' && destZoneId && (
+              <div className="space-y-2">
+                <Label>Agent Pickup Point</Label>
+                <Select
+                  value={formData.pickupPoint}
+                  onValueChange={(value) => setFormData({ ...formData, pickupPoint: value })}
+                >
+                  <SelectTrigger className="input-accent">
+                    <SelectValue placeholder="-- Choose agent --" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {agents.filter(a => a.zone_id === destZoneId).map(agent => (
+                      <SelectItem key={agent.id} value={agent.id}>
+                        {agent.business_name} - {agent.location}
+                      </SelectItem>
+                    ))}
+                    {agents.filter(a => a.zone_id === destZoneId).length === 0 && (
+                      <div className="px-3 py-2 text-xs text-muted-foreground">No agents in this location</div>
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {deliveryType === 'doorstep' && (
+              <div className="space-y-2">
+                <Label>Delivery Address</Label>
+                <Textarea
+                  placeholder="Enter full delivery address"
+                  value={formData.deliveryAddress}
+                  onChange={(e) => setFormData({ ...formData, deliveryAddress: e.target.value })}
+                  className="input-accent"
+                />
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Collect on Delivery */}
