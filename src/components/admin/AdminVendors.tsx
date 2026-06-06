@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Trash2, MapPin, Edit } from 'lucide-react';
+import { UserCog } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import type { AdminData } from '@/pages/admin/AdminDashboard';
@@ -122,6 +123,8 @@ export function AdminVendors({ data, onRefresh }: Props) {
   const [showNew, setShowNew] = useState(false);
   const [editAgent, setEditAgent] = useState<AgentRecord | null>(null);
   const [zones, setZones] = useState<ZoneOption[]>([]);
+  const [assignAgent, setAssignAgent] = useState<AgentRecord | null>(null);
+  const [assignUserId, setAssignUserId] = useState<string>('');
   const [form, setForm] = useState({
     business_name: '', location: '', phone: '', address: '', operating_hours: '', tracking_prefix: 'D01', user_id: '', zone_id: '',
   });
@@ -129,8 +132,11 @@ export function AdminVendors({ data, onRefresh }: Props) {
   const resetForm = () => setForm({ business_name: '', location: '', phone: '', address: '', operating_hours: '', tracking_prefix: 'D01', user_id: '', zone_id: '' });
 
   useEffect(() => {
-    supabase.from('zones').select('id, name, is_cbd').eq('is_active', true).order('name').then(({ data }) => {
-      setZones((data as ZoneOption[]) || []);
+    supabase.from('zones').select('id, name, is_cbd, zone_type, supports_doorstep' as any).eq('is_active', true).order('name').then(({ data }) => {
+      const rows = (data as any[]) || [];
+      // Only pickup zones are valid for agent pickup points
+      const pickup = rows.filter((z: any) => (z.zone_type || (z.supports_doorstep ? 'doorstep' : 'pickup')) === 'pickup');
+      setZones(pickup as ZoneOption[]);
     });
   }, []);
 
@@ -205,6 +211,26 @@ export function AdminVendors({ data, onRefresh }: Props) {
     onRefresh();
   };
 
+  const openAssign = (agent: AgentRecord) => {
+    setAssignAgent(agent);
+    setAssignUserId(agent.user_id || '');
+  };
+
+  const saveAssign = async () => {
+    if (!assignAgent) return;
+    let ownerId = assignUserId;
+    if (!ownerId) {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { toast.error('Not signed in'); return; }
+      ownerId = user.id;
+    }
+    const { error } = await supabase.from('agents').update({ user_id: ownerId }).eq('id', assignAgent.id);
+    if (error) { toast.error(error.message); return; }
+    toast.success('Manager assigned');
+    setAssignAgent(null);
+    onRefresh();
+  };
+
   return (
     <div className="space-y-3 mt-4">
       <Button className="w-full gap-2" onClick={() => { resetForm(); setShowNew(true); }}>
@@ -214,6 +240,7 @@ export function AdminVendors({ data, onRefresh }: Props) {
       {data.agents.map(agent => {
         const prefix = agent.services?.find((s: string) => s.startsWith('tracking_prefix:'))?.split(':')[1] || 'D01';
         const agentPkgCount = data.packages.filter(p => p.pickup_agent_id === agent.id).length;
+        const manager = data.users.find((u: any) => u.user_id === agent.user_id);
         return (
           <Card key={agent.id} className="border-0 shadow-card">
             <CardContent className="p-4">
@@ -224,12 +251,17 @@ export function AdminVendors({ data, onRefresh }: Props) {
                   <p className="text-xs text-muted-foreground">{agent.phone}</p>
                   {agent.operating_hours && <p className="text-xs text-muted-foreground">{agent.operating_hours}</p>}
                   <p className="text-xs font-mono mt-1">SWF-{prefix}-XXXX · {agentPkgCount} packages</p>
+                  <p className="text-xs mt-1">
+                    <span className="text-muted-foreground">Manager: </span>
+                    <span className="font-medium">{manager?.full_name || 'Unassigned (admin)'}</span>
+                  </p>
                 </div>
                 <div className="flex flex-col items-end gap-2">
                   <span className={`text-xs px-2 py-1 rounded-full ${agent.is_active ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}>
                     {agent.is_active ? 'Active' : 'Inactive'}
                   </span>
                   <div className="flex gap-1">
+                    <Button variant="ghost" size="sm" title="Assign manager" onClick={() => openAssign(agent)}><UserCog className="w-4 h-4" /></Button>
                     <Button variant="ghost" size="sm" onClick={() => openEdit(agent)}><Edit className="w-4 h-4" /></Button>
                     <Button variant="ghost" size="sm" onClick={() => deleteAgent(agent.id)}><Trash2 className="w-4 h-4 text-destructive" /></Button>
                   </div>
@@ -262,6 +294,34 @@ export function AdminVendors({ data, onRefresh }: Props) {
         <DialogContent>
           <DialogHeader><DialogTitle>Edit Agent</DialogTitle></DialogHeader>
           <AgentForm form={form} setForm={setForm} agentUserOptions={agentUserOptions} zoneOptions={zones} onSubmit={updateAgent} submitLabel="Save Changes" />
+        </DialogContent>
+      </Dialog>
+
+      {/* Assign Manager Dialog */}
+      <Dialog open={!!assignAgent} onOpenChange={open => { if (!open) setAssignAgent(null); }}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Assign Manager</DialogTitle></DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Assign <span className="font-medium text-foreground">{assignAgent?.business_name}</span> to an agent user who will manage it.
+            </p>
+            <div className="space-y-2">
+              <Label>Manager (agent user)</Label>
+              <Select value={assignUserId || 'self'} onValueChange={v => setAssignUserId(v === 'self' ? '' : v)}>
+                <SelectTrigger><SelectValue placeholder="Select manager" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="self">My account (admin)</SelectItem>
+                  {agentUserOptions.map((u) => (
+                    <SelectItem key={u.user_id} value={u.user_id}>{u.full_name} — {u.phone}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {agentUserOptions.length === 0 && (
+                <p className="text-[11px] text-muted-foreground">No agent users found. Create an agent user in the Users tab first.</p>
+              )}
+            </div>
+            <Button className="w-full" onClick={saveAssign}>Save Assignment</Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
