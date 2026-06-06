@@ -296,79 +296,99 @@ export default function NewDelivery() {
         <div>
           <h2 className="section-accent font-semibold mb-4">Where Are You Sending To?</h2>
           
-          {deliveryType === 'pickup_point' ? (
+          <div className="space-y-4">
+            {/* Step 1: Area (city) */}
             <div className="space-y-2">
-              <Label>Pickup Point</Label>
+              <Label>Area</Label>
               <Select
-                value={formData.pickupPoint}
-                onValueChange={(value) => setFormData({ ...formData, pickupPoint: value })}
+                value={destArea}
+                onValueChange={(value) => {
+                  setDestArea(value);
+                  setDestZoneId('');
+                  setFormData({ ...formData, pickupPoint: '', toArea: value });
+                }}
               >
                 <SelectTrigger className="input-accent">
-                  <SelectValue placeholder="-- Choose pickup point --" />
+                  <SelectValue placeholder="-- Choose area (e.g. Nairobi) --" />
                 </SelectTrigger>
                 <SelectContent>
-                  {agents.map((agent) => (
-                    <SelectItem key={agent.id} value={agent.id}>
-                      {agent.business_name} - {agent.location}
-                    </SelectItem>
+                  {allAreas.map((area) => (
+                    <SelectItem key={area} value={area}>{area}</SelectItem>
                   ))}
+                  {allAreas.length === 0 && (
+                    <div className="px-3 py-2 text-xs text-muted-foreground">No areas configured yet</div>
+                  )}
                 </SelectContent>
               </Select>
             </div>
-          ) : (
-            <div className="space-y-4">
-              {deliveryType === 'doorstep' && (
-                <div className="space-y-2">
-                  <Label>Destination Zone</Label>
-                  <Select value={destZoneId} onValueChange={setDestZoneId}>
-                    <SelectTrigger className="input-accent">
-                      <SelectValue placeholder="-- Choose destination zone --" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {zones.filter(z => z.supports_doorstep).map(z => (
-                        <SelectItem key={z.id} value={z.id}>
-                          {z.name} — KES {z.delivery_fee}{z.is_cbd ? ' (CBD)' : ''}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-[11px] text-muted-foreground">
-                    From CBD → uses destination zone's fee. From any other zone → flat KES 200.
-                  </p>
-                </div>
-              )}
+
+            {/* Step 2: Delivery Location (zone) */}
+            {destArea && (
               <div className="space-y-2">
-                <Label>Area</Label>
+                <Label>Delivery Location</Label>
                 <Select
-                  value={formData.toArea}
-                  onValueChange={(value) => setFormData({ ...formData, toArea: value })}
+                  value={destZoneId}
+                  onValueChange={(value) => {
+                    setDestZoneId(value);
+                    setFormData({ ...formData, pickupPoint: '' });
+                  }}
                 >
                   <SelectTrigger className="input-accent">
-                    <SelectValue placeholder="-- Choose area --" />
+                    <SelectValue placeholder="-- Choose delivery location --" />
                   </SelectTrigger>
                   <SelectContent>
-                    {agents.map((agent) => (
-                      <SelectItem key={agent.id} value={agent.location}>
-                        {agent.business_name} - {agent.location}
-                      </SelectItem>
-                    ))}
+                    {zonesInArea
+                      .filter(z => deliveryType === 'doorstep' ? z.supports_doorstep : true)
+                      .map(z => (
+                        <SelectItem key={z.id} value={z.id}>
+                          {z.name}
+                          {deliveryType === 'doorstep'
+                            ? ` — KES ${clampDoorstep(Number(z.delivery_fee))}`
+                            : ` — KES ${Number(z.delivery_fee)}`}
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
               </div>
+            )}
 
-              {deliveryType === 'doorstep' && (
-                <div className="space-y-2">
-                  <Label>Delivery Address</Label>
-                  <Textarea
-                    placeholder="Enter full delivery address"
-                    value={formData.deliveryAddress}
-                    onChange={(e) => setFormData({ ...formData, deliveryAddress: e.target.value })}
-                    className="input-accent"
-                  />
-                </div>
-              )}
-            </div>
-          )}
+            {/* Step 3: Agent Pickup Point (pickup_point only) */}
+            {deliveryType === 'pickup_point' && destZoneId && (
+              <div className="space-y-2">
+                <Label>Agent Pickup Point</Label>
+                <Select
+                  value={formData.pickupPoint}
+                  onValueChange={(value) => setFormData({ ...formData, pickupPoint: value })}
+                >
+                  <SelectTrigger className="input-accent">
+                    <SelectValue placeholder="-- Choose agent --" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {agents.filter(a => a.zone_id === destZoneId).map(agent => (
+                      <SelectItem key={agent.id} value={agent.id}>
+                        {agent.business_name} - {agent.location}
+                      </SelectItem>
+                    ))}
+                    {agents.filter(a => a.zone_id === destZoneId).length === 0 && (
+                      <div className="px-3 py-2 text-xs text-muted-foreground">No agents in this location</div>
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {deliveryType === 'doorstep' && (
+              <div className="space-y-2">
+                <Label>Delivery Address</Label>
+                <Textarea
+                  placeholder="Enter full delivery address"
+                  value={formData.deliveryAddress}
+                  onChange={(e) => setFormData({ ...formData, deliveryAddress: e.target.value })}
+                  className="input-accent"
+                />
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Collect on Delivery */}
