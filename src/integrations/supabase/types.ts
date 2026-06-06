@@ -761,6 +761,7 @@ export type Database = {
           name: string
           supports_doorstep: boolean
           updated_at: string
+          zone_type: Database["public"]["Enums"]["zone_type"]
         }
         Insert: {
           area?: string
@@ -773,6 +774,7 @@ export type Database = {
           name: string
           supports_doorstep?: boolean
           updated_at?: string
+          zone_type?: Database["public"]["Enums"]["zone_type"]
         }
         Update: {
           area?: string
@@ -785,6 +787,7 @@ export type Database = {
           name?: string
           supports_doorstep?: boolean
           updated_at?: string
+          zone_type?: Database["public"]["Enums"]["zone_type"]
         }
         Relationships: []
       }
@@ -894,6 +897,7 @@ export type Database = {
       ticket_priority: "low" | "medium" | "high" | "urgent"
       ticket_status: "open" | "in_progress" | "resolved" | "closed"
       user_role: "sender" | "agent" | "admin"
+      zone_type: "pickup" | "doorstep"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1040,6 +1044,7 @@ export const Constants = {
       ticket_priority: ["low", "medium", "high", "urgent"],
       ticket_status: ["open", "in_progress", "resolved", "closed"],
       user_role: ["sender", "agent", "admin"],
+      zone_type: ["pickup", "doorstep"],
     },
   },
 } as const
