@@ -21,6 +21,7 @@ interface Zone {
   is_cbd?: boolean;
   supports_doorstep?: boolean;
   area?: string | null;
+  zone_type?: 'pickup' | 'doorstep';
 }
 
 export function AdminZones({ data, onRefresh }: Props) {
@@ -28,7 +29,7 @@ export function AdminZones({ data, onRefresh }: Props) {
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Zone | null>(null);
-  const [form, setForm] = useState({ name: '', area: 'Nairobi', description: '', delivery_fee: '200', is_cbd: false, supports_doorstep: true });
+  const [form, setForm] = useState({ name: '', area: 'Nairobi', description: '', delivery_fee: '200', is_cbd: false, zone_type: 'pickup' as 'pickup' | 'doorstep' });
   const [saving, setSaving] = useState(false);
 
   useEffect(() => { fetchZones(); }, []);
@@ -66,8 +67,9 @@ export function AdminZones({ data, onRefresh }: Props) {
         description: form.description || null,
         delivery_fee: parseFloat(form.delivery_fee) || 200,
         is_cbd: form.is_cbd,
-        supports_doorstep: form.supports_doorstep,
-      }).eq('id', editing.id);
+        supports_doorstep: form.zone_type === 'doorstep',
+        zone_type: form.zone_type,
+      } as any).eq('id', editing.id);
 
       if (error) toast.error(error.message);
       else {
@@ -81,7 +83,8 @@ export function AdminZones({ data, onRefresh }: Props) {
         description: form.description || null,
         delivery_fee: parseFloat(form.delivery_fee) || 200,
         is_cbd: form.is_cbd,
-        supports_doorstep: form.supports_doorstep,
+        supports_doorstep: form.zone_type === 'doorstep',
+        zone_type: form.zone_type,
       } as any).select().single();
 
       if (error) toast.error(error.message);
@@ -94,7 +97,7 @@ export function AdminZones({ data, onRefresh }: Props) {
     setSaving(false);
     setDialogOpen(false);
     setEditing(null);
-    setForm({ name: '', area: 'Nairobi', description: '', delivery_fee: '200', is_cbd: false, supports_doorstep: true });
+    setForm({ name: '', area: 'Nairobi', description: '', delivery_fee: '200', is_cbd: false, zone_type: 'pickup' });
     fetchZones();
   };
 
@@ -120,63 +123,76 @@ export function AdminZones({ data, onRefresh }: Props) {
       description: zone.description || '',
       delivery_fee: String(zone.delivery_fee),
       is_cbd: !!zone.is_cbd,
-      supports_doorstep: zone.supports_doorstep !== false,
+      zone_type: (zone.zone_type as 'pickup' | 'doorstep') || (zone.supports_doorstep ? 'doorstep' : 'pickup'),
     });
     setDialogOpen(true);
   };
 
   if (loading) return <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin" /></div>;
 
+  const pickupZones = zones.filter(z => (z.zone_type || (z.supports_doorstep ? 'doorstep' : 'pickup')) === 'pickup');
+  const doorstepZones = zones.filter(z => (z.zone_type || (z.supports_doorstep ? 'doorstep' : 'pickup')) === 'doorstep');
+
+  const renderZoneList = (list: Zone[], emptyText: string) => (
+    list.length === 0 ? (
+      <Card className="border-0 shadow-card">
+        <CardContent className="p-6 text-center text-muted-foreground">
+          <MapPin className="w-10 h-10 mx-auto mb-2 opacity-40" />
+          <p>{emptyText}</p>
+        </CardContent>
+      </Card>
+    ) : (
+      <div className="space-y-2">
+        {list.map(zone => (
+          <Card key={zone.id} className="border-0 shadow-card">
+            <CardContent className="p-3 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${zone.is_active ? 'bg-primary/10' : 'bg-muted'}`}>
+                  <MapPin className={`w-4 h-4 ${zone.is_active ? 'text-primary' : 'text-muted-foreground'}`} />
+                </div>
+                <div>
+                  <p className="text-sm font-medium">{zone.name}</p>
+                  <p className="text-[10px] text-muted-foreground">
+                    {zone.area || 'Nairobi'} • KES {zone.delivery_fee}
+                    {zone.is_cbd && ' • CBD (origin)'}
+                    {' • '}{zone.description || 'No description'}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-1">
+                <Switch checked={zone.is_active} onCheckedChange={() => toggleActive(zone)} />
+                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEdit(zone)}>
+                  <Edit2 className="w-3.5 h-3.5" />
+                </Button>
+                <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => deleteZone(zone)}>
+                  <Trash2 className="w-3.5 h-3.5" />
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    )
+  );
+
   return (
     <div className="space-y-4 mt-4">
       <div className="flex items-center justify-between">
         <h2 className="font-display font-bold">Delivery Zones</h2>
-        <Button size="sm" onClick={() => { setEditing(null); setForm({ name: '', area: 'Nairobi', description: '', delivery_fee: '200', is_cbd: false, supports_doorstep: true }); setDialogOpen(true); }}>
+        <Button size="sm" onClick={() => { setEditing(null); setForm({ name: '', area: 'Nairobi', description: '', delivery_fee: '200', is_cbd: false, zone_type: 'pickup' }); setDialogOpen(true); }}>
           <Plus className="w-4 h-4 mr-1" /> Add Zone
         </Button>
       </div>
 
-      {zones.length === 0 ? (
-        <Card className="border-0 shadow-card">
-          <CardContent className="p-6 text-center text-muted-foreground">
-            <MapPin className="w-10 h-10 mx-auto mb-2 opacity-40" />
-            <p>No zones created yet. Add zones to manage delivery areas.</p>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="space-y-2">
-          {zones.map(zone => (
-            <Card key={zone.id} className="border-0 shadow-card">
-              <CardContent className="p-3 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${zone.is_active ? 'bg-primary/10' : 'bg-muted'}`}>
-                    <MapPin className={`w-4 h-4 ${zone.is_active ? 'text-primary' : 'text-muted-foreground'}`} />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium">{zone.name}</p>
-                    <p className="text-[10px] text-muted-foreground">
-                      {zone.area || 'Nairobi'} • 
-                      KES {zone.delivery_fee}
-                      {zone.is_cbd && ' • CBD (origin)'}
-                      {zone.supports_doorstep && ' • Doorstep'}
-                      {' • '}{zone.description || 'No description'}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Switch checked={zone.is_active} onCheckedChange={() => toggleActive(zone)} />
-                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEdit(zone)}>
-                    <Edit2 className="w-3.5 h-3.5" />
-                  </Button>
-                  <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => deleteZone(zone)}>
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
+      <div>
+        <p className="text-xs font-semibold uppercase text-muted-foreground mb-2">Agent Pickup Zones</p>
+        {renderZoneList(pickupZones, 'No pickup zones yet. Used to price agent pickup-point deliveries.')}
+      </div>
+
+      <div>
+        <p className="text-xs font-semibold uppercase text-muted-foreground mt-4 mb-2">Doorstep Zones</p>
+        {renderZoneList(doorstepZones, 'No doorstep zones yet. Used to price doorstep deliveries.')}
+      </div>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
@@ -184,6 +200,26 @@ export function AdminZones({ data, onRefresh }: Props) {
             <DialogTitle>{editing ? 'Edit Zone' : 'Create Zone'}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 pt-2">
+            <div className="space-y-2">
+              <Label>Zone Type *</Label>
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  type="button"
+                  variant={form.zone_type === 'pickup' ? 'default' : 'outline'}
+                  onClick={() => setForm({ ...form, zone_type: 'pickup' })}
+                >
+                  Agent Pickup
+                </Button>
+                <Button
+                  type="button"
+                  variant={form.zone_type === 'doorstep' ? 'default' : 'outline'}
+                  onClick={() => setForm({ ...form, zone_type: 'doorstep' })}
+                >
+                  Doorstep
+                </Button>
+              </div>
+              <p className="text-[11px] text-muted-foreground">Pickup zones price agent pickup points. Doorstep zones price doorstep deliveries.</p>
+            </div>
             <div className="space-y-2">
               <Label>Zone Name *</Label>
               <Input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="e.g. Nairobi CBD" />
@@ -207,13 +243,6 @@ export function AdminZones({ data, onRefresh }: Props) {
                 <p className="text-[11px] text-muted-foreground">CBD-origin deliveries use this zone's destination fee. Only one allowed.</p>
               </div>
               <Switch checked={form.is_cbd} onCheckedChange={v => setForm({ ...form, is_cbd: v })} />
-            </div>
-            <div className="flex items-center justify-between rounded-lg border p-3">
-              <div>
-                <Label className="text-sm">Available for Doorstep delivery</Label>
-                <p className="text-[11px] text-muted-foreground">If off, this zone won't be selectable as a doorstep destination.</p>
-              </div>
-              <Switch checked={form.supports_doorstep} onCheckedChange={v => setForm({ ...form, supports_doorstep: v })} />
             </div>
             <Button onClick={handleSave} disabled={saving} className="w-full">
               {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
