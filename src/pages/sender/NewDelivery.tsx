@@ -22,7 +22,7 @@ export default function NewDelivery() {
   const { user, profile } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [agents, setAgents] = useState<{ id: string; business_name: string; location: string; zone_id: string | null }[]>([]);
-  const [zones, setZones] = useState<{ id: string; name: string; delivery_fee: number; is_cbd: boolean; supports_doorstep: boolean; area: string }[]>([]);
+  const [zones, setZones] = useState<{ id: string; name: string; delivery_fee: number; is_cbd: boolean; supports_doorstep: boolean; area: string; zone_type?: string }[]>([]);
   const [destArea, setDestArea] = useState<string>('');
   const [destZoneId, setDestZoneId] = useState<string>('');
   
@@ -57,7 +57,7 @@ export default function NewDelivery() {
     fetchAgents();
     supabase
       .from('zones')
-      .select('id, name, delivery_fee, is_cbd, supports_doorstep, area')
+      .select('id, name, delivery_fee, is_cbd, supports_doorstep, area, zone_type' as any)
       .eq('is_active', true)
       .order('name')
       .then(({ data }) => setZones((data as any) || []));
@@ -338,7 +338,9 @@ export default function NewDelivery() {
                   </SelectTrigger>
                   <SelectContent>
                     {zonesInArea
-                      .filter(z => deliveryType === 'doorstep' ? z.supports_doorstep : true)
+                      .filter(z => deliveryType === 'doorstep'
+                        ? (z.zone_type ? z.zone_type === 'doorstep' : z.supports_doorstep)
+                        : (z.zone_type ? z.zone_type === 'pickup' : true))
                       .map(z => (
                         <SelectItem key={z.id} value={z.id}>
                           {z.name}
