@@ -178,7 +178,11 @@ export function AdminVendors({ data, onRefresh }: Props) {
       services: [`tracking_prefix:${form.tracking_prefix}`],
       zone_id: form.zone_id || null,
     });
-    if (error) { toast.error(error.message); return; }
+    if (error) {
+      console.error('Create agent failed:', error);
+      toast.error(error.message || 'Failed to create agent', { description: error.details || error.hint });
+      return;
+    }
     toast.success('Agent created!');
     setShowNew(false);
     resetForm();

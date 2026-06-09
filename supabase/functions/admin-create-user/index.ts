@@ -35,19 +35,22 @@ serve(async (req) => {
     }
 
     const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
-    const { data: roleRow } = await admin
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", userData.user.id)
-      .eq("role", "admin")
-      .maybeSingle();
-    if (!roleRow) {
+    const [roleRowRes, adminLevelRes] = await Promise.all([
+      admin.from("user_roles").select("role").eq("user_id", userData.user.id).eq("role", "admin").maybeSingle(),
+      admin.from("admin_levels").select("admin_role").eq("user_id", userData.user.id).maybeSingle(),
+    ]);
+    const isAdmin = !!roleRowRes.data || !!adminLevelRes.data;
+    const isSuperAdmin = adminLevelRes.data?.admin_role === "super_admin" || (!adminLevelRes.data && !!roleRowRes.data);
+    if (!isAdmin) {
       return new Response(JSON.stringify({ error: "Forbidden — admin only" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     const body: Body = await req.json();
     if (!body.email || !body.password || !body.full_name || !body.phone || !body.role) {
       return new Response(JSON.stringify({ error: "Missing required fields" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+    if (body.role === "admin" && !isSuperAdmin) {
+      return new Response(JSON.stringify({ error: "Only a super admin can create admin accounts" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     // Profile table only allows roles: sender | agent | admin
