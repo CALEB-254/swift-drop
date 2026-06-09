@@ -317,6 +317,11 @@ export default function AgentPickupDashboard() {
             <div>
               <p className="text-muted-foreground text-sm">Welcome,</p>
               <h1 className="font-display text-xl font-bold">{profile?.full_name || 'Agent'}</h1>
+              {agentRecord && (
+                <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                  <MapPin className="w-3 h-3" /> {agentRecord.business_name}
+                </p>
+              )}
             </div>
           </div>
           <button
@@ -327,6 +332,27 @@ export default function AgentPickupDashboard() {
           </button>
         </div>
         <p className="text-muted-foreground mt-3">Here are your packages today.</p>
+        {/* Today summary */}
+        <div className="grid grid-cols-3 gap-2 mt-4">
+          <Card className="border-0 shadow-card">
+            <CardContent className="p-3 text-center">
+              <p className="text-xs text-muted-foreground">Pending</p>
+              <p className="font-display font-bold text-lg">{pendingPackages.length}</p>
+            </CardContent>
+          </Card>
+          <Card className="border-0 shadow-card">
+            <CardContent className="p-3 text-center">
+              <p className="text-xs text-muted-foreground">On shelf</p>
+              <p className="font-display font-bold text-lg">{droppedPackages.length}</p>
+            </CardContent>
+          </Card>
+          <Card className="border-0 shadow-card">
+            <CardContent className="p-3 text-center">
+              <p className="text-xs text-muted-foreground">Delivered</p>
+              <p className="font-display font-bold text-lg">{collectedPackages.length}</p>
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       {/* Tabs */}
@@ -367,12 +393,14 @@ export default function AgentPickupDashboard() {
               <ActionCard
                 icon={<Clock className="w-8 h-8 text-warning" />}
                 label="Uncollected packages"
-              />
-              <ActionCard
-                icon={<Clock className="w-8 h-8 text-warning" />}
-                label="Uncollected packages"
                 count={droppedPackages.length}
                 onClick={() => setActiveView('uncollected')}
+              />
+              <ActionCard
+                icon={<Truck className="w-8 h-8 text-primary" />}
+                label="Doorstep packages"
+                count={doorstepPackages.length}
+                onClick={() => setActiveView('doorstep')}
               />
             </div>
           </TabsContent>
