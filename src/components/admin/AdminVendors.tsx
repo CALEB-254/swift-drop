@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Trash2, MapPin, Edit } from 'lucide-react';
-import { UserCog } from 'lucide-react';
+import { UserCog, AlertCircle, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import type { AdminData } from '@/pages/admin/AdminDashboard';
@@ -125,6 +125,7 @@ export function AdminVendors({ data, onRefresh }: Props) {
   const [zones, setZones] = useState<ZoneOption[]>([]);
   const [assignAgent, setAssignAgent] = useState<AgentRecord | null>(null);
   const [assignUserId, setAssignUserId] = useState<string>('');
+  const [lastError, setLastError] = useState<{ action: string; message: string; details?: string; hint?: string; code?: string } | null>(null);
   const [form, setForm] = useState({
     business_name: '', location: '', phone: '', address: '', operating_hours: '', tracking_prefix: 'D01', user_id: '', zone_id: '',
   });
@@ -180,9 +181,12 @@ export function AdminVendors({ data, onRefresh }: Props) {
     });
     if (error) {
       console.error('Create agent failed:', error);
-      toast.error(error.message || 'Failed to create agent', { description: error.details || error.hint });
+      const errInfo = { action: 'Create agent', message: error.message || 'Failed to create agent', details: (error as any).details, hint: (error as any).hint, code: (error as any).code };
+      setLastError(errInfo);
+      toast.error(errInfo.message, { description: errInfo.details || errInfo.hint });
       return;
     }
+    setLastError(null);
     toast.success('Agent created!');
     setShowNew(false);
     resetForm();
@@ -201,7 +205,14 @@ export function AdminVendors({ data, onRefresh }: Props) {
       user_id: form.user_id || editAgent.user_id,
       zone_id: form.zone_id || null,
     }).eq('id', editAgent.id);
-    if (error) { toast.error(error.message); return; }
+    if (error) {
+      console.error('Update agent failed:', error);
+      const errInfo = { action: 'Update agent', message: error.message, details: (error as any).details, hint: (error as any).hint, code: (error as any).code };
+      setLastError(errInfo);
+      toast.error(errInfo.message, { description: errInfo.details || errInfo.hint });
+      return;
+    }
+    setLastError(null);
     toast.success('Agent updated!');
     setEditAgent(null);
     resetForm();
@@ -210,7 +221,14 @@ export function AdminVendors({ data, onRefresh }: Props) {
 
   const deleteAgent = async (id: string) => {
     const { error } = await supabase.from('agents').delete().eq('id', id);
-    if (error) { toast.error(error.message); return; }
+    if (error) {
+      console.error('Delete agent failed:', error);
+      const errInfo = { action: 'Delete agent', message: error.message, details: (error as any).details, hint: (error as any).hint, code: (error as any).code };
+      setLastError(errInfo);
+      toast.error(errInfo.message, { description: errInfo.details || errInfo.hint });
+      return;
+    }
+    setLastError(null);
     toast.success('Agent removed');
     onRefresh();
   };
@@ -229,7 +247,14 @@ export function AdminVendors({ data, onRefresh }: Props) {
       ownerId = user.id;
     }
     const { error } = await supabase.from('agents').update({ user_id: ownerId }).eq('id', assignAgent.id);
-    if (error) { toast.error(error.message); return; }
+    if (error) {
+      console.error('Assign manager failed:', error);
+      const errInfo = { action: 'Assign manager', message: error.message, details: (error as any).details, hint: (error as any).hint, code: (error as any).code };
+      setLastError(errInfo);
+      toast.error(errInfo.message, { description: errInfo.details || errInfo.hint });
+      return;
+    }
+    setLastError(null);
     toast.success('Manager assigned');
     setAssignAgent(null);
     onRefresh();
@@ -237,6 +262,31 @@ export function AdminVendors({ data, onRefresh }: Props) {
 
   return (
     <div className="space-y-3 mt-4">
+      {lastError && (
+        <Card className="border-destructive/40 bg-destructive/5">
+          <CardContent className="p-3">
+            <div className="flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 text-destructive flex-shrink-0 mt-0.5" />
+              <div className="flex-1 min-w-0 space-y-1">
+                <p className="text-sm font-medium text-destructive">{lastError.action} failed</p>
+                <p className="text-xs text-foreground break-words"><span className="text-muted-foreground">Message: </span>{lastError.message}</p>
+                {lastError.details && (
+                  <p className="text-xs text-foreground break-words"><span className="text-muted-foreground">Details: </span>{lastError.details}</p>
+                )}
+                {lastError.hint && (
+                  <p className="text-xs text-foreground break-words"><span className="text-muted-foreground">Hint: </span>{lastError.hint}</p>
+                )}
+                {lastError.code && (
+                  <p className="text-xs text-foreground break-words"><span className="text-muted-foreground">Code: </span><span className="font-mono">{lastError.code}</span></p>
+                )}
+              </div>
+              <Button variant="ghost" size="icon" className="h-6 w-6 flex-shrink-0" onClick={() => setLastError(null)}>
+                <X className="w-3.5 h-3.5" />
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
       <Button className="w-full gap-2" onClick={() => { resetForm(); setShowNew(true); }}>
         <Plus className="w-4 h-4" /> Create Agent Pickup Point
       </Button>
