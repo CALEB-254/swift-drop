@@ -40,7 +40,7 @@ serve(async (req) => {
       admin.from("admin_levels").select("admin_role").eq("user_id", userData.user.id).maybeSingle(),
     ]);
     const isAdmin = !!roleRowRes.data || !!adminLevelRes.data;
-    const isSuperAdmin = adminLevelRes.data?.admin_role === "super_admin" || (!adminLevelRes.data && !!roleRowRes.data);
+    const isSuperAdmin = adminLevelRes.data?.admin_role === "super_admin";
     if (!isAdmin) {
       return new Response(JSON.stringify({ error: "Forbidden — admin only" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
