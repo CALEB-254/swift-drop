@@ -61,42 +61,42 @@ const App = () => (
             <Route path="/auth/callback" element={<AuthCallback />} />
             
             {/* Sender Routes */}
-            <Route path="/sender" element={<SenderHome />} />
-            <Route path="/sender/dashboard" element={<SenderDashboard />} />
-            <Route path="/sender/new" element={<NewDelivery />} />
-            <Route path="/sender/track" element={<TrackPackage />} />
-            <Route path="/sender/cart" element={<Cart />} />
-            <Route path="/sender/pochi" element={<Pochi />} />
+            <Route path="/sender" element={<ProtectedRoute><SenderHome /></ProtectedRoute>} />
+            <Route path="/sender/dashboard" element={<ProtectedRoute><SenderDashboard /></ProtectedRoute>} />
+            <Route path="/sender/new" element={<ProtectedRoute><NewDelivery /></ProtectedRoute>} />
+            <Route path="/sender/track" element={<ProtectedRoute><TrackPackage /></ProtectedRoute>} />
+            <Route path="/sender/cart" element={<ProtectedRoute><Cart /></ProtectedRoute>} />
+            <Route path="/sender/pochi" element={<ProtectedRoute><Pochi /></ProtectedRoute>} />
             
             {/* Rider Routes */}
-            <Route path="/rider" element={<RiderDashboard />} />
+            <Route path="/rider" element={<ProtectedRoute><RiderDashboard /></ProtectedRoute>} />
 
             {/* Agent Pickup Point Routes */}
-            <Route path="/agent" element={<AgentPickupDashboard />} />
-            <Route path="/agent/account" element={<AgentAccountSettings />} />
-            <Route path="/agent/print" element={<AgentPrint />} />
-            <Route path="/agent/print/package" element={<AgentPrintPackage />} />
-            <Route path="/agent/print/business" element={<AgentPrintBusiness />} />
-            <Route path="/agent/scan" element={<AgentScan />} />
-            <Route path="/agent/scan/mtaani" element={<AgentScanMtaani />} />
-            <Route path="/agent/scan/doorstep" element={<AgentScanDoorstep />} />
-            <Route path="/agent/scan/errand" element={<AgentScanErrand />} />
-            <Route path="/agent/scan/sack" element={<AgentScanSack />} />
-            <Route path="/agent/stock" element={<AgentPickupDashboard />} />
+            <Route path="/agent" element={<ProtectedRoute requiredRole="agent"><AgentPickupDashboard /></ProtectedRoute>} />
+            <Route path="/agent/account" element={<ProtectedRoute requiredRole="agent"><AgentAccountSettings /></ProtectedRoute>} />
+            <Route path="/agent/print" element={<ProtectedRoute requiredRole="agent"><AgentPrint /></ProtectedRoute>} />
+            <Route path="/agent/print/package" element={<ProtectedRoute requiredRole="agent"><AgentPrintPackage /></ProtectedRoute>} />
+            <Route path="/agent/print/business" element={<ProtectedRoute requiredRole="agent"><AgentPrintBusiness /></ProtectedRoute>} />
+            <Route path="/agent/scan" element={<ProtectedRoute requiredRole="agent"><AgentScan /></ProtectedRoute>} />
+            <Route path="/agent/scan/mtaani" element={<ProtectedRoute requiredRole="agent"><AgentScanMtaani /></ProtectedRoute>} />
+            <Route path="/agent/scan/doorstep" element={<ProtectedRoute requiredRole="agent"><AgentScanDoorstep /></ProtectedRoute>} />
+            <Route path="/agent/scan/errand" element={<ProtectedRoute requiredRole="agent"><AgentScanErrand /></ProtectedRoute>} />
+            <Route path="/agent/scan/sack" element={<ProtectedRoute requiredRole="agent"><AgentScanSack /></ProtectedRoute>} />
+            <Route path="/agent/stock" element={<ProtectedRoute requiredRole="agent"><AgentPickupDashboard /></ProtectedRoute>} />
             
             {/* Profile Routes */}
-            <Route path="/profile/edit" element={<EditProfile />} />
+            <Route path="/profile/edit" element={<ProtectedRoute><EditProfile /></ProtectedRoute>} />
             
             {/* Shared Routes */}
-            <Route path="/notifications" element={<Notifications />} />
-            <Route path="/preferences" element={<Preferences />} />
-            <Route path="/agents" element={<AgentList />} />
-            <Route path="/customers" element={<Customers />} />
+            <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
+            <Route path="/preferences" element={<ProtectedRoute><Preferences /></ProtectedRoute>} />
+            <Route path="/agents" element={<ProtectedRoute><AgentList /></ProtectedRoute>} />
+            <Route path="/customers" element={<ProtectedRoute><Customers /></ProtectedRoute>} />
             <Route path="/terms" element={<Terms />} />
-            <Route path="/feedback" element={<Feedback />} />
+            <Route path="/feedback" element={<ProtectedRoute><Feedback /></ProtectedRoute>} />
 
             {/* Admin Routes */}
-            <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><AdminDashboard /></ProtectedRoute>} />
 
             {/* Legacy route redirects */}
             <Route path="/home" element={<Navigate to="/" replace />} />
