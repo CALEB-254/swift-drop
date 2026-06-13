@@ -104,6 +104,28 @@ export default function Cart() {
 
   const totalAmount = packages.reduce((sum, pkg) => sum + pkg.cost, 0);
 
+  const fetchTillNumber = async () => {
+    if (tillNumber) return;
+    try {
+      const packageIds = packages.map((p) => p.id);
+      if (!packageIds.length) return;
+      const { data, error } = await supabase.functions.invoke('mpesa-payment', {
+        body: {
+          phoneNumber: '254000000000',
+          amount: totalAmount,
+          packageIds,
+          paymentMethod: 'till',
+        },
+      });
+      if (error) throw error;
+      if (data?.tillNumber) {
+        setTillNumber(data.tillNumber);
+      }
+    } catch (err) {
+      console.error('Fetch till number error:', err);
+    }
+  };
+
   const handlePayment = async () => {
     if (!phoneNumber || phoneNumber.length < 10) {
       toast.error('Please enter a valid phone number');
@@ -348,7 +370,13 @@ export default function Cart() {
                   <Label>Payment Method</Label>
                   <RadioGroup
                     value={paymentMethod}
-                    onValueChange={(v) => setPaymentMethod(v as 'stk_push' | 'till')}
+                    onValueChange={(v) => {
+                      const method = v as 'stk_push' | 'till';
+                      setPaymentMethod(method);
+                      if (method === 'till') {
+                        fetchTillNumber();
+                      }
+                    }}
                     className="space-y-2"
                   >
                     <div className="flex items-center space-x-3 p-3 border rounded-lg">
@@ -372,19 +400,60 @@ export default function Cart() {
                   </RadioGroup>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="phone">M-Pesa Phone Number</Label>
-                  <div className="relative">
-                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input
-                      id="phone"
-                      placeholder="0712345678"
-                      value={phoneNumber}
-                      onChange={(e) => setPhoneNumber(e.target.value)}
-                      className="pl-10"
-                    />
+                {/* STK Push Fields */}
+                {paymentMethod === 'stk_push' && (
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">M-Pesa Phone Number</Label>
+                    <div className="relative">
+                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        id="phone"
+                        placeholder="0712345678"
+                        value={phoneNumber}
+                        onChange={(e) => setPhoneNumber(e.target.value)}
+                        className="pl-10"
+                      />
+                    </div>
                   </div>
-                </div>
+                )}
+
+                {/* Till Payment Fields */}
+                {paymentMethod === 'till' && (
+                  <div className="space-y-4">
+                    <div className="rounded-lg border bg-muted/40 p-3 text-center">
+                      <p className="text-xs text-muted-foreground">Till Number</p>
+                      <p className="text-2xl font-bold tracking-widest text-primary">
+                        {tillNumber || '—'}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Amount: <strong>KES {totalAmount}</strong>
+                      </p>
+                    </div>
+
+                    <ol className="text-left space-y-1.5 text-sm list-decimal pl-5">
+                      <li>Open M-Pesa on your phone</li>
+                      <li>Select <strong>Lipa na M-Pesa</strong></li>
+                      <li>Select <strong>Buy Goods and Services</strong></li>
+                      <li>Enter Till Number <strong>{tillNumber || '—'}</strong></li>
+                      <li>Enter Amount <strong>KES {totalAmount}</strong></li>
+                      <li>Enter your M-Pesa PIN and confirm</li>
+                      <li>Copy the M-Pesa confirmation code from the SMS</li>
+                      <li>Paste it below and tap <strong>Verify Payment</strong></li>
+                    </ol>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="mpesa-code">M-Pesa Confirmation Code</Label>
+                      <Input
+                        id="mpesa-code"
+                        placeholder="e.g. SLI1A2B3C4"
+                        value={mpesaCode}
+                        onChange={(e) => setMpesaCode(e.target.value.toUpperCase())}
+                        maxLength={10}
+                        className="uppercase tracking-widest text-center font-mono"
+                      />
+                    </div>
+                  </div>
+                )}
 
                 {/* Total */}
                 <div className="border-t pt-4 mt-4">
@@ -395,21 +464,41 @@ export default function Cart() {
                     </span>
                   </div>
 
-                  <Button 
-                    className="w-full" 
-                    size="lg"
-                    onClick={handlePayment}
-                    disabled={isProcessing}
-                  >
-                    {isProcessing ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Processing...
-                      </>
-                    ) : (
-                      `Pay KES ${totalAmount}`
-                    )}
-                  </Button>
+                  {paymentMethod === 'stk_push' && (
+                    <Button 
+                      className="w-full" 
+                      size="lg"
+                      onClick={handlePayment}
+                      disabled={isProcessing}
+                    >
+                      {isProcessing ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Processing...
+                        </>
+                      ) : (
+                        `Pay KES ${totalAmount}`
+                      )}
+                    </Button>
+                  )}
+
+                  {paymentMethod === 'till' && (
+                    <Button
+                      className="w-full"
+                      size="lg"
+                      onClick={handleVerifyTill}
+                      disabled={isVerifying || mpesaCode.trim().length !== 10 || !tillNumber}
+                    >
+                      {isVerifying ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Verifying...
+                        </>
+                      ) : (
+                        'Verify Payment'
+                      )}
+                    </Button>
+                  )}
                 </div>
               </CardContent>
             </Card>
