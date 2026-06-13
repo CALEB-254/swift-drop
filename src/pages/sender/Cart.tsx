@@ -51,6 +51,9 @@ export default function Cart() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState<'pending' | 'processing' | 'success' | 'failed'>('pending');
+  const [tillNumber, setTillNumber] = useState<string>('');
+  const [mpesaCode, setMpesaCode] = useState('');
+  const [isVerifying, setIsVerifying] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -144,6 +147,8 @@ export default function Cart() {
         } else {
           // Till payment - show instructions
           setPaymentStatus('pending');
+          setTillNumber(data.tillNumber || '');
+          setMpesaCode('');
           toast.info(`Pay to Till Number: ${data.tillNumber}`);
         }
       } else {
@@ -155,6 +160,41 @@ export default function Cart() {
       toast.error(error.message || 'Payment failed. Please try again.');
     } finally {
       setIsProcessing(false);
+    }
+  };
+
+  const handleVerifyTill = async () => {
+    const code = mpesaCode.trim().toUpperCase();
+    if (!/^[A-Z0-9]{10}$/.test(code)) {
+      toast.error('Enter a valid 10-character M-Pesa confirmation code');
+      return;
+    }
+
+    setIsVerifying(true);
+    try {
+      const packageIds = packages.map((p) => p.id);
+      const { data, error } = await supabase.functions.invoke('mpesa-payment', {
+        body: {
+          action: 'verify_till',
+          mpesaCode: code,
+          packageIds,
+        },
+      });
+
+      if (error) throw error;
+
+      if (data?.success) {
+        setPaymentStatus('success');
+        toast.success('Payment verified successfully!');
+        await fetchCartPackages();
+      } else {
+        throw new Error(data?.error || 'Verification failed');
+      }
+    } catch (err: any) {
+      console.error('Verify error:', err);
+      toast.error(err.message || 'Could not verify payment');
+    } finally {
+      setIsVerifying(false);
     }
   };
 
@@ -385,9 +425,10 @@ export default function Cart() {
               {paymentStatus === 'processing' && 'Processing Payment'}
               {paymentStatus === 'success' && 'Payment Successful'}
               {paymentStatus === 'failed' && 'Payment Failed'}
-              {paymentStatus === 'pending' && 'Complete Payment'}
+              {paymentStatus === 'pending' && 'Pay to Till & Verify'}
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription asChild>
+              <div>
               {paymentStatus === 'processing' && (
                 <div className="text-center py-8">
                   <Loader2 className="w-12 h-12 animate-spin text-primary mx-auto mb-4" />
@@ -406,18 +447,53 @@ export default function Cart() {
                 </div>
               )}
               {paymentStatus === 'pending' && paymentMethod === 'till' && (
-                <div className="text-center py-4">
-                  <p className="mb-4">Complete your payment using M-Pesa:</p>
-                  <ol className="text-left space-y-2 text-sm">
-                    <li>1. Go to M-Pesa on your phone</li>
-                    <li>2. Select "Lipa na M-Pesa"</li>
-                    <li>3. Select "Buy Goods and Services"</li>
-                    <li>4. Enter Till Number: <strong>XXXXXX</strong></li>
-                    <li>5. Enter Amount: <strong>KES {totalAmount}</strong></li>
-                    <li>6. Enter your M-Pesa PIN and confirm</li>
+                <div className="py-2 space-y-4">
+                  <div className="rounded-lg border bg-muted/40 p-3 text-center">
+                    <p className="text-xs text-muted-foreground">Till Number</p>
+                    <p className="text-2xl font-bold tracking-widest text-primary">{tillNumber || '—'}</p>
+                    <p className="text-xs text-muted-foreground mt-1">Amount: <strong>KES {totalAmount}</strong></p>
+                  </div>
+
+                  <ol className="text-left space-y-1.5 text-sm list-decimal pl-5">
+                    <li>Open M-Pesa on your phone</li>
+                    <li>Select <strong>Lipa na M-Pesa</strong></li>
+                    <li>Select <strong>Buy Goods and Services</strong></li>
+                    <li>Enter Till Number <strong>{tillNumber || '—'}</strong></li>
+                    <li>Enter Amount <strong>KES {totalAmount}</strong></li>
+                    <li>Enter your M-Pesa PIN and confirm</li>
+                    <li>Copy the M-Pesa confirmation code from the SMS</li>
+                    <li>Paste it below and tap <strong>Verify Payment</strong></li>
                   </ol>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="mpesa-code">M-Pesa Confirmation Code</Label>
+                    <Input
+                      id="mpesa-code"
+                      placeholder="e.g. SLI1A2B3C4"
+                      value={mpesaCode}
+                      onChange={(e) => setMpesaCode(e.target.value.toUpperCase())}
+                      maxLength={10}
+                      className="uppercase tracking-widest text-center font-mono"
+                    />
+                  </div>
+
+                  <Button
+                    className="w-full"
+                    onClick={handleVerifyTill}
+                    disabled={isVerifying || mpesaCode.trim().length !== 10}
+                  >
+                    {isVerifying ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Verifying...
+                      </>
+                    ) : (
+                      'Verify Payment'
+                    )}
+                  </Button>
                 </div>
               )}
+              </div>
             </DialogDescription>
           </DialogHeader>
           {(paymentStatus === 'success' || paymentStatus === 'failed') && (

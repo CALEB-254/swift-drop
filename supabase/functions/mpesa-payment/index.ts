@@ -28,6 +28,7 @@ interface PaymentRequest {
   paymentMethod: "stk_push" | "till";
   action?: string;
   checkoutRequestId?: string;
+  mpesaCode?: string;
 }
 
 async function getAccessToken(): Promise<string> {
@@ -136,6 +137,80 @@ serve(async (req) => {
     // Service role client for DB operations
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
     const body: PaymentRequest = await req.json();
+
+    // Verify a manual Till payment using an M-Pesa transaction code
+    if (body.action === "verify_till") {
+      const code = (body.mpesaCode || "").trim().toUpperCase();
+      const packageIds = body.packageIds || [];
+
+      if (!/^[A-Z0-9]{10}$/.test(code)) {
+        return new Response(
+          JSON.stringify({ success: false, error: "Invalid M-Pesa code. It should be 10 characters (letters and numbers)." }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      if (!packageIds.length) {
+        return new Response(
+          JSON.stringify({ success: false, error: "No packages selected" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Ensure user owns the packages
+      const { data: pkgs, error: pkgErr } = await supabase
+        .from("packages")
+        .select("id, user_id, cost, payment_status")
+        .in("id", packageIds);
+
+      if (pkgErr || !pkgs || pkgs.length === 0) {
+        return new Response(
+          JSON.stringify({ success: false, error: "Invalid packages" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      if (pkgs.some((p) => p.user_id !== userId)) {
+        return new Response(
+          JSON.stringify({ success: false, error: "Unauthorized package access" }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Check code hasn't been used already
+      const { data: existing } = await supabase
+        .from("packages")
+        .select("id")
+        .eq("mpesa_receipt_number", code)
+        .limit(1);
+
+      if (existing && existing.length > 0) {
+        return new Response(
+          JSON.stringify({ success: false, error: "This M-Pesa code has already been used." }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const { error: updErr } = await supabase
+        .from("packages")
+        .update({
+          payment_status: "paid",
+          mpesa_receipt_number: code,
+          paid_at: new Date().toISOString(),
+        })
+        .in("id", packageIds);
+
+      if (updErr) {
+        return new Response(
+          JSON.stringify({ success: false, error: updErr.message }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      return new Response(
+        JSON.stringify({ success: true, status: "completed" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     // Check payment status
     if (body.action === "check_status" && body.checkoutRequestId) {
