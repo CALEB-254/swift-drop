@@ -104,6 +104,28 @@ export default function Cart() {
 
   const totalAmount = packages.reduce((sum, pkg) => sum + pkg.cost, 0);
 
+  const fetchTillNumber = async () => {
+    if (tillNumber) return;
+    try {
+      const packageIds = packages.map((p) => p.id);
+      if (!packageIds.length) return;
+      const { data, error } = await supabase.functions.invoke('mpesa-payment', {
+        body: {
+          phoneNumber: '254000000000',
+          amount: totalAmount,
+          packageIds,
+          paymentMethod: 'till',
+        },
+      });
+      if (error) throw error;
+      if (data?.tillNumber) {
+        setTillNumber(data.tillNumber);
+      }
+    } catch (err) {
+      console.error('Fetch till number error:', err);
+    }
+  };
+
   const handlePayment = async () => {
     if (!phoneNumber || phoneNumber.length < 10) {
       toast.error('Please enter a valid phone number');
