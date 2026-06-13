@@ -51,6 +51,9 @@ export default function Cart() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState<'pending' | 'processing' | 'success' | 'failed'>('pending');
+  const [tillNumber, setTillNumber] = useState<string>('');
+  const [mpesaCode, setMpesaCode] = useState('');
+  const [isVerifying, setIsVerifying] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -144,6 +147,8 @@ export default function Cart() {
         } else {
           // Till payment - show instructions
           setPaymentStatus('pending');
+          setTillNumber(data.tillNumber || '');
+          setMpesaCode('');
           toast.info(`Pay to Till Number: ${data.tillNumber}`);
         }
       } else {
@@ -155,6 +160,41 @@ export default function Cart() {
       toast.error(error.message || 'Payment failed. Please try again.');
     } finally {
       setIsProcessing(false);
+    }
+  };
+
+  const handleVerifyTill = async () => {
+    const code = mpesaCode.trim().toUpperCase();
+    if (!/^[A-Z0-9]{10}$/.test(code)) {
+      toast.error('Enter a valid 10-character M-Pesa confirmation code');
+      return;
+    }
+
+    setIsVerifying(true);
+    try {
+      const packageIds = packages.map((p) => p.id);
+      const { data, error } = await supabase.functions.invoke('mpesa-payment', {
+        body: {
+          action: 'verify_till',
+          mpesaCode: code,
+          packageIds,
+        },
+      });
+
+      if (error) throw error;
+
+      if (data?.success) {
+        setPaymentStatus('success');
+        toast.success('Payment verified successfully!');
+        await fetchCartPackages();
+      } else {
+        throw new Error(data?.error || 'Verification failed');
+      }
+    } catch (err: any) {
+      console.error('Verify error:', err);
+      toast.error(err.message || 'Could not verify payment');
+    } finally {
+      setIsVerifying(false);
     }
   };
 
