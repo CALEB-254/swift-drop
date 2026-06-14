@@ -34,12 +34,11 @@ export interface Package {
   updatedAt: Date;
 }
 
-// Generate tracking number in SWF-D01-XXXX format
-const generateTrackingNumber = () => {
-  const prefix = 'SWF';
-  const agentCode = 'D01';
-  const randomNum = Math.floor(1000 + Math.random() * 9000); // 4-digit random
-  return `${prefix}-${agentCode}-${randomNum}`;
+// Generate tracking number in SWF-<AGENT_PREFIX>-XXXX format
+const generateTrackingNumber = (agentCode: string = 'D01') => {
+  const safe = (agentCode || 'D01').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4) || 'D01';
+  const randomNum = Math.floor(1000 + Math.random() * 9000);
+  return `SWF-${safe}-${randomNum}`;
 };
 
 const getCostByType = (type: DeliveryType): number => {
@@ -90,6 +89,7 @@ export interface CreatePackageData {
   deliveryType: DeliveryType;
   pickupPoint?: string;
   pickupAgentId?: string;
+  senderAgentId?: string;
   packageDescription?: string;
   packageValue?: number;
   packagingColor?: string;
@@ -180,7 +180,19 @@ export function usePackages() {
       ? data.cost
       : getCostByType(data.deliveryType);
     const commission = cost * DELIVERY_PRICING.commissionRate;
-    const trackingNumber = generateTrackingNumber();
+
+    let agentPrefix = 'D01';
+    if (data.senderAgentId) {
+      const { data: agentRow } = await supabase
+        .from('agents')
+        .select('code_prefix, business_name')
+        .eq('id', data.senderAgentId)
+        .maybeSingle();
+      const raw = (agentRow as any)?.code_prefix
+        || (agentRow?.business_name ? agentRow.business_name.slice(0, 3) : 'D01');
+      agentPrefix = raw;
+    }
+    const trackingNumber = generateTrackingNumber(agentPrefix);
 
     const insertData: PackageInsert = {
       user_id: user.id,
