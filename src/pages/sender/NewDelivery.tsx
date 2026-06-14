@@ -25,6 +25,7 @@ export default function NewDelivery() {
   const [zones, setZones] = useState<{ id: string; name: string; delivery_fee: number; is_cbd: boolean; supports_doorstep: boolean; area: string; zone_type?: string }[]>([]);
   const [destArea, setDestArea] = useState<string>('');
   const [destZoneId, setDestZoneId] = useState<string>('');
+  const [fromAgentId, setFromAgentId] = useState<string>('');
   
   const deliveryType = (searchParams.get('type') as DeliveryType) || 'pickup_point';
   const deliveryTypeInfo = DELIVERY_TYPES.find(t => t.id === deliveryType);
@@ -68,11 +69,24 @@ export default function NewDelivery() {
   const destZone = zones.find(z => z.id === destZoneId);
   const selectedAgent = agents.find(a => a.id === formData.pickupPoint);
   const selectedAgentZone = zones.find(z => z.id === selectedAgent?.zone_id);
+  const fromAgent = agents.find(a => a.id === fromAgentId);
+  const fromAgentZone = zones.find(z => z.id === fromAgent?.zone_id);
 
   const clampDoorstep = (fee: number) => Math.min(410, Math.max(250, fee));
 
   const computeCost = (): number => {
     if (deliveryType === 'errand') return 200;
+
+    // Pricing rule: if neither the sender's agent nor the receiver's agent
+    // is located in the CBD, fixed price of KES 220.
+    const senderIsCbd = !!fromAgentZone?.is_cbd;
+    const receiverIsCbd = deliveryType === 'pickup_point'
+      ? !!selectedAgentZone?.is_cbd
+      : !!destZone?.is_cbd;
+    if (fromAgent && (deliveryType === 'pickup_point' ? selectedAgent : destZone) && !senderIsCbd && !receiverIsCbd) {
+      return 220;
+    }
+
     if (deliveryType === 'pickup_point') {
       if (!selectedAgent) return 0;
       return Number(selectedAgentZone?.delivery_fee) || 0;
@@ -90,8 +104,8 @@ export default function NewDelivery() {
       return;
     }
 
-    if (!formData.customerName || !formData.customerPhone || !formData.fromArea) {
-      toast.error('Please fill in all required fields');
+    if (!formData.customerName || !formData.customerPhone || !fromAgentId) {
+      toast.error('Please choose a sender agent and fill all required fields');
       return;
     }
 
@@ -101,7 +115,7 @@ export default function NewDelivery() {
       const newPackage = await createPackage({
         senderName: profile?.full_name || 'Current User',
         senderPhone: profile?.phone || '+254700000000',
-        senderAddress: formData.fromArea,
+        senderAddress: fromAgent ? `${fromAgent.business_name} - ${fromAgent.location}` : formData.fromArea,
         receiverName: formData.customerName,
         receiverPhone: formData.customerPhone,
         receiverAddress: formData.toArea || formData.deliveryAddress,
@@ -110,6 +124,7 @@ export default function NewDelivery() {
           ? selectedAgent?.business_name
           : undefined,
         pickupAgentId: deliveryType === 'pickup_point' ? formData.pickupPoint : undefined,
+        senderAgentId: fromAgentId,
         packageDescription: formData.packageDescription,
         weight: 0,
         isProduct: formData.isProduct,
@@ -194,22 +209,31 @@ export default function NewDelivery() {
         <div>
           <h2 className="section-accent font-semibold mb-4">Where Are You Sending From?</h2>
           <div className="space-y-2">
-            <Label>From Area</Label>
+            <Label>Sender Agent</Label>
             <Select
-              value={formData.fromArea}
-              onValueChange={(value) => setFormData({ ...formData, fromArea: value })}
+              value={fromAgentId}
+              onValueChange={(value) => {
+                setFromAgentId(value);
+                const a = agents.find(x => x.id === value);
+                setFormData({ ...formData, fromArea: a ? a.location : '' });
+              }}
             >
               <SelectTrigger className="input-accent">
-                <SelectValue placeholder="-- Choose area --" />
+                <SelectValue placeholder="-- Choose sender agent --" />
               </SelectTrigger>
               <SelectContent>
                 {agents.map((agent) => (
-                  <SelectItem key={agent.id} value={agent.location}>
+                  <SelectItem key={agent.id} value={agent.id}>
                     {agent.business_name} - {agent.location}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
+            {fromAgentZone && (
+              <p className="text-xs text-muted-foreground">
+                {fromAgentZone.is_cbd ? 'CBD pickup location' : 'Outside CBD'}
+              </p>
+            )}
           </div>
         </div>
 

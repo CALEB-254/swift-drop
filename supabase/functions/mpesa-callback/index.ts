@@ -46,7 +46,7 @@ serve(async (req) => {
     // Find packages matching this specific CheckoutRequestID
     const { data: packages, error: queryError } = await supabase
       .from("packages")
-      .select("id, user_id")
+      .select("id, user_id, cost, tracking_number")
       .eq("checkout_request_id", CheckoutRequestID)
       .eq("payment_status", "processing");
 
@@ -86,6 +86,18 @@ serve(async (req) => {
 
       if (error) {
         console.error("Error updating packages:", error);
+      } else {
+        const totalAmount = packages.reduce((s: number, p: any) => s + Number(p.cost), 0);
+        await supabase.from("payment_logs").insert({
+          user_id: packages[0].user_id,
+          package_ids: packageIds,
+          tracking_numbers: packages.map((p: any) => p.tracking_number),
+          amount: totalAmount,
+          payment_method: "stk_push",
+          mpesa_receipt_number: mpesaReceiptNumber,
+          checkout_request_id: CheckoutRequestID,
+          status: "completed",
+        });
       }
     } else {
       console.log("Payment failed:", ResultDesc);
