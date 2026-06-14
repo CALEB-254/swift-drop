@@ -62,6 +62,25 @@ export default function ResetPassword() {
     }
   };
 
+  const handleContinue = async () => {
+    // After password reset the user is already signed in via the recovery session.
+    // Route them to the right dashboard based on their profile role.
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      navigate('/auth/login');
+      return;
+    }
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('user_id', user.id)
+      .maybeSingle();
+    const role = profile?.role ?? 'sender';
+    if (role === 'admin') navigate('/admin');
+    else if (role === 'agent') navigate('/agent');
+    else navigate('/sender');
+  };
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
@@ -97,10 +116,10 @@ export default function ResetPassword() {
           <CardContent>
             {success ? (
               <Button 
-                onClick={() => navigate('/auth/login')}
+                onClick={handleContinue}
                 className="w-full h-12 text-base font-semibold"
               >
-                Continue to Login
+                Continue
               </Button>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4">
