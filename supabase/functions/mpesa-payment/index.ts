@@ -206,6 +206,22 @@ serve(async (req) => {
         );
       }
 
+      // Record payment in logs
+      const totalAmount = pkgs.reduce((s: number, p: any) => s + Number(p.cost), 0);
+      const { data: trackRows } = await supabase
+        .from("packages")
+        .select("tracking_number")
+        .in("id", packageIds);
+      await supabase.from("payment_logs").insert({
+        user_id: userId,
+        package_ids: packageIds,
+        tracking_numbers: (trackRows || []).map((r: any) => r.tracking_number),
+        amount: totalAmount,
+        payment_method: "till",
+        mpesa_receipt_number: code,
+        status: "completed",
+      });
+
       return new Response(
         JSON.stringify({ success: true, status: "completed" }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
