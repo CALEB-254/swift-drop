@@ -57,9 +57,15 @@ export default function Login() {
     }
     setSubmitting(true);
     try {
-      await signUp(email, password, fullName, phone, role, address || undefined);
-      toast.success('Account created successfully!');
-      navigate(role === 'agent' ? '/agent' : '/sender');
+      const data = await signUp(email, password, fullName, phone, role, address || undefined);
+      // If email confirmation is required, there's no session yet — go verify.
+      if (!data?.session) {
+        toast.success('Account created! Check your email for a verification code.');
+        navigate(`/auth/verify?email=${encodeURIComponent(email)}&type=signup`);
+      } else {
+        toast.success('Account created successfully!');
+        navigate(role === 'agent' ? '/agent' : '/sender');
+      }
     } catch (error: any) {
       toast.error(error.message || 'Failed to create account');
     } finally {

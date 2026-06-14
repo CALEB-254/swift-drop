@@ -39,7 +39,21 @@ export default function VerifyOTP() {
       if (type === 'recovery') {
         navigate('/auth/reset-password');
       } else {
-        navigate('/');
+        // After signup verification the user has a session; route by role.
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('user_id', user.id)
+            .maybeSingle();
+          const role = profile?.role ?? 'sender';
+          if (role === 'admin') navigate('/admin');
+          else if (role === 'agent') navigate('/agent');
+          else navigate('/sender');
+        } else {
+          navigate('/auth/login');
+        }
       }
     } catch (error: any) {
       toast.error(error.message || 'Invalid verification code');

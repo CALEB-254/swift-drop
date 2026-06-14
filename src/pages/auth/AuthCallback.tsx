@@ -15,34 +15,17 @@ export default function AuthCallback() {
         if (sessionError) throw sessionError;
 
         if (session?.user) {
-          // Check if profile exists
-          const { data: profile, error: profileError } = await supabase
+          // The handle_new_user trigger auto-creates a profile; just read it.
+          const { data: profile } = await supabase
             .from('profiles')
             .select('role')
             .eq('user_id', session.user.id)
-            .single();
+            .maybeSingle();
 
-          if (profileError && profileError.code !== 'PGRST116') {
-            throw profileError;
-          }
-
-          if (!profile) {
-            // Create profile for OAuth user (default to sender)
-            const { error: insertError } = await supabase
-              .from('profiles')
-              .insert({
-                user_id: session.user.id,
-                full_name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User',
-                phone: session.user.user_metadata?.phone || '',
-                role: 'sender',
-              });
-
-            if (insertError) throw insertError;
-            navigate('/sender');
-          } else {
-            // Navigate based on role
-            navigate(profile.role === 'agent' ? '/agent' : '/sender');
-          }
+          const role = profile?.role ?? 'sender';
+          if (role === 'admin') navigate('/admin');
+          else if (role === 'agent') navigate('/agent');
+          else navigate('/sender');
         } else {
           navigate('/auth/login');
         }
