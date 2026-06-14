@@ -42,6 +42,7 @@ export type Database = {
         Row: {
           address: string | null
           business_name: string
+          code_prefix: string | null
           created_at: string
           id: string
           is_active: boolean | null
@@ -58,6 +59,7 @@ export type Database = {
         Insert: {
           address?: string | null
           business_name: string
+          code_prefix?: string | null
           created_at?: string
           id?: string
           is_active?: boolean | null
@@ -74,6 +76,7 @@ export type Database = {
         Update: {
           address?: string | null
           business_name?: string
+          code_prefix?: string | null
           created_at?: string
           id?: string
           is_active?: boolean | null
@@ -305,6 +308,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      payment_logs: {
+        Row: {
+          amount: number
+          checkout_request_id: string | null
+          created_at: string
+          id: string
+          mpesa_receipt_number: string | null
+          package_ids: string[]
+          payment_method: string
+          status: string
+          tracking_numbers: string[]
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          checkout_request_id?: string | null
+          created_at?: string
+          id?: string
+          mpesa_receipt_number?: string | null
+          package_ids: string[]
+          payment_method: string
+          status?: string
+          tracking_numbers?: string[]
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          checkout_request_id?: string | null
+          created_at?: string
+          id?: string
+          mpesa_receipt_number?: string | null
+          package_ids?: string[]
+          payment_method?: string
+          status?: string
+          tracking_numbers?: string[]
+          user_id?: string
+        }
+        Relationships: []
       }
       profiles: {
         Row: {
