@@ -147,7 +147,7 @@ export default function Login() {
             >
               <div className="flex-1 overflow-y-auto px-6 py-6">
                 <h3 className="text-xl font-bold text-primary-foreground mb-5 text-center">Login</h3>
-                <form onSubmit={handleLogin} className="space-y-4">
+                <form onSubmit={handleLogin} className="space-y-4">{formError && (<p role="alert" className="text-sm text-destructive">{formError}</p>)}
                   <div className="space-y-2">
                     <Label className="text-primary-foreground/70">Email</Label>
                     <Input
@@ -200,7 +200,7 @@ export default function Login() {
             >
               <div className="flex-1 overflow-y-auto px-6 py-6">
                 <h3 className="text-xl font-bold text-primary-foreground mb-5 text-center">Register</h3>
-                <form onSubmit={handleSignup} className="space-y-3">
+                <form onSubmit={handleSignup} className="space-y-3">{formError && (<p role="alert" className="text-sm text-destructive">{formError}</p>)}
                   <div className="space-y-2">
                     <Label className="text-primary-foreground/70">I want to</Label>
                     <RadioGroup value={role} onValueChange={(v) => setRole(v as 'sender' | 'agent')} className="grid grid-cols-2 gap-3">
@@ -285,7 +285,7 @@ export default function Login() {
           }`}>
             <div className="w-full max-w-sm">
               <h3 className="text-2xl font-bold text-primary-foreground mb-6">Login</h3>
-              <form onSubmit={handleLogin} className="space-y-4">
+              <form onSubmit={handleLogin} className="space-y-4">{formError && (<p role="alert" className="text-sm text-destructive">{formError}</p>)}
                 <div className="space-y-2">
                   <Label className="text-primary-foreground/70">Email</Label>
                   <Input type="email" placeholder="Enter your email" value={email}
@@ -328,7 +328,7 @@ export default function Login() {
           }`}>
             <div className="w-full max-w-sm">
               <h3 className="text-2xl font-bold text-primary-foreground mb-6">Register</h3>
-              <form onSubmit={handleSignup} className="space-y-3">
+              <form onSubmit={handleSignup} className="space-y-3">{formError && (<p role="alert" className="text-sm text-destructive">{formError}</p>)}
                 <RadioGroup value={role} onValueChange={(v) => setRole(v as 'sender' | 'agent')} className="grid grid-cols-2 gap-3">
                   <div className="relative">
                     <RadioGroupItem value="sender" id="d-sender" className="peer sr-only" />
