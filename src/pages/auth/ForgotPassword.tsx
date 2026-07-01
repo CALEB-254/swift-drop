@@ -13,9 +13,26 @@ export default function ForgotPassword() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [cooldown, setCooldown] = useState(0);
+
+  const startCooldown = () => {
+    setCooldown(60);
+    const t = setInterval(() => {
+      setCooldown((c) => {
+        if (c <= 1) { clearInterval(t); return 0; }
+        return c - 1;
+      });
+    }, 1000);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMsg(null);
+    if (!email.trim()) {
+      setErrorMsg('Please enter your email.');
+      return;
+    }
     setLoading(true);
 
     try {
@@ -26,9 +43,14 @@ export default function ForgotPassword() {
       if (error) throw error;
 
       setSent(true);
+      startCooldown();
       toast.success('Password reset email sent!');
     } catch (error: any) {
-      toast.error(error.message || 'Failed to send reset email');
+      const msg = /rate|too many/i.test(error?.message || '')
+        ? 'Too many attempts. Please wait a moment and try again.'
+        : error?.message || 'Failed to send reset email.';
+      setErrorMsg(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -76,11 +98,12 @@ export default function ForgotPassword() {
                   Please check your inbox and spam folder.
                 </p>
                 <Button 
-                  onClick={() => setSent(false)}
+                  onClick={(e) => { e.preventDefault(); if (cooldown === 0) handleSubmit(e as any); }}
                   variant="outline"
                   className="w-full h-12"
+                  disabled={cooldown > 0 || loading}
                 >
-                  Send Again
+                  {cooldown > 0 ? `Resend in ${cooldown}s` : loading ? 'Sending...' : 'Send Again'}
                 </Button>
                 <Button 
                   onClick={() => navigate('/auth/login')}
@@ -91,6 +114,7 @@ export default function ForgotPassword() {
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4">
+                {errorMsg && (<p role="alert" className="text-sm text-destructive">{errorMsg}</p>)}
                 <div className="space-y-2">
                   <Label htmlFor="email">Email Address</Label>
                   <Input

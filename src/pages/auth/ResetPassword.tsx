@@ -15,6 +15,7 @@ export default function ResetPassword() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
     // Check if we have access token from the reset link
@@ -33,14 +34,14 @@ export default function ResetPassword() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
+    setErrorMsg(null);
     if (password !== confirmPassword) {
-      toast.error('Passwords do not match');
+      setErrorMsg('Passwords do not match.');
       return;
     }
 
     if (password.length < 6) {
-      toast.error('Password must be at least 6 characters');
+      setErrorMsg('Password must be at least 6 characters.');
       return;
     }
 
@@ -56,7 +57,14 @@ export default function ResetPassword() {
       setSuccess(true);
       toast.success('Password updated successfully!');
     } catch (error: any) {
-      toast.error(error.message || 'Failed to reset password');
+      const raw = error?.message || '';
+      const msg = /same password/i.test(raw)
+        ? 'New password must be different from your current one.'
+        : /pwned|breach/i.test(raw)
+          ? 'This password has been found in a data breach. Please choose a different one.'
+          : raw || 'Failed to reset password.';
+      setErrorMsg(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -123,6 +131,7 @@ export default function ResetPassword() {
               </Button>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4">
+                {errorMsg && (<p role="alert" className="text-sm text-destructive">{errorMsg}</p>)}
                 <div className="space-y-2">
                   <Label htmlFor="password">New Password</Label>
                   <div className="relative">

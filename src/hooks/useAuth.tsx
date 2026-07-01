@@ -22,6 +22,25 @@ export function useAuth() {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const refresh = async () => {
+    // Re-validate the session with the Auth server (trusted), then refresh profile.
+    const { data: userData } = await supabase.auth.getUser();
+    const freshUser = userData?.user ?? null;
+    setUser(freshUser);
+    const { data: sessData } = await supabase.auth.getSession();
+    setSession(sessData?.session ?? null);
+    if (freshUser) {
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', freshUser.id)
+        .maybeSingle();
+      setProfile(profileData);
+    } else {
+      setProfile(null);
+    }
+  };
+
   useEffect(() => {
     // Set up auth state listener BEFORE checking session
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -139,5 +158,6 @@ export function useAuth() {
     signUp,
     signIn,
     signOut,
+    refresh,
   };
 }
