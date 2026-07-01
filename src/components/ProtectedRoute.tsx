@@ -2,6 +2,7 @@ import { ReactNode, useEffect, useRef } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { Loader2 } from 'lucide-react';
+import { EmailVerificationBlock } from './EmailVerificationBlock';
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -38,16 +39,12 @@ export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) 
     return <Navigate to="/auth/login" state={{ from: location }} replace />;
   }
 
-  // Block access until the user's email is verified.
+  // Block access until the user's email is verified — show a friendly gate
+  // (not a silent redirect) with a direct Resend action.
   const isEmailUser = !!user.email && (user.app_metadata as any)?.provider !== 'phone';
   const emailVerified = !!user.email_confirmed_at || !!(user as any).confirmed_at;
   if (isEmailUser && !emailVerified) {
-    return (
-      <Navigate
-        to={`/auth/verify?email=${encodeURIComponent(user.email || '')}&type=signup`}
-        replace
-      />
-    );
+    return <EmailVerificationBlock email={user.email || ''} />;
   }
 
   // Only enforce role check if profile exists and requiredRole is specified
