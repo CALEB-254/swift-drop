@@ -9,6 +9,18 @@ import { toast } from 'sonner';
 import { Package, Eye, EyeOff, User, Truck } from 'lucide-react';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
+function friendlyAuthError(message: string): string {
+  const m = (message || '').toLowerCase();
+  if (m.includes('invalid login')) return 'Wrong email or password. Please try again.';
+  if (m.includes('email not confirmed')) return 'Please verify your email before signing in.';
+  if (m.includes('user already registered')) return 'An account with this email already exists. Try signing in instead.';
+  if (m.includes('password') && m.includes('short')) return 'Password is too short. Use at least 6 characters.';
+  if (m.includes('pwned') || m.includes('breach')) return 'This password has been found in a data breach. Please choose a different one.';
+  if (m.includes('rate') || m.includes('too many')) return 'Too many attempts. Please wait a moment and try again.';
+  if (m.includes('network') || m.includes('fetch')) return 'Network problem. Check your connection and retry.';
+  return message || 'Something went wrong. Please try again.';
+}
+
 export default function Login() {
   const navigate = useNavigate();
   const { signIn, signUp, user, profile, loading } = useAuthContext();
@@ -17,6 +29,7 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
 
   // Signup fields
   const [fullName, setFullName] = useState('');
@@ -27,19 +40,36 @@ export default function Login() {
 
   useEffect(() => {
     if (!loading && user) {
-      const redirectPath = profile?.role === 'agent' ? '/agent' : '/sender';
+      const emailVerified = !!user.email_confirmed_at;
+      if (!emailVerified && user.email) {
+        navigate(`/auth/verify?email=${encodeURIComponent(user.email)}&type=signup`);
+        return;
+      }
+      const redirectPath =
+        profile?.role === 'admin' ? '/admin' :
+        profile?.role === 'agent' ? '/agent' : '/sender';
       navigate(redirectPath);
     }
   }, [user, profile, loading, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFormError(null);
+    if (!email || !password) {
+      setFormError('Please enter your email and password.');
+      return;
+    }
     setSubmitting(true);
     try {
       await signIn(email, password);
       toast.success('Welcome back!');
     } catch (error: any) {
-      toast.error(error.message || 'Failed to sign in');
+      const msg = friendlyAuthError(error?.message);
+      setFormError(msg);
+      toast.error(msg);
+      if (/verify your email/i.test(msg) && email) {
+        navigate(`/auth/verify?email=${encodeURIComponent(email)}&type=signup`);
+      }
     } finally {
       setSubmitting(false);
     }
@@ -47,12 +77,13 @@ export default function Login() {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFormError(null);
     if (password !== confirmPassword) {
-      toast.error('Passwords do not match');
+      setFormError('Passwords do not match.');
       return;
     }
     if (password.length < 6) {
-      toast.error('Password must be at least 6 characters');
+      setFormError('Password must be at least 6 characters.');
       return;
     }
     setSubmitting(true);
@@ -63,11 +94,14 @@ export default function Login() {
         toast.success('Account created! Check your email for a verification code.');
         navigate(`/auth/verify?email=${encodeURIComponent(email)}&type=signup`);
       } else {
-        toast.success('Account created successfully!');
-        navigate(role === 'agent' ? '/agent' : '/sender');
+        // Even when a session exists, require email verification before dashboard.
+        toast.success('Account created! Please verify your email.');
+        navigate(`/auth/verify?email=${encodeURIComponent(email)}&type=signup`);
       }
     } catch (error: any) {
-      toast.error(error.message || 'Failed to create account');
+      const msg = friendlyAuthError(error?.message);
+      setFormError(msg);
+      toast.error(msg);
     } finally {
       setSubmitting(false);
     }
