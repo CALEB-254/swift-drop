@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,6 +6,17 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Package, ArrowLeft, ShieldCheck } from 'lucide-react';
+
+const RESEND_COOLDOWN_SECONDS = 60;
+
+function friendlyError(message: string): string {
+  const m = (message || '').toLowerCase();
+  if (m.includes('expired')) return 'This code has expired. Please tap "Resend Code" to get a new one.';
+  if (m.includes('invalid') || m.includes('token')) return 'That code doesn\'t match. Double-check the latest email and try again.';
+  if (m.includes('rate') || m.includes('too many')) return 'Too many attempts. Please wait a moment before trying again.';
+  if (m.includes('network') || m.includes('fetch')) return 'Network problem. Check your connection and retry.';
+  return message || 'Something went wrong. Please try again.';
+}
 
 export default function VerifyOTP() {
   const navigate = useNavigate();
@@ -16,10 +27,24 @@ export default function VerifyOTP() {
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
+  const [cooldown, setCooldown] = useState(RESEND_COOLDOWN_SECONDS);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [lastSentAt, setLastSentAt] = useState<number>(Date.now());
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const t = setInterval(() => setCooldown((c) => (c > 0 ? c - 1 : 0)), 1000);
+    return () => clearInterval(t);
+  }, [cooldown]);
 
   const handleVerify = async () => {
+    setErrorMsg(null);
     if (otp.length !== 6) {
-      toast.error('Please enter the complete 6-digit code');
+      setErrorMsg('Please enter the complete 6-digit code.');
+      return;
+    }
+    if (!email) {
+      setErrorMsg('Missing email address. Please restart the sign-up flow.');
       return;
     }
 
@@ -28,7 +53,7 @@ export default function VerifyOTP() {
     try {
       const { error } = await supabase.auth.verifyOtp({
         email,
-        token: otp,
+        token: otp.trim(),
         type: type === 'recovery' ? 'recovery' : 'signup',
       });
 
@@ -39,7 +64,7 @@ export default function VerifyOTP() {
       if (type === 'recovery') {
         navigate('/auth/reset-password');
       } else {
-        // After signup verification the user has a session; route by role.
+        // Re-validate with the Auth server to trust the newly-verified user
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
           const { data: profile } = await supabase
@@ -56,18 +81,30 @@ export default function VerifyOTP() {
         }
       }
     } catch (error: any) {
-      toast.error(error.message || 'Invalid verification code');
+      const msg = friendlyError(error?.message);
+      setErrorMsg(msg);
+      toast.error(msg);
+      setOtp('');
     } finally {
       setLoading(false);
     }
   };
 
   const handleResend = async () => {
+    if (cooldown > 0 || resending) return;
+    if (!email) {
+      setErrorMsg('Missing email address. Please restart the sign-up flow.');
+      return;
+    }
     setResending(true);
+    setErrorMsg(null);
+    setOtp('');
 
     try {
       if (type === 'recovery') {
-        const { error } = await supabase.auth.resetPasswordForEmail(email);
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/auth/reset-password`,
+        });
         if (error) throw error;
       } else {
         const { error } = await supabase.auth.resend({
@@ -77,9 +114,13 @@ export default function VerifyOTP() {
         if (error) throw error;
       }
 
-      toast.success('New code sent!');
+      setLastSentAt(Date.now());
+      setCooldown(RESEND_COOLDOWN_SECONDS);
+      toast.success('A new code was sent. Use the latest one from your inbox.');
     } catch (error: any) {
-      toast.error(error.message || 'Failed to resend code');
+      const msg = friendlyError(error?.message);
+      setErrorMsg(msg);
+      toast.error(msg);
     } finally {
       setResending(false);
     }
@@ -123,7 +164,7 @@ export default function VerifyOTP() {
               <InputOTP
                 maxLength={6}
                 value={otp}
-                onChange={setOtp}
+                onChange={(v) => { setOtp(v); if (errorMsg) setErrorMsg(null); }}
               >
                 <InputOTPGroup>
                   <InputOTPSlot index={0} />
@@ -136,6 +177,10 @@ export default function VerifyOTP() {
               </InputOTP>
             </div>
 
+            {errorMsg && (
+              <p role="alert" className="text-sm text-destructive text-center -mt-2">{errorMsg}</p>
+            )}
+
             <Button 
               onClick={handleVerify}
               className="w-full h-12 text-base font-semibold"
@@ -146,15 +191,15 @@ export default function VerifyOTP() {
 
             <div className="text-center">
               <p className="text-muted-foreground text-sm mb-2">
-                Didn't receive the code?
+                Didn't receive the code? Use the most recent one sent.
               </p>
               <Button
                 variant="link"
                 onClick={handleResend}
-                disabled={resending}
+                disabled={resending || cooldown > 0}
                 className="text-primary font-semibold"
               >
-                {resending ? 'Sending...' : 'Resend Code'}
+                {resending ? 'Sending...' : cooldown > 0 ? `Resend Code in ${cooldown}s` : 'Resend Code'}
               </Button>
             </div>
           </CardContent>
