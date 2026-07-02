@@ -46,7 +46,8 @@ export default function Cart() {
   const { user, loading: authLoading } = useAuthContext();
   const [packages, setPackages] = useState<CartPackage[]>([]);
   const [loading, setLoading] = useState(true);
-  const [paymentMethod, setPaymentMethod] = useState<'stk_push' | 'till'>('stk_push');
+  const [paymentMethod, setPaymentMethod] = useState<'stk_push' | 'till' | 'pochi'>('stk_push');
+  const [pochiBalance, setPochiBalance] = useState<number>(0);
   const [phoneNumber, setPhoneNumber] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
@@ -63,6 +64,12 @@ export default function Cart() {
 
     if (user) {
       fetchCartPackages();
+      supabase
+        .from('wallets')
+        .select('balance')
+        .eq('user_id', user.id)
+        .maybeSingle()
+        .then(({ data }) => setPochiBalance(Number((data as any)?.balance || 0)));
     }
   }, [user, authLoading]);
 
@@ -397,8 +404,42 @@ export default function Cart() {
                         </p>
                       </Label>
                     </div>
+                    <div className="flex items-center space-x-3 p-3 border rounded-lg">
+                      <RadioGroupItem value="pochi" id="pochi" disabled={pochiBalance < totalAmount} />
+                      <Label htmlFor="pochi" className="flex-1 cursor-pointer">
+                        <p className="font-medium">Pay with Pochi</p>
+                        <p className="text-xs text-muted-foreground">
+                          Wallet balance: KES {pochiBalance.toFixed(0)}
+                          {pochiBalance < totalAmount && ' — insufficient'}
+                        </p>
+                      </Label>
+                    </div>
                   </RadioGroup>
                 </div>
+
+                {paymentMethod === 'pochi' && (
+                  <Button
+                    className="w-full"
+                    disabled={isProcessing || pochiBalance < totalAmount}
+                    onClick={async () => {
+                      setIsProcessing(true);
+                      const { data, error } = await supabase.rpc('pay_with_pochi' as any, {
+                        _package_ids: packages.map(p => p.id),
+                      });
+                      setIsProcessing(false);
+                      if (error || !(data as any)?.success) {
+                        toast.error((error?.message) || (data as any)?.error || 'Pochi payment failed');
+                        return;
+                      }
+                      toast.success('Paid from Pochi wallet');
+                      fetchCartPackages();
+                      setPochiBalance(b => b - totalAmount);
+                    }}
+                  >
+                    {isProcessing ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                    Pay KES {totalAmount.toFixed(0)} from Pochi
+                  </Button>
+                )}
 
                 {/* STK Push Fields */}
                 {paymentMethod === 'stk_push' && (
