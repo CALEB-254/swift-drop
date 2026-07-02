@@ -980,6 +980,7 @@ export type Database = {
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
       is_super_admin: { Args: { _user_id: string }; Returns: boolean }
+      pay_with_pochi: { Args: { _package_ids: string[] }; Returns: Json }
     }
     Enums: {
       admin_role:
