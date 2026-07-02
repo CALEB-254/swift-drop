@@ -596,9 +596,27 @@ export default function SenderDashboard() {
                         <span className="font-mono">{pkg.trackingNumber}</span>
                       </Button>
                       <div className="flex gap-2">
-                        <ShareWhatsAppButton pkg={pkg} />
-                        <DownloadReceiptButton pkg={pkg} />
-                        <PrintReceiptButton pkg={pkg} />
+                        {pkg.paymentStatus === 'paid' ? (
+                          <>
+                            <ShareWhatsAppButton pkg={pkg} />
+                            <DownloadReceiptButton pkg={pkg} />
+                            <PrintReceiptButton pkg={pkg} />
+                          </>
+                        ) : (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="gap-1 text-destructive hover:text-destructive"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleDeleteUnpaid(pkg.id);
+                            }}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                            <span className="text-xs">Delete</span>
+                          </Button>
+                        )}
                       </div>
                     </div>
                     {expandedQR === pkg.id && (
