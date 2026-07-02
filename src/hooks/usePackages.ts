@@ -30,6 +30,7 @@ export interface Package {
   status: PackageStatus;
   agentId: string | null;
   isProduct: boolean;
+  paymentStatus: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -75,6 +76,7 @@ const mapRowToPackage = (row: PackageRow): Package => ({
   status: row.status,
   agentId: row.agent_id,
   isProduct: row.is_product ?? false,
+  paymentStatus: (row as any).payment_status ?? 'pending',
   createdAt: new Date(row.created_at),
   updatedAt: new Date(row.updated_at),
 });

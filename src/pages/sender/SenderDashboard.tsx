@@ -26,6 +26,8 @@ import { DownloadReceiptButton } from '@/components/DownloadReceiptButton';
 import { ShareWhatsAppButton } from '@/components/ShareWhatsAppButton';
 import { PackageQRCode } from '@/components/PackageQRCode';
 import { PrinterDrawer } from '@/components/PrinterDrawer';
+import { supabase } from '@/integrations/supabase/client';
+import { Trash2 } from 'lucide-react';
 import {
   Search,
   Package as PackageIcon,
@@ -73,6 +75,21 @@ export default function SenderDashboard() {
   const [currentPage, setCurrentPage] = useState(1);
   const [expandedQR, setExpandedQR] = useState<string | null>(null);
   const [showPrinterDrawer, setShowPrinterDrawer] = useState(false);
+
+  const handleDeleteUnpaid = async (id: string) => {
+    if (!confirm('Remove this unpaid package?')) return;
+    const { error } = await supabase
+      .from('packages')
+      .delete()
+      .eq('id', id)
+      .eq('payment_status', 'pending');
+    if (error) {
+      toast.error('Failed to delete', { description: error.message });
+    } else {
+      toast.success('Package removed');
+      refetch();
+    }
+  };
 
   // Filter packages based on search, status, and date range
   const filteredPackages = useMemo(() => {
@@ -579,9 +596,27 @@ export default function SenderDashboard() {
                         <span className="font-mono">{pkg.trackingNumber}</span>
                       </Button>
                       <div className="flex gap-2">
-                        <ShareWhatsAppButton pkg={pkg} />
-                        <DownloadReceiptButton pkg={pkg} />
-                        <PrintReceiptButton pkg={pkg} />
+                        {pkg.paymentStatus === 'paid' ? (
+                          <>
+                            <ShareWhatsAppButton pkg={pkg} />
+                            <DownloadReceiptButton pkg={pkg} />
+                            <PrintReceiptButton pkg={pkg} />
+                          </>
+                        ) : (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="gap-1 text-destructive hover:text-destructive"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleDeleteUnpaid(pkg.id);
+                            }}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                            <span className="text-xs">Delete</span>
+                          </Button>
+                        )}
                       </div>
                     </div>
                     {expandedQR === pkg.id && (

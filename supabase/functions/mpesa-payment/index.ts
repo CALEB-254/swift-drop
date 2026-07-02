@@ -234,6 +234,38 @@ serve(async (req) => {
       const result = await querySTKStatus(accessToken, body.checkoutRequestId);
 
       if (result.ResultCode === "0" || result.ResultCode === 0) {
+        // Mark packages paid and record log (idempotent)
+        const { data: pkgs } = await supabase
+          .from("packages")
+          .select("id, user_id, cost, tracking_number, payment_status")
+          .eq("checkout_request_id", body.checkoutRequestId);
+
+        if (pkgs && pkgs.length > 0) {
+          if (pkgs.some((p: any) => p.user_id !== userId)) {
+            return new Response(
+              JSON.stringify({ success: false, error: "Unauthorized" }),
+              { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            );
+          }
+          const unpaid = pkgs.filter((p: any) => p.payment_status !== "paid");
+          if (unpaid.length > 0) {
+            const ids = unpaid.map((p: any) => p.id);
+            await supabase
+              .from("packages")
+              .update({ payment_status: "paid", paid_at: new Date().toISOString() })
+              .in("id", ids);
+            const total = unpaid.reduce((s: number, p: any) => s + Number(p.cost), 0);
+            await supabase.from("payment_logs").insert({
+              user_id: userId,
+              package_ids: ids,
+              tracking_numbers: unpaid.map((p: any) => p.tracking_number),
+              amount: total,
+              payment_method: "stk_push",
+              mpesa_receipt_number: body.checkoutRequestId,
+              status: "completed",
+            });
+          }
+        }
         return new Response(
           JSON.stringify({ success: true, status: "completed" }),
           { headers: { ...corsHeaders, "Content-Type": "application/json" } }
