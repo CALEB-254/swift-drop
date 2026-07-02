@@ -316,24 +316,26 @@ export default function NewDelivery() {
               />
             </div>
 
-            <div className="space-y-2">
-              <Label>Packaging color</Label>
-              <Select
-                value={formData.packagingColor}
-                onValueChange={(value) => setFormData({ ...formData, packagingColor: value })}
-              >
-                <SelectTrigger className="input-accent">
-                  <SelectValue placeholder="Packaging color" />
-                </SelectTrigger>
-                <SelectContent>
-                  {PACKAGING_COLORS.map((color) => (
-                    <SelectItem key={color} value={color}>
-                      {color}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            {deliveryType !== 'errand' && (
+              <div className="space-y-2">
+                <Label>Packaging color</Label>
+                <Select
+                  value={formData.packagingColor}
+                  onValueChange={(value) => setFormData({ ...formData, packagingColor: value })}
+                >
+                  <SelectTrigger className="input-accent">
+                    <SelectValue placeholder="Packaging color" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PACKAGING_COLORS.map((color) => (
+                      <SelectItem key={color} value={color}>
+                        {color}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
         </div>
 
@@ -341,6 +343,64 @@ export default function NewDelivery() {
         <div>
           <h2 className="section-accent font-semibold mb-4">Where Are You Sending To?</h2>
           
+          {deliveryType === 'errand' ? (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>Location</Label>
+                <Select
+                  value={errandLocationId}
+                  onValueChange={(value) => {
+                    setErrandLocationId(value);
+                    setCourierId('');
+                  }}
+                >
+                  <SelectTrigger className="input-accent">
+                    <SelectValue placeholder="-- Choose location --" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {zones.filter(z => z.zone_type === 'errand').map(z => (
+                      <SelectItem key={z.id} value={z.id}>{z.name}</SelectItem>
+                    ))}
+                    {zones.filter(z => z.zone_type === 'errand').length === 0 && (
+                      <div className="px-3 py-2 text-xs text-muted-foreground">No errand locations configured yet</div>
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {errandLocationId && (
+                <div className="space-y-2">
+                  <Label>Courier (Sacco)</Label>
+                  <Select value={courierId} onValueChange={setCourierId}>
+                    <SelectTrigger className="input-accent">
+                      <SelectValue placeholder="-- Choose courier --" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {couriersInLocation.map(c => (
+                        <SelectItem key={c.id} value={c.id}>
+                          {c.name} — KES {Number(c.price)}
+                        </SelectItem>
+                      ))}
+                      {couriersInLocation.length === 0 && (
+                        <div className="px-3 py-2 text-xs text-muted-foreground">No couriers for this location yet</div>
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              {selectedCourier && (
+                <div className="rounded-lg border border-border bg-muted/40 p-3 text-xs space-y-1">
+                  <p><strong>SwiftDrop errand fee:</strong> KES 70 (paid via app)</p>
+                  <p><strong>Sacco fee (paid separately):</strong> KES {Number(selectedCourier.price)}</p>
+                  <p className="text-muted-foreground">
+                    After the agent scans your parcel, you'll get a notification asking you to send
+                    <strong> KES {Number(selectedCourier.price)}</strong> to Till <strong>0114606040</strong> for {selectedCourier.name}.
+                  </p>
+                </div>
+              )}
+            </div>
+          ) : (
           <div className="space-y-4">
             {/* Step 1: Area (city) */}
             <div className="space-y-2">
@@ -436,6 +496,7 @@ export default function NewDelivery() {
               </div>
             )}
           </div>
+          )}
         </div>
 
         {/* Collect on Delivery */}
