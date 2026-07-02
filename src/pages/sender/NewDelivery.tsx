@@ -23,6 +23,9 @@ export default function NewDelivery() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [agents, setAgents] = useState<{ id: string; business_name: string; location: string; zone_id: string | null }[]>([]);
   const [zones, setZones] = useState<{ id: string; name: string; delivery_fee: number; is_cbd: boolean; supports_doorstep: boolean; area: string; zone_type?: string }[]>([]);
+  const [couriers, setCouriers] = useState<{ id: string; name: string; zone_id: string | null; price: number; phone: string | null }[]>([]);
+  const [errandLocationId, setErrandLocationId] = useState<string>('');
+  const [courierId, setCourierId] = useState<string>('');
   const [destArea, setDestArea] = useState<string>('');
   const [destZoneId, setDestZoneId] = useState<string>('');
   const [fromAgentId, setFromAgentId] = useState<string>('');
@@ -62,6 +65,12 @@ export default function NewDelivery() {
       .eq('is_active', true)
       .order('name')
       .then(({ data }) => setZones((data as any) || []));
+    supabase
+      .from('couriers' as any)
+      .select('id, name, zone_id, price, phone')
+      .eq('is_active', true)
+      .order('name')
+      .then(({ data }) => setCouriers((data as any) || []));
   }, []);
 
   const allAreas = Array.from(new Set(zones.map(z => z.area).filter(Boolean)));
@@ -74,8 +83,12 @@ export default function NewDelivery() {
 
   const clampDoorstep = (fee: number) => Math.min(410, Math.max(250, fee));
 
+  const errandLocation = zones.find(z => z.id === errandLocationId);
+  const selectedCourier = couriers.find(c => c.id === courierId);
+  const couriersInLocation = couriers.filter(c => c.zone_id === errandLocationId);
+
   const computeCost = (): number => {
-    if (deliveryType === 'errand') return 200;
+    if (deliveryType === 'errand') return 70;
 
     // Pricing rule: if neither the sender's agent nor the receiver's agent
     // is located in the CBD, fixed price of KES 220.
@@ -108,6 +121,10 @@ export default function NewDelivery() {
       toast.error('Please choose a sender agent and fill all required fields');
       return;
     }
+    if (deliveryType === 'errand' && (!errandLocationId || !courierId)) {
+      toast.error('Please choose the location and courier for your errand');
+      return;
+    }
 
     setIsSubmitting(true);
     
@@ -118,18 +135,22 @@ export default function NewDelivery() {
         senderAddress: fromAgent ? `${fromAgent.business_name} - ${fromAgent.location}` : formData.fromArea,
         receiverName: formData.customerName,
         receiverPhone: formData.customerPhone,
-        receiverAddress: formData.toArea || formData.deliveryAddress,
+        receiverAddress:
+          deliveryType === 'errand'
+            ? `${errandLocation?.name || ''}${selectedCourier ? ' via ' + selectedCourier.name : ''}`
+            : (formData.toArea || formData.deliveryAddress),
         deliveryType: deliveryType,
         pickupPoint: deliveryType === 'pickup_point' 
           ? selectedAgent?.business_name
           : undefined,
         pickupAgentId: deliveryType === 'pickup_point' ? formData.pickupPoint : undefined,
         senderAgentId: fromAgentId,
+        courierId: deliveryType === 'errand' ? courierId : undefined,
         packageDescription: formData.packageDescription,
         weight: 0,
         isProduct: formData.isProduct,
         packageValue: parseFloat(formData.packageValue) || undefined,
-        packagingColor: formData.packagingColor || undefined,
+        packagingColor: deliveryType === 'errand' ? undefined : (formData.packagingColor || undefined),
         codAmount: parseFloat(formData.codAmount) || 0,
         cost: computedCost,
       });
@@ -295,24 +316,26 @@ export default function NewDelivery() {
               />
             </div>
 
-            <div className="space-y-2">
-              <Label>Packaging color</Label>
-              <Select
-                value={formData.packagingColor}
-                onValueChange={(value) => setFormData({ ...formData, packagingColor: value })}
-              >
-                <SelectTrigger className="input-accent">
-                  <SelectValue placeholder="Packaging color" />
-                </SelectTrigger>
-                <SelectContent>
-                  {PACKAGING_COLORS.map((color) => (
-                    <SelectItem key={color} value={color}>
-                      {color}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            {deliveryType !== 'errand' && (
+              <div className="space-y-2">
+                <Label>Packaging color</Label>
+                <Select
+                  value={formData.packagingColor}
+                  onValueChange={(value) => setFormData({ ...formData, packagingColor: value })}
+                >
+                  <SelectTrigger className="input-accent">
+                    <SelectValue placeholder="Packaging color" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PACKAGING_COLORS.map((color) => (
+                      <SelectItem key={color} value={color}>
+                        {color}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
         </div>
 
@@ -320,6 +343,64 @@ export default function NewDelivery() {
         <div>
           <h2 className="section-accent font-semibold mb-4">Where Are You Sending To?</h2>
           
+          {deliveryType === 'errand' ? (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>Location</Label>
+                <Select
+                  value={errandLocationId}
+                  onValueChange={(value) => {
+                    setErrandLocationId(value);
+                    setCourierId('');
+                  }}
+                >
+                  <SelectTrigger className="input-accent">
+                    <SelectValue placeholder="-- Choose location --" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {zones.filter(z => z.zone_type === 'errand').map(z => (
+                      <SelectItem key={z.id} value={z.id}>{z.name}</SelectItem>
+                    ))}
+                    {zones.filter(z => z.zone_type === 'errand').length === 0 && (
+                      <div className="px-3 py-2 text-xs text-muted-foreground">No errand locations configured yet</div>
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {errandLocationId && (
+                <div className="space-y-2">
+                  <Label>Courier (Sacco)</Label>
+                  <Select value={courierId} onValueChange={setCourierId}>
+                    <SelectTrigger className="input-accent">
+                      <SelectValue placeholder="-- Choose courier --" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {couriersInLocation.map(c => (
+                        <SelectItem key={c.id} value={c.id}>
+                          {c.name} — KES {Number(c.price)}
+                        </SelectItem>
+                      ))}
+                      {couriersInLocation.length === 0 && (
+                        <div className="px-3 py-2 text-xs text-muted-foreground">No couriers for this location yet</div>
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              {selectedCourier && (
+                <div className="rounded-lg border border-border bg-muted/40 p-3 text-xs space-y-1">
+                  <p><strong>SwiftDrop errand fee:</strong> KES 70 (paid via app)</p>
+                  <p><strong>Sacco fee (paid separately):</strong> KES {Number(selectedCourier.price)}</p>
+                  <p className="text-muted-foreground">
+                    After the agent scans your parcel, you'll get a notification asking you to send
+                    <strong> KES {Number(selectedCourier.price)}</strong> to Till <strong>0114606040</strong> for {selectedCourier.name}.
+                  </p>
+                </div>
+              )}
+            </div>
+          ) : (
           <div className="space-y-4">
             {/* Step 1: Area (city) */}
             <div className="space-y-2">
@@ -415,6 +496,7 @@ export default function NewDelivery() {
               </div>
             )}
           </div>
+          )}
         </div>
 
         {/* Collect on Delivery */}

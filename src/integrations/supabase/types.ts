@@ -169,6 +169,50 @@ export type Database = {
         }
         Relationships: []
       }
+      couriers: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          phone: string | null
+          price: number
+          updated_at: string
+          zone_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          phone?: string | null
+          price?: number
+          updated_at?: string
+          zone_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          phone?: string | null
+          price?: number
+          updated_at?: string
+          zone_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "couriers_zone_id_fkey"
+            columns: ["zone_id"]
+            isOneToOne: false
+            referencedRelation: "zones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           created_at: string
@@ -211,15 +255,18 @@ export type Database = {
           cod_collected: boolean | null
           commission: number | null
           cost: number
+          courier_id: string | null
           created_at: string
           delivery_type: Database["public"]["Enums"]["delivery_type"]
           id: string
           is_product: boolean | null
           mpesa_receipt_number: string | null
+          original_paid_amount: number | null
           package_description: string | null
           package_value: number | null
           packaging_color: string | null
           paid_at: string | null
+          payment_balance_due: number
           payment_status: string
           pickup_agent_id: string | null
           pickup_point: string | null
@@ -243,15 +290,18 @@ export type Database = {
           cod_collected?: boolean | null
           commission?: number | null
           cost: number
+          courier_id?: string | null
           created_at?: string
           delivery_type: Database["public"]["Enums"]["delivery_type"]
           id?: string
           is_product?: boolean | null
           mpesa_receipt_number?: string | null
+          original_paid_amount?: number | null
           package_description?: string | null
           package_value?: number | null
           packaging_color?: string | null
           paid_at?: string | null
+          payment_balance_due?: number
           payment_status?: string
           pickup_agent_id?: string | null
           pickup_point?: string | null
@@ -275,15 +325,18 @@ export type Database = {
           cod_collected?: boolean | null
           commission?: number | null
           cost?: number
+          courier_id?: string | null
           created_at?: string
           delivery_type?: Database["public"]["Enums"]["delivery_type"]
           id?: string
           is_product?: boolean | null
           mpesa_receipt_number?: string | null
+          original_paid_amount?: number | null
           package_description?: string | null
           package_value?: number | null
           packaging_color?: string | null
           paid_at?: string | null
+          payment_balance_due?: number
           payment_status?: string
           pickup_agent_id?: string | null
           pickup_point?: string | null
@@ -305,6 +358,13 @@ export type Database = {
             columns: ["assigned_rider_id"]
             isOneToOne: false
             referencedRelation: "riders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "packages_courier_id_fkey"
+            columns: ["courier_id"]
+            isOneToOne: false
+            referencedRelation: "couriers"
             referencedColumns: ["id"]
           },
         ]
@@ -920,6 +980,7 @@ export type Database = {
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
       is_super_admin: { Args: { _user_id: string }; Returns: boolean }
+      pay_with_pochi: { Args: { _package_ids: string[] }; Returns: Json }
     }
     Enums: {
       admin_role:
@@ -939,7 +1000,7 @@ export type Database = {
       ticket_priority: "low" | "medium" | "high" | "urgent"
       ticket_status: "open" | "in_progress" | "resolved" | "closed"
       user_role: "sender" | "agent" | "admin"
-      zone_type: "pickup" | "doorstep"
+      zone_type: "pickup" | "doorstep" | "errand"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1086,7 +1147,7 @@ export const Constants = {
       ticket_priority: ["low", "medium", "high", "urgent"],
       ticket_status: ["open", "in_progress", "resolved", "closed"],
       user_role: ["sender", "agent", "admin"],
-      zone_type: ["pickup", "doorstep"],
+      zone_type: ["pickup", "doorstep", "errand"],
     },
   },
 } as const

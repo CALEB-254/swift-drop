@@ -21,7 +21,7 @@ interface Zone {
   is_cbd?: boolean;
   supports_doorstep?: boolean;
   area?: string | null;
-  zone_type?: 'pickup' | 'doorstep';
+  zone_type?: 'pickup' | 'doorstep' | 'errand';
 }
 
 export function AdminZones({ data, onRefresh }: Props) {
@@ -29,7 +29,7 @@ export function AdminZones({ data, onRefresh }: Props) {
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Zone | null>(null);
-  const [form, setForm] = useState({ name: '', area: 'Nairobi', description: '', delivery_fee: '200', is_cbd: false, zone_type: 'pickup' as 'pickup' | 'doorstep' });
+  const [form, setForm] = useState({ name: '', area: 'Nairobi', description: '', delivery_fee: '200', is_cbd: false, zone_type: 'pickup' as 'pickup' | 'doorstep' | 'errand' });
   const [saving, setSaving] = useState(false);
 
   useEffect(() => { fetchZones(); }, []);
@@ -123,7 +123,7 @@ export function AdminZones({ data, onRefresh }: Props) {
       description: zone.description || '',
       delivery_fee: String(zone.delivery_fee),
       is_cbd: !!zone.is_cbd,
-      zone_type: (zone.zone_type as 'pickup' | 'doorstep') || (zone.supports_doorstep ? 'doorstep' : 'pickup'),
+      zone_type: (zone.zone_type as 'pickup' | 'doorstep' | 'errand') || (zone.supports_doorstep ? 'doorstep' : 'pickup'),
     });
     setDialogOpen(true);
   };
@@ -132,6 +132,7 @@ export function AdminZones({ data, onRefresh }: Props) {
 
   const pickupZones = zones.filter(z => (z.zone_type || (z.supports_doorstep ? 'doorstep' : 'pickup')) === 'pickup');
   const doorstepZones = zones.filter(z => (z.zone_type || (z.supports_doorstep ? 'doorstep' : 'pickup')) === 'doorstep');
+  const errandZones = zones.filter(z => z.zone_type === 'errand');
 
   const renderZoneList = (list: Zone[], emptyText: string) => (
     list.length === 0 ? (
@@ -194,6 +195,11 @@ export function AdminZones({ data, onRefresh }: Props) {
         {renderZoneList(doorstepZones, 'No doorstep zones yet. Used to price doorstep deliveries.')}
       </div>
 
+      <div>
+        <p className="text-xs font-semibold uppercase text-muted-foreground mt-4 mb-2">Errand Locations</p>
+        {renderZoneList(errandZones, 'No errand locations yet. Used to group couriers/saccos for errand parcels.')}
+      </div>
+
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -202,13 +208,13 @@ export function AdminZones({ data, onRefresh }: Props) {
           <div className="space-y-4 pt-2">
             <div className="space-y-2">
               <Label>Zone Type *</Label>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-3 gap-2">
                 <Button
                   type="button"
                   variant={form.zone_type === 'pickup' ? 'default' : 'outline'}
                   onClick={() => setForm({ ...form, zone_type: 'pickup' })}
                 >
-                  Agent Pickup
+                  Pickup
                 </Button>
                 <Button
                   type="button"
@@ -217,8 +223,15 @@ export function AdminZones({ data, onRefresh }: Props) {
                 >
                   Doorstep
                 </Button>
+                <Button
+                  type="button"
+                  variant={form.zone_type === 'errand' ? 'default' : 'outline'}
+                  onClick={() => setForm({ ...form, zone_type: 'errand' })}
+                >
+                  Errand
+                </Button>
               </div>
-              <p className="text-[11px] text-muted-foreground">Pickup zones price agent pickup points. Doorstep zones price doorstep deliveries.</p>
+              <p className="text-[11px] text-muted-foreground">Pickup zones price agent pickup points. Doorstep zones price doorstep deliveries. Errand locations group couriers for errand parcels.</p>
             </div>
             <div className="space-y-2">
               <Label>Zone Name *</Label>
