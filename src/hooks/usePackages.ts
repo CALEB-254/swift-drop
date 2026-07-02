@@ -92,6 +92,7 @@ export interface CreatePackageData {
   pickupPoint?: string;
   pickupAgentId?: string;
   senderAgentId?: string;
+  courierId?: string;
   packageDescription?: string;
   packageValue?: number;
   packagingColor?: string;
@@ -216,6 +217,7 @@ export function usePackages() {
       is_product: data.isProduct || false,
       pickup_agent_id: data.pickupAgentId || null,
       cod_amount: data.codAmount || 0,
+      ...(data.courierId ? { courier_id: data.courierId } as any : {}),
     };
 
     const { data: newPackage, error: insertError } = await supabase
