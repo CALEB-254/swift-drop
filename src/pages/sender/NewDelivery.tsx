@@ -23,6 +23,9 @@ export default function NewDelivery() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [agents, setAgents] = useState<{ id: string; business_name: string; location: string; zone_id: string | null }[]>([]);
   const [zones, setZones] = useState<{ id: string; name: string; delivery_fee: number; is_cbd: boolean; supports_doorstep: boolean; area: string; zone_type?: string }[]>([]);
+  const [couriers, setCouriers] = useState<{ id: string; name: string; zone_id: string | null; price: number; phone: string | null }[]>([]);
+  const [errandLocationId, setErrandLocationId] = useState<string>('');
+  const [courierId, setCourierId] = useState<string>('');
   const [destArea, setDestArea] = useState<string>('');
   const [destZoneId, setDestZoneId] = useState<string>('');
   const [fromAgentId, setFromAgentId] = useState<string>('');
@@ -62,6 +65,12 @@ export default function NewDelivery() {
       .eq('is_active', true)
       .order('name')
       .then(({ data }) => setZones((data as any) || []));
+    supabase
+      .from('couriers' as any)
+      .select('id, name, zone_id, price, phone')
+      .eq('is_active', true)
+      .order('name')
+      .then(({ data }) => setCouriers((data as any) || []));
   }, []);
 
   const allAreas = Array.from(new Set(zones.map(z => z.area).filter(Boolean)));
@@ -74,8 +83,12 @@ export default function NewDelivery() {
 
   const clampDoorstep = (fee: number) => Math.min(410, Math.max(250, fee));
 
+  const errandLocation = zones.find(z => z.id === errandLocationId);
+  const selectedCourier = couriers.find(c => c.id === courierId);
+  const couriersInLocation = couriers.filter(c => c.zone_id === errandLocationId);
+
   const computeCost = (): number => {
-    if (deliveryType === 'errand') return 200;
+    if (deliveryType === 'errand') return 70;
 
     // Pricing rule: if neither the sender's agent nor the receiver's agent
     // is located in the CBD, fixed price of KES 220.
@@ -108,6 +121,10 @@ export default function NewDelivery() {
       toast.error('Please choose a sender agent and fill all required fields');
       return;
     }
+    if (deliveryType === 'errand' && (!errandLocationId || !courierId)) {
+      toast.error('Please choose the location and courier for your errand');
+      return;
+    }
 
     setIsSubmitting(true);
     
@@ -118,18 +135,22 @@ export default function NewDelivery() {
         senderAddress: fromAgent ? `${fromAgent.business_name} - ${fromAgent.location}` : formData.fromArea,
         receiverName: formData.customerName,
         receiverPhone: formData.customerPhone,
-        receiverAddress: formData.toArea || formData.deliveryAddress,
+        receiverAddress:
+          deliveryType === 'errand'
+            ? `${errandLocation?.name || ''}${selectedCourier ? ' via ' + selectedCourier.name : ''}`
+            : (formData.toArea || formData.deliveryAddress),
         deliveryType: deliveryType,
         pickupPoint: deliveryType === 'pickup_point' 
           ? selectedAgent?.business_name
           : undefined,
         pickupAgentId: deliveryType === 'pickup_point' ? formData.pickupPoint : undefined,
         senderAgentId: fromAgentId,
+        courierId: deliveryType === 'errand' ? courierId : undefined,
         packageDescription: formData.packageDescription,
         weight: 0,
         isProduct: formData.isProduct,
         packageValue: parseFloat(formData.packageValue) || undefined,
-        packagingColor: formData.packagingColor || undefined,
+        packagingColor: deliveryType === 'errand' ? undefined : (formData.packagingColor || undefined),
         codAmount: parseFloat(formData.codAmount) || 0,
         cost: computedCost,
       });
