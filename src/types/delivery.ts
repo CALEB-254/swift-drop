@@ -54,7 +54,7 @@ export interface DeliveryPricing {
 export const DELIVERY_PRICING: DeliveryPricing = {
   pickupPointCost: 150,
   doorstepCost: 300,
-  errandCost: 200,
+  errandCost: 70,
   commissionRate: 0.15,
 };
 
@@ -78,7 +78,7 @@ export const DELIVERY_TYPES = [
     name: 'Errand Parcel',
     description: 'Pick your package from your favourite parcel provider. Eg. SuperMetro, 2NK etc',
     icon: 'bus',
-    cost: 200,
+    cost: 70,
   },
 ];
 
