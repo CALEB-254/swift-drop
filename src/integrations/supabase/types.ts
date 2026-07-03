@@ -408,6 +408,39 @@ export type Database = {
         }
         Relationships: []
       }
+      pochi_withdrawal_codes: {
+        Row: {
+          amount: number | null
+          code: string
+          created_at: string
+          expires_at: string
+          id: string
+          phone: string | null
+          used: boolean
+          user_id: string
+        }
+        Insert: {
+          amount?: number | null
+          code: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          phone?: string | null
+          used?: boolean
+          user_id: string
+        }
+        Update: {
+          amount?: number | null
+          code?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          phone?: string | null
+          used?: boolean
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           address: string | null
@@ -791,6 +824,9 @@ export type Database = {
           balance: number
           created_at: string
           id: string
+          pin_hash: string | null
+          security_answer_hash: string | null
+          security_question: string | null
           updated_at: string
           user_id: string
         }
@@ -798,6 +834,9 @@ export type Database = {
           balance?: number
           created_at?: string
           id?: string
+          pin_hash?: string | null
+          security_answer_hash?: string | null
+          security_question?: string | null
           updated_at?: string
           user_id: string
         }
@@ -805,6 +844,9 @@ export type Database = {
           balance?: number
           created_at?: string
           id?: string
+          pin_hash?: string | null
+          security_answer_hash?: string | null
+          security_question?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -963,6 +1005,18 @@ export type Database = {
       }
     }
     Functions: {
+      admin_convert_to_doorstep: {
+        Args: { _new_cost: number; _package_id: string }
+        Returns: Json
+      }
+      consume_pochi_withdrawal_code: {
+        Args: { _code: string }
+        Returns: boolean
+      }
+      create_pochi_withdrawal_code: {
+        Args: { _amount: number; _phone: string }
+        Returns: Json
+      }
       get_admin_level: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["admin_role"]
@@ -981,6 +1035,11 @@ export type Database = {
       is_admin: { Args: { _user_id: string }; Returns: boolean }
       is_super_admin: { Args: { _user_id: string }; Returns: boolean }
       pay_with_pochi: { Args: { _package_ids: string[] }; Returns: Json }
+      setup_pochi_security: {
+        Args: { _answer: string; _pin: string; _question: string }
+        Returns: Json
+      }
+      verify_pochi_pin: { Args: { _pin: string }; Returns: boolean }
     }
     Enums: {
       admin_role:
