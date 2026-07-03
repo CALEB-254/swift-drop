@@ -53,6 +53,7 @@ import { STATUS_LABELS, DELIVERY_TYPES, PackageStatus } from '@/types/delivery';
 import { toast } from 'sonner';
 import { DateRange } from 'react-day-picker';
 import { SupportTicketForm } from '@/components/SupportTicketForm';
+import { RefundRequestButton } from '@/components/RefundRequestButton';
 
 const STATUS_FILTERS: { value: PackageStatus | 'all'; label: string }[] = [
   { value: 'all', label: 'All' },
@@ -601,6 +602,14 @@ export default function SenderDashboard() {
                             <ShareWhatsAppButton pkg={pkg} />
                             <DownloadReceiptButton pkg={pkg} />
                             <PrintReceiptButton pkg={pkg} />
+                            {profile && (
+                              <RefundRequestButton
+                                packageId={pkg.id}
+                                trackingNumber={pkg.trackingNumber}
+                                amount={pkg.cost}
+                                userId={profile.user_id}
+                              />
+                            )}
                           </>
                         ) : (
                           <Button

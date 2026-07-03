@@ -499,7 +499,8 @@ export default function NewDelivery() {
           )}
         </div>
 
-        {/* Collect on Delivery */}
+        {/* Collect on Delivery — not available for errand */}
+        {deliveryType !== 'errand' && (
         <div>
           <h2 className="section-accent font-semibold mb-4">Collect on Delivery (COD)</h2>
           <div className="space-y-3">
@@ -539,6 +540,7 @@ export default function NewDelivery() {
             )}
           </div>
         </div>
+        )}
 
         {/* Submit Button */}
         <div className="pt-4">

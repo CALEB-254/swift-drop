@@ -10,7 +10,7 @@ import { PackageQRCode } from '@/components/PackageQRCode';
 import { PrintReceiptButton } from '@/components/PrintReceiptButton';
 import { DownloadReceiptButton } from '@/components/DownloadReceiptButton';
 import { ShareWhatsAppButton } from '@/components/ShareWhatsAppButton';
-import { Search, Edit, QrCode, Save, RefreshCw, Truck, Plus } from 'lucide-react';
+import { Search, Edit, QrCode, Save, RefreshCw, Truck, Plus, ArrowRightLeft } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
@@ -30,6 +30,9 @@ export function AdminOrders({ data, onRefresh }: Props) {
   const [selectedRider, setSelectedRider] = useState('');
   const [showCreate, setShowCreate] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [convertPkg, setConvertPkg] = useState<any>(null);
+  const [convertCost, setConvertCost] = useState('300');
+  const [converting, setConverting] = useState(false);
   const [newPkg, setNewPkg] = useState({
     user_id: '', sender_name: '', sender_phone: '',
     receiver_name: '', receiver_phone: '', receiver_address: '',
@@ -92,6 +95,23 @@ export function AdminOrders({ data, onRefresh }: Props) {
   };
 
   const getRiderName = (riderId: string) => riders.find(r => r.id === riderId)?.full_name || 'Unknown';
+
+  const convertToDoorstep = async () => {
+    if (!convertPkg) return;
+    const newCost = Number(convertCost);
+    if (!newCost || newCost <= 0) { toast.error('Enter a valid cost'); return; }
+    setConverting(true);
+    const { data, error } = await supabase.rpc('admin_convert_to_doorstep' as any, {
+      _package_id: convertPkg.id,
+      _new_cost: newCost,
+    });
+    setConverting(false);
+    if (error) { toast.error(error.message); return; }
+    const balance = (data as any)?.balance_due ?? 0;
+    toast.success(`Converted to doorstep. Balance due: KES ${balance}`);
+    setConvertPkg(null);
+    onRefresh();
+  };
 
   const generateTracking = () => `SWF-ADM-${Math.floor(1000 + Math.random() * 9000)}`;
 
@@ -186,6 +206,11 @@ export function AdminOrders({ data, onRefresh }: Props) {
                 <Button variant="ghost" size="sm" onClick={() => { setAssignPkg(pkg); setSelectedRider(pkg.assigned_rider_id || ''); }}>
                   <Truck className="w-4 h-4" />
                 </Button>
+                {pkg.delivery_type !== 'doorstep' && (
+                  <Button variant="ghost" size="sm" title="Convert to Doorstep" onClick={() => { setConvertPkg(pkg); setConvertCost('300'); }}>
+                    <ArrowRightLeft className="w-4 h-4" />
+                  </Button>
+                )}
               </div>
               <div className="flex gap-1">
                 <ShareWhatsAppButton pkg={{
