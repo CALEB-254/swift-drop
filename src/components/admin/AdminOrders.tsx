@@ -393,6 +393,31 @@ export function AdminOrders({ data, onRefresh }: Props) {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Convert to Doorstep Dialog */}
+      <Dialog open={!!convertPkg} onOpenChange={o => !o && setConvertPkg(null)}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Convert to Doorstep — {convertPkg?.tracking_number}</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <p className="text-xs text-muted-foreground">
+              Current cost: KES {convertPkg?.cost} • Payment: {convertPkg?.payment_status}
+            </p>
+            <div className="space-y-2">
+              <Label>New doorstep cost (KES)</Label>
+              <Input type="number" value={convertCost} onChange={e => setConvertCost(e.target.value)} />
+              {convertPkg?.payment_status === 'paid' && (
+                <p className="text-xs text-warning">
+                  Sender already paid KES {convertPkg?.cost}. They will be prompted only for the balance
+                  ({Math.max(Number(convertCost) - Number(convertPkg?.cost || 0), 0)} KES).
+                </p>
+              )}
+            </div>
+            <Button className="w-full" onClick={convertToDoorstep} disabled={converting}>
+              {converting ? 'Converting...' : 'Convert'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
