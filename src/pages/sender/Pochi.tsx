@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BottomNav } from '@/components/BottomNav';
 import { HelpButton } from '@/components/HelpButton';
-import { Wallet, ArrowDownToLine, Loader2, Package, AlertCircle, CheckCircle2, Clock, XCircle } from 'lucide-react';
+import { Wallet, ArrowDownToLine, Loader2, Package, AlertCircle, CheckCircle2, Clock, XCircle, Shield, Lock } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import {
@@ -19,9 +19,11 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 
+const MIN_WITHDRAW = 10;
+
 export default function Pochi() {
   const { user } = useAuth();
-  const [wallet, setWallet] = useState<{ id: string; balance: number } | null>(null);
+  const [wallet, setWallet] = useState<{ id: string; balance: number; hasPin: boolean } | null>(null);
   const [transactions, setTransactions] = useState<any[]>([]);
   const [withdrawals, setWithdrawals] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -30,6 +32,17 @@ export default function Pochi() {
   const [withdrawPhone, setWithdrawPhone] = useState('');
   const [withdrawing, setWithdrawing] = useState(false);
   const [activeTab, setActiveTab] = useState('received');
+  // Withdraw flow
+  const [step, setStep] = useState<'amount' | 'pin' | 'code'>('amount');
+  const [pinEntry, setPinEntry] = useState('');
+  const [codeEntry, setCodeEntry] = useState('');
+  // Setup flow
+  const [setupOpen, setSetupOpen] = useState(false);
+  const [setupPin, setSetupPin] = useState('');
+  const [setupPin2, setSetupPin2] = useState('');
+  const [setupQ, setSetupQ] = useState('');
+  const [setupA, setSetupA] = useState('');
+  const [savingSetup, setSavingSetup] = useState(false);
 
   useEffect(() => {
     if (user) fetchWalletData();
@@ -39,69 +52,103 @@ export default function Pochi() {
     setLoading(true);
     const { data: w } = await supabase
       .from('wallets')
-      .select('*')
+      .select('id, balance, pin_hash' as any)
       .eq('user_id', user!.id)
       .maybeSingle();
 
     if (w) {
-      setWallet({ id: w.id, balance: Number(w.balance) });
+      setWallet({ id: (w as any).id, balance: Number((w as any).balance), hasPin: !!(w as any).pin_hash });
 
       const [txRes, wdRes] = await Promise.all([
         supabase
           .from('wallet_transactions')
           .select('*')
-          .eq('wallet_id', w.id)
+          .eq('wallet_id', (w as any).id)
           .order('created_at', { ascending: false }),
         supabase
           .from('withdrawal_requests')
           .select('*')
-          .eq('wallet_id', w.id)
+          .eq('wallet_id', (w as any).id)
           .order('created_at', { ascending: false }),
       ]);
       setTransactions(txRes.data || []);
       setWithdrawals(wdRes.data || []);
+    } else {
+      setWallet({ id: '', balance: 0, hasPin: false });
     }
     setLoading(false);
   };
 
-  const handleWithdraw = async () => {
+  const saveSetup = async () => {
+    if (setupPin.length !== 4 || !/^\d{4}$/.test(setupPin)) { toast.error('PIN must be 4 digits'); return; }
+    if (setupPin !== setupPin2) { toast.error('PINs do not match'); return; }
+    if (!setupQ.trim() || !setupA.trim()) { toast.error('Security question and answer required'); return; }
+    setSavingSetup(true);
+    const { error } = await supabase.rpc('setup_pochi_security' as any, {
+      _pin: setupPin, _question: setupQ.trim(), _answer: setupA.trim(),
+    });
+    setSavingSetup(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success('Pochi security set up');
+    setSetupOpen(false);
+    setSetupPin(''); setSetupPin2(''); setSetupQ(''); setSetupA('');
+    fetchWalletData();
+  };
+
+  const openWithdraw = () => {
+    if (!wallet?.hasPin) { setSetupOpen(true); return; }
+    setStep('amount');
+    setPinEntry(''); setCodeEntry('');
+    setWithdrawOpen(true);
+  };
+
+  const proceedToPin = () => {
     if (!wallet) return;
     const amount = parseFloat(withdrawAmount);
-    if (!amount || amount <= 0) {
-      toast.error('Enter a valid amount');
-      return;
-    }
-    if (amount > wallet.balance) {
-      toast.error('Insufficient balance');
-      return;
-    }
-    if (!withdrawPhone || withdrawPhone.length < 10) {
-      toast.error('Enter a valid M-Pesa phone number');
-      return;
-    }
+    if (!amount || amount < MIN_WITHDRAW) { toast.error(`Minimum withdrawal is KES ${MIN_WITHDRAW}`); return; }
+    if (amount > wallet.balance) { toast.error('Insufficient balance'); return; }
+    if (!withdrawPhone || withdrawPhone.length < 10) { toast.error('Enter a valid M-Pesa phone number'); return; }
+    setStep('pin');
+  };
 
+  const verifyPinAndSendCode = async () => {
+    if (pinEntry.length !== 4) { toast.error('Enter your 4-digit PIN'); return; }
     setWithdrawing(true);
-    const { error } = await supabase.from('withdrawal_requests').insert({
-      wallet_id: wallet.id,
-      amount,
-      phone: withdrawPhone,
+    const { data: ok, error: pErr } = await supabase.rpc('verify_pochi_pin' as any, { _pin: pinEntry });
+    if (pErr || !ok) { setWithdrawing(false); toast.error('Incorrect PIN'); return; }
+    const { error: fErr } = await supabase.functions.invoke('send-pochi-code', {
+      body: { amount: parseFloat(withdrawAmount), phone: withdrawPhone },
     });
-
-    if (error) {
-      toast.error('Failed to submit withdrawal request');
-    } else {
-      toast.success('Withdrawal request submitted! Processing via M-Pesa.');
-      setWithdrawOpen(false);
-      setWithdrawAmount('');
-      setWithdrawPhone('');
-      fetchWalletData();
-    }
     setWithdrawing(false);
+    if (fErr) { toast.error('Could not send code', { description: fErr.message }); return; }
+    toast.success('Verification code sent to your registered email');
+    setStep('code');
+  };
+
+  const confirmWithdraw = async () => {
+    if (!wallet) return;
+    if (codeEntry.length < 4) { toast.error('Enter the code you received'); return; }
+    setWithdrawing(true);
+    const { data: ok, error: cErr } = await supabase.rpc('consume_pochi_withdrawal_code' as any, { _code: codeEntry });
+    if (cErr || !ok) { setWithdrawing(false); toast.error('Invalid or expired code'); return; }
+
+    const amount = parseFloat(withdrawAmount);
+    const { error } = await supabase.from('withdrawal_requests').insert({
+      wallet_id: wallet.id, amount, phone: withdrawPhone,
+    });
+    setWithdrawing(false);
+    if (error) { toast.error('Failed to submit withdrawal request'); return; }
+    toast.success('Withdrawal authorized! Processing via M-Pesa.');
+    setWithdrawOpen(false);
+    setWithdrawAmount(''); setWithdrawPhone(''); setPinEntry(''); setCodeEntry('');
+    fetchWalletData();
   };
 
   const receivedTx = transactions.filter(t => t.type === 'deposit' && t.status === 'completed');
   const pendingWd = withdrawals.filter(w => w.status === 'pending' || w.status === 'processing');
   const failedWd = withdrawals.filter(w => w.status === 'failed');
+  const balance = wallet?.balance || 0;
+  const canWithdraw = balance >= MIN_WITHDRAW;
 
   if (loading) {
     return (
@@ -124,45 +171,122 @@ export default function Pochi() {
         <Card className="border-0 shadow-card">
           <CardContent className="p-6 text-center">
             <Wallet className="w-10 h-10 mx-auto mb-2 text-muted-foreground" />
-            <p className="text-3xl font-bold">{(wallet?.balance || 0).toFixed(2)} KES</p>
+            <p className="text-3xl font-bold">{balance.toFixed(2)} KES</p>
             <p className="text-sm text-muted-foreground">Balance</p>
           </CardContent>
         </Card>
 
+        {/* Pochi setup prompt */}
+        {!wallet?.hasPin && (
+          <Card className="border-warning/50 bg-warning/5">
+            <CardContent className="p-4 space-y-2">
+              <div className="flex items-center gap-2">
+                <Shield className="w-4 h-4 text-warning" />
+                <p className="font-medium text-sm">Secure your Pochi wallet</p>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Set a 4-digit PIN and a security question to protect your wallet before withdrawing.
+              </p>
+              <Button size="sm" onClick={() => setSetupOpen(true)}>Set up now</Button>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Withdraw Button */}
-        <Dialog open={withdrawOpen} onOpenChange={setWithdrawOpen}>
-          <DialogTrigger asChild>
-            <Button className="w-full bg-warning text-warning-foreground hover:bg-warning/90 rounded-full text-lg py-6">
-              Withdraw
-            </Button>
-          </DialogTrigger>
+        <Button
+          onClick={openWithdraw}
+          disabled={!canWithdraw || !wallet?.hasPin}
+          className="w-full bg-warning text-warning-foreground hover:bg-warning/90 rounded-full text-lg py-6 disabled:opacity-50"
+        >
+          Withdraw
+        </Button>
+        {!canWithdraw && (
+          <p className="text-center text-xs text-muted-foreground">
+            Minimum withdrawal is KES {MIN_WITHDRAW}. Top up your wallet to withdraw.
+          </p>
+        )}
+
+        {/* Withdraw multi-step dialog */}
+        <Dialog open={withdrawOpen} onOpenChange={(o) => { setWithdrawOpen(o); if (!o) setStep('amount'); }}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Withdraw to M-Pesa</DialogTitle>
+              <DialogTitle>
+                {step === 'amount' && 'Withdraw to M-Pesa'}
+                {step === 'pin' && 'Enter your Pochi PIN'}
+                {step === 'code' && 'Enter email verification code'}
+              </DialogTitle>
             </DialogHeader>
-            <div className="space-y-4 pt-2">
-              <div className="space-y-2">
-                <Label>Amount (KES)</Label>
-                <Input
-                  type="number"
-                  placeholder="Enter amount"
-                  value={withdrawAmount}
-                  onChange={(e) => setWithdrawAmount(e.target.value)}
-                />
-                <p className="text-xs text-muted-foreground">Available: KES {(wallet?.balance || 0).toFixed(2)}</p>
+
+            {step === 'amount' && (
+              <div className="space-y-4 pt-2">
+                <div className="space-y-2">
+                  <Label>Amount (KES)</Label>
+                  <Input type="number" placeholder="Enter amount" value={withdrawAmount} onChange={(e) => setWithdrawAmount(e.target.value)} />
+                  <p className="text-xs text-muted-foreground">Available: KES {balance.toFixed(2)} • Min: KES {MIN_WITHDRAW}</p>
+                </div>
+                <div className="space-y-2">
+                  <Label>M-Pesa Phone Number</Label>
+                  <Input type="tel" placeholder="e.g. 0712345678" value={withdrawPhone} onChange={(e) => setWithdrawPhone(e.target.value)} />
+                </div>
+                <Button onClick={proceedToPin} className="w-full">Continue</Button>
               </div>
-              <div className="space-y-2">
-                <Label>M-Pesa Phone Number</Label>
-                <Input
-                  type="tel"
-                  placeholder="e.g. 0712345678"
-                  value={withdrawPhone}
-                  onChange={(e) => setWithdrawPhone(e.target.value)}
-                />
+            )}
+
+            {step === 'pin' && (
+              <div className="space-y-4 pt-2">
+                <div className="space-y-2">
+                  <Label>4-digit PIN</Label>
+                  <Input type="password" inputMode="numeric" maxLength={4} value={pinEntry} onChange={e => setPinEntry(e.target.value.replace(/\D/g,''))} />
+                </div>
+                <Button onClick={verifyPinAndSendCode} disabled={withdrawing} className="w-full">
+                  {withdrawing ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Lock className="w-4 h-4 mr-2" />}
+                  Verify & Send Code
+                </Button>
               </div>
-              <Button onClick={handleWithdraw} disabled={withdrawing} className="w-full">
-                {withdrawing ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-                Confirm Withdrawal
+            )}
+
+            {step === 'code' && (
+              <div className="space-y-4 pt-2">
+                <p className="text-xs text-muted-foreground">
+                  We sent a 6-digit verification code to your registered email. Enter it below to authorize the withdrawal.
+                </p>
+                <div className="space-y-2">
+                  <Label>Verification code</Label>
+                  <Input inputMode="numeric" maxLength={6} value={codeEntry} onChange={e => setCodeEntry(e.target.value.replace(/\D/g,''))} />
+                </div>
+                <Button onClick={confirmWithdraw} disabled={withdrawing} className="w-full">
+                  {withdrawing ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                  Authorize Withdrawal
+                </Button>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Setup dialog */}
+        <Dialog open={setupOpen} onOpenChange={setSetupOpen}>
+          <DialogContent>
+            <DialogHeader><DialogTitle>Set up Pochi security</DialogTitle></DialogHeader>
+            <div className="space-y-3 pt-2">
+              <div className="space-y-1">
+                <Label>4-digit PIN</Label>
+                <Input type="password" inputMode="numeric" maxLength={4} value={setupPin} onChange={e => setSetupPin(e.target.value.replace(/\D/g,''))} />
+              </div>
+              <div className="space-y-1">
+                <Label>Confirm PIN</Label>
+                <Input type="password" inputMode="numeric" maxLength={4} value={setupPin2} onChange={e => setSetupPin2(e.target.value.replace(/\D/g,''))} />
+              </div>
+              <div className="space-y-1">
+                <Label>Security question</Label>
+                <Input placeholder="e.g. What was your first pet's name?" value={setupQ} onChange={e => setSetupQ(e.target.value)} />
+              </div>
+              <div className="space-y-1">
+                <Label>Answer</Label>
+                <Input value={setupA} onChange={e => setSetupA(e.target.value)} />
+              </div>
+              <Button onClick={saveSetup} disabled={savingSetup} className="w-full">
+                {savingSetup ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                Save
               </Button>
             </div>
           </DialogContent>
