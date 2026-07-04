@@ -213,6 +213,9 @@ export function AdminOrders({ data, onRefresh }: Props) {
                 )}
               </div>
               <div className="flex gap-1">
+                {pkg.status === 'refunded' ? (
+                  <span className="text-xs text-muted-foreground italic">Refunded</span>
+                ) : (<>
                 <ShareWhatsAppButton pkg={{
                   trackingNumber: pkg.tracking_number, receiverName: pkg.receiver_name,
                   receiverPhone: pkg.receiver_phone, receiverAddress: pkg.receiver_address,
@@ -237,6 +240,7 @@ export function AdminOrders({ data, onRefresh }: Props) {
                   createdAt: new Date(pkg.created_at), paymentStatus: pkg.payment_status,
                   mpesaReceiptNumber: pkg.mpesa_receipt_number,
                 }} />
+                </>)}
               </div>
             </div>
             {expandedQR === pkg.id && (

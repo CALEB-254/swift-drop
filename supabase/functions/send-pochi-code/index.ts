@@ -32,14 +32,28 @@ serve(async (req) => {
     }
     const code = (codeRes as any)?.code as string;
 
-    // Deliver code as a private in-app notification (email delivery requires email infra scaffold).
+    // Deliver code strictly via email (transactional template) — no in-app fallback.
+    const email = userData.user.email;
+    if (!email) {
+      return new Response(JSON.stringify({ error: "No email on file for this account" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
     const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
-    await admin.from("notifications").insert({
-      user_id: userData.user.id,
-      title: "Pochi Withdrawal Code",
-      message: `Your one-time withdrawal code is ${code}. It expires in 10 minutes. If you didn't request this, ignore it.`,
-      type: "pochi_code",
+    const { error: sendErr } = await admin.functions.invoke("send-transactional-email", {
+      body: {
+        templateName: "pochi-withdrawal-code",
+        recipientEmail: email,
+        idempotencyKey: `pochi-code-${userData.user.id}-${Date.now()}`,
+        templateData: { code, amount, phone },
+      },
     });
+    if (sendErr) {
+      return new Response(JSON.stringify({
+        error: "Could not send email verification code. Please try again shortly.",
+        detail: sendErr.message,
+      }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
 
     return new Response(JSON.stringify({ success: true, email: userData.user.email }), {
       status: 200,
