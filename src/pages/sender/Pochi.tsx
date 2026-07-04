@@ -18,8 +18,20 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const MIN_WITHDRAW = 10;
+
+const SECURITY_QUESTIONS = [
+  "What was the name of your first pet?",
+  "What is your mother's maiden name?",
+  "What city were you born in?",
+  "What was the name of your primary school?",
+  "What is the name of your favourite teacher?",
+  "What was your childhood nickname?",
+  "What is your favourite food?",
+  "What is the make of your first car?",
+];
 
 export default function Pochi() {
   const { user } = useAuth();
@@ -278,7 +290,14 @@ export default function Pochi() {
               </div>
               <div className="space-y-1">
                 <Label>Security question</Label>
-                <Input placeholder="e.g. What was your first pet's name?" value={setupQ} onChange={e => setSetupQ(e.target.value)} />
+                <Select value={setupQ} onValueChange={setSetupQ}>
+                  <SelectTrigger><SelectValue placeholder="Choose a question" /></SelectTrigger>
+                  <SelectContent>
+                    {SECURITY_QUESTIONS.map(q => (
+                      <SelectItem key={q} value={q}>{q}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-1">
                 <Label>Answer</Label>

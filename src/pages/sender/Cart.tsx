@@ -55,6 +55,8 @@ export default function Cart() {
   const [tillNumber, setTillNumber] = useState<string>('');
   const [mpesaCode, setMpesaCode] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
+  const [pochiPinOpen, setPochiPinOpen] = useState(false);
+  const [pochiPin, setPochiPin] = useState('');
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -421,25 +423,57 @@ export default function Cart() {
                   <Button
                     className="w-full"
                     disabled={isProcessing || pochiBalance < totalAmount}
-                    onClick={async () => {
-                      setIsProcessing(true);
-                      const { data, error } = await supabase.rpc('pay_with_pochi' as any, {
-                        _package_ids: packages.map(p => p.id),
-                      });
-                      setIsProcessing(false);
-                      if (error || !(data as any)?.success) {
-                        toast.error((error?.message) || (data as any)?.error || 'Pochi payment failed');
-                        return;
-                      }
-                      toast.success('Paid from Pochi wallet');
-                      fetchCartPackages();
-                      setPochiBalance(b => b - totalAmount);
-                    }}
+                    onClick={() => { setPochiPin(''); setPochiPinOpen(true); }}
                   >
                     {isProcessing ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                     Pay KES {totalAmount.toFixed(0)} from Pochi
                   </Button>
                 )}
+
+                <Dialog open={pochiPinOpen} onOpenChange={setPochiPinOpen}>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Enter Pochi PIN</DialogTitle>
+                      <DialogDescription>
+                        Enter your 4-digit Pochi PIN to authorize KES {totalAmount.toFixed(0)}.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-3 pt-2">
+                      <Input
+                        type="password"
+                        inputMode="numeric"
+                        maxLength={4}
+                        placeholder="••••"
+                        value={pochiPin}
+                        onChange={(e) => setPochiPin(e.target.value.replace(/\D/g, ''))}
+                      />
+                      <Button
+                        className="w-full"
+                        disabled={isProcessing || pochiPin.length !== 4}
+                        onClick={async () => {
+                          setIsProcessing(true);
+                          const { data, error } = await supabase.rpc('pay_with_pochi' as any, {
+                            _package_ids: packages.map(p => p.id),
+                            _pin: pochiPin,
+                          });
+                          setIsProcessing(false);
+                          if (error || !(data as any)?.success) {
+                            toast.error(error?.message || (data as any)?.error || 'Pochi payment failed');
+                            return;
+                          }
+                          toast.success('Paid from Pochi wallet');
+                          setPochiPinOpen(false);
+                          setPochiPin('');
+                          fetchCartPackages();
+                          setPochiBalance(b => b - totalAmount);
+                        }}
+                      >
+                        {isProcessing ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                        Confirm Payment
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
 
                 {/* STK Push Fields */}
                 {paymentMethod === 'stk_push' && (
