@@ -108,7 +108,7 @@ export function AdminOrders({ data, onRefresh }: Props) {
     setConverting(false);
     if (error) { toast.error(error.message); return; }
     const balance = (data as any)?.balance_due ?? 0;
-    toast.success(`Converted to doorstep. Balance due: KES ${balance}`);
+    toast.success(`Conversion request sent to sender. Once accepted, balance due: KES ${balance}`);
     setConvertPkg(null);
     onRefresh();
   };
@@ -213,6 +213,9 @@ export function AdminOrders({ data, onRefresh }: Props) {
                 )}
               </div>
               <div className="flex gap-1">
+                {pkg.status === 'refunded' ? (
+                  <span className="text-xs text-muted-foreground italic">Refunded</span>
+                ) : (<>
                 <ShareWhatsAppButton pkg={{
                   trackingNumber: pkg.tracking_number, receiverName: pkg.receiver_name,
                   receiverPhone: pkg.receiver_phone, receiverAddress: pkg.receiver_address,
@@ -237,6 +240,7 @@ export function AdminOrders({ data, onRefresh }: Props) {
                   createdAt: new Date(pkg.created_at), paymentStatus: pkg.payment_status,
                   mpesaReceiptNumber: pkg.mpesa_receipt_number,
                 }} />
+                </>)}
               </div>
             </div>
             {expandedQR === pkg.id && (
@@ -401,6 +405,9 @@ export function AdminOrders({ data, onRefresh }: Props) {
           <div className="space-y-3">
             <p className="text-xs text-muted-foreground">
               Current cost: KES {convertPkg?.cost} • Payment: {convertPkg?.payment_status}
+            </p>
+            <p className="text-xs text-warning">
+              The sender will be prompted in their dashboard to accept this conversion before it takes effect.
             </p>
             <div className="space-y-2">
               <Label>New doorstep cost (KES)</Label>

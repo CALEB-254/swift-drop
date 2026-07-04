@@ -7,7 +7,8 @@ export type PackageStatus =
   | 'in_transit' 
   | 'out_for_delivery' 
   | 'delivered' 
-  | 'cancelled';
+  | 'cancelled'
+  | 'refunded';
 
 export interface Package {
   id: string;
@@ -128,6 +129,7 @@ export const STATUS_LABELS: Record<PackageStatus, string> = {
   out_for_delivery: 'Out for Delivery',
   delivered: 'Delivered',
   cancelled: 'Cancelled',
+  refunded: 'Refunded',
 };
 
 export const STATUS_COLORS: Record<PackageStatus, string> = {
@@ -138,4 +140,5 @@ export const STATUS_COLORS: Record<PackageStatus, string> = {
   out_for_delivery: 'primary',
   delivered: 'success',
   cancelled: 'destructive',
+  refunded: 'destructive',
 };

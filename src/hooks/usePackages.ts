@@ -31,6 +31,10 @@ export interface Package {
   agentId: string | null;
   isProduct: boolean;
   paymentStatus: string;
+  rejectionReason?: string | null;
+  pendingConversionType?: DeliveryType | null;
+  pendingConversionCost?: number | null;
+  pendingConversionBalance?: number | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -77,6 +81,10 @@ const mapRowToPackage = (row: PackageRow): Package => ({
   agentId: row.agent_id,
   isProduct: row.is_product ?? false,
   paymentStatus: (row as any).payment_status ?? 'pending',
+  rejectionReason: (row as any).rejection_reason ?? null,
+  pendingConversionType: (row as any).pending_conversion_type ?? null,
+  pendingConversionCost: (row as any).pending_conversion_cost != null ? Number((row as any).pending_conversion_cost) : null,
+  pendingConversionBalance: (row as any).pending_conversion_balance != null ? Number((row as any).pending_conversion_balance) : null,
   createdAt: new Date(row.created_at),
   updatedAt: new Date(row.updated_at),
 });

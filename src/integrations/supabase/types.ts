@@ -268,11 +268,17 @@ export type Database = {
           paid_at: string | null
           payment_balance_due: number
           payment_status: string
+          pending_conversion_balance: number | null
+          pending_conversion_cost: number | null
+          pending_conversion_type:
+            | Database["public"]["Enums"]["delivery_type"]
+            | null
           pickup_agent_id: string | null
           pickup_point: string | null
           receiver_address: string
           receiver_name: string
           receiver_phone: string
+          rejection_reason: string | null
           sender_address: string | null
           sender_name: string
           sender_phone: string
@@ -303,11 +309,17 @@ export type Database = {
           paid_at?: string | null
           payment_balance_due?: number
           payment_status?: string
+          pending_conversion_balance?: number | null
+          pending_conversion_cost?: number | null
+          pending_conversion_type?:
+            | Database["public"]["Enums"]["delivery_type"]
+            | null
           pickup_agent_id?: string | null
           pickup_point?: string | null
           receiver_address: string
           receiver_name: string
           receiver_phone: string
+          rejection_reason?: string | null
           sender_address?: string | null
           sender_name: string
           sender_phone: string
@@ -338,11 +350,17 @@ export type Database = {
           paid_at?: string | null
           payment_balance_due?: number
           payment_status?: string
+          pending_conversion_balance?: number | null
+          pending_conversion_cost?: number | null
+          pending_conversion_type?:
+            | Database["public"]["Enums"]["delivery_type"]
+            | null
           pickup_agent_id?: string | null
           pickup_point?: string | null
           receiver_address?: string
           receiver_name?: string
           receiver_phone?: string
+          rejection_reason?: string | null
           sender_address?: string | null
           sender_name?: string
           sender_phone?: string
@@ -1005,6 +1023,7 @@ export type Database = {
       }
     }
     Functions: {
+      accept_conversion: { Args: { _package_id: string }; Returns: Json }
       admin_convert_to_doorstep: {
         Args: { _new_cost: number; _package_id: string }
         Returns: Json
@@ -1034,7 +1053,10 @@ export type Database = {
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
       is_super_admin: { Args: { _user_id: string }; Returns: boolean }
-      pay_with_pochi: { Args: { _package_ids: string[] }; Returns: Json }
+      pay_with_pochi:
+        | { Args: { _package_ids: string[] }; Returns: Json }
+        | { Args: { _package_ids: string[]; _pin: string }; Returns: Json }
+      reject_conversion: { Args: { _package_id: string }; Returns: Json }
       setup_pochi_security: {
         Args: { _answer: string; _pin: string; _question: string }
         Returns: Json
@@ -1056,6 +1078,7 @@ export type Database = {
         | "out_for_delivery"
         | "delivered"
         | "cancelled"
+        | "refunded"
       ticket_priority: "low" | "medium" | "high" | "urgent"
       ticket_status: "open" | "in_progress" | "resolved" | "closed"
       user_role: "sender" | "agent" | "admin"
@@ -1202,6 +1225,7 @@ export const Constants = {
         "out_for_delivery",
         "delivered",
         "cancelled",
+        "refunded",
       ],
       ticket_priority: ["low", "medium", "high", "urgent"],
       ticket_status: ["open", "in_progress", "resolved", "closed"],
