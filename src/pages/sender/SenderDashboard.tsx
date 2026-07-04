@@ -63,6 +63,7 @@ const STATUS_FILTERS: { value: PackageStatus | 'all'; label: string }[] = [
   { value: 'out_for_delivery', label: 'Out for Delivery' },
   { value: 'delivered', label: 'Delivered' },
   { value: 'cancelled', label: 'Cancelled' },
+  { value: 'refunded', label: 'Refunded' },
 ];
 
 const ITEMS_PER_PAGE = 10;
