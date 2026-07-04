@@ -230,6 +230,7 @@ export function useAgentPackages() {
       out_for_delivery: 'delivered',
       delivered: null,
       cancelled: null,
+      refunded: null,
     };
     return statusFlow[currentStatus];
   };
