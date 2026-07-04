@@ -583,6 +583,43 @@ export default function SenderDashboard() {
                   </Link>
                   {/* QR, Download and Print Actions */}
                   <div className="px-4 pb-4 pt-2 border-t border-border">
+                    {pkg.pendingConversionType && (
+                      <div className="mb-3 p-3 rounded-md bg-warning/10 border border-warning/30 space-y-2">
+                        <p className="text-xs">
+                          Admin proposed converting this package to <strong>{getDeliveryTypeName(pkg.pendingConversionType)}</strong> for KES {pkg.pendingConversionCost}.
+                          {pkg.paymentStatus === 'paid' && (pkg.pendingConversionBalance || 0) > 0
+                            ? ` Balance due after your previous payment: KES ${pkg.pendingConversionBalance}.`
+                            : ''}
+                        </p>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            onClick={async (e) => {
+                              e.preventDefault(); e.stopPropagation();
+                              const { error } = await supabase.rpc('accept_conversion' as any, { _package_id: pkg.id });
+                              if (error) toast.error(error.message);
+                              else { toast.success('Conversion accepted'); refetch(); }
+                            }}
+                          >Accept</Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={async (e) => {
+                              e.preventDefault(); e.stopPropagation();
+                              const { error } = await supabase.rpc('reject_conversion' as any, { _package_id: pkg.id });
+                              if (error) toast.error(error.message);
+                              else { toast.success('Conversion declined'); refetch(); }
+                            }}
+                          >Decline</Button>
+                        </div>
+                      </div>
+                    )}
+                    {pkg.status === 'refunded' && pkg.rejectionReason && (
+                      <div className="mb-3 p-3 rounded-md bg-destructive/10 border border-destructive/30">
+                        <p className="text-xs text-destructive font-medium">Refunded — reason:</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">{pkg.rejectionReason}</p>
+                      </div>
+                    )}
                     <div className="flex items-center justify-between gap-2">
                       <Button
                         variant="ghost"
@@ -598,7 +635,9 @@ export default function SenderDashboard() {
                         <span className="font-mono">{pkg.trackingNumber}</span>
                       </Button>
                       <div className="flex gap-2">
-                        {pkg.paymentStatus === 'paid' ? (
+                        {pkg.status === 'refunded' ? (
+                          <span className="text-xs text-muted-foreground italic">Refunded</span>
+                        ) : pkg.paymentStatus === 'paid' ? (
                           <>
                             <ShareWhatsAppButton pkg={pkg} />
                             <DownloadReceiptButton pkg={pkg} />

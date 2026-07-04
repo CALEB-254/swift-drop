@@ -108,7 +108,7 @@ export function AdminOrders({ data, onRefresh }: Props) {
     setConverting(false);
     if (error) { toast.error(error.message); return; }
     const balance = (data as any)?.balance_due ?? 0;
-    toast.success(`Converted to doorstep. Balance due: KES ${balance}`);
+    toast.success(`Conversion request sent to sender. Once accepted, balance due: KES ${balance}`);
     setConvertPkg(null);
     onRefresh();
   };
@@ -401,6 +401,9 @@ export function AdminOrders({ data, onRefresh }: Props) {
           <div className="space-y-3">
             <p className="text-xs text-muted-foreground">
               Current cost: KES {convertPkg?.cost} • Payment: {convertPkg?.payment_status}
+            </p>
+            <p className="text-xs text-warning">
+              The sender will be prompted in their dashboard to accept this conversion before it takes effect.
             </p>
             <div className="space-y-2">
               <Label>New doorstep cost (KES)</Label>
