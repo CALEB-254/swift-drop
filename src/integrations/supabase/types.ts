@@ -1086,6 +1086,7 @@ export type Database = {
         | "delivered"
         | "cancelled"
         | "refunded"
+        | "received_in_warehouse"
       ticket_priority: "low" | "medium" | "high" | "urgent"
       ticket_status: "open" | "in_progress" | "resolved" | "closed"
       user_role: "sender" | "agent" | "admin"
@@ -1233,6 +1234,7 @@ export const Constants = {
         "delivered",
         "cancelled",
         "refunded",
+        "received_in_warehouse",
       ],
       ticket_priority: ["low", "medium", "high", "urgent"],
       ticket_status: ["open", "in_progress", "resolved", "closed"],
