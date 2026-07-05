@@ -194,7 +194,7 @@ export function useAgentPackages() {
       .from('packages')
       .update({
         agent_id: user.id,
-        status: 'picked_up' as PackageStatus,
+        status: 'out_for_delivery' as PackageStatus,
       })
       .eq('id', packageId);
 
