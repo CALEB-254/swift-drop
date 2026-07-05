@@ -24,6 +24,8 @@ import AgentScanMtaani from "./pages/agent/AgentScanMtaani";
 import AgentScanDoorstep from "./pages/agent/AgentScanDoorstep";
 import AgentScanErrand from "./pages/agent/AgentScanErrand";
 import AgentScanSack from "./pages/agent/AgentScanSack";
+import AgentScanWarehouse from "./pages/agent/AgentScanWarehouse";
+import AgentScanRelease from "./pages/agent/AgentScanRelease";
 import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
 import ForgotPassword from "./pages/auth/ForgotPassword";
@@ -82,6 +84,8 @@ const App = () => (
             <Route path="/agent/scan/doorstep" element={<ProtectedRoute requiredRole="agent"><AgentScanDoorstep /></ProtectedRoute>} />
             <Route path="/agent/scan/errand" element={<ProtectedRoute requiredRole="agent"><AgentScanErrand /></ProtectedRoute>} />
             <Route path="/agent/scan/sack" element={<ProtectedRoute requiredRole="agent"><AgentScanSack /></ProtectedRoute>} />
+            <Route path="/agent/scan/warehouse" element={<ProtectedRoute requiredRole="agent"><AgentScanWarehouse /></ProtectedRoute>} />
+            <Route path="/agent/scan/release" element={<ProtectedRoute requiredRole="agent"><AgentScanRelease /></ProtectedRoute>} />
             <Route path="/agent/stock" element={<ProtectedRoute requiredRole="agent"><AgentPickupDashboard /></ProtectedRoute>} />
             
             {/* Profile Routes */}

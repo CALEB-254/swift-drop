@@ -194,7 +194,7 @@ export function useAgentPackages() {
       .from('packages')
       .update({
         agent_id: user.id,
-        status: 'picked_up' as PackageStatus,
+        status: 'out_for_delivery' as PackageStatus,
       })
       .eq('id', packageId);
 
@@ -226,7 +226,8 @@ export function useAgentPackages() {
       pending: 'picked_up',
       dropped_at_agent: 'picked_up',
       picked_up: 'in_transit',
-      in_transit: 'out_for_delivery',
+      in_transit: 'received_in_warehouse',
+      received_in_warehouse: 'out_for_delivery',
       out_for_delivery: 'delivered',
       delivered: null,
       cancelled: null,

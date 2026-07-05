@@ -9,6 +9,7 @@ import { StatusBadge } from '@/components/StatusBadge';
 import { useAuth } from '@/hooks/useAuth';
 import { useAgentPackages } from '@/hooks/useAgentPackages';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function AgentDashboard() {
   const { user, profile, loading: authLoading } = useAuth();
@@ -51,6 +52,16 @@ export default function AgentDashboard() {
   const handleUpdateStatus = async (packageId: string, status: string) => {
     try {
       setProcessingId(packageId);
+      if (status === 'delivered') {
+        const code = window.prompt('Enter the 6-digit release code from the receiver:');
+        if (!code) { setProcessingId(null); return; }
+        const { error } = await supabase.rpc('release_package' as any, {
+          _package_id: packageId, _release_code: code.trim(),
+        });
+        if (error) throw new Error(error.message);
+        toast.success('Delivered');
+        return;
+      }
       await updatePackageStatus(packageId, status as any);
       toast.success(`Status updated to ${status.replace(/_/g, ' ')}`);
     } catch (err) {

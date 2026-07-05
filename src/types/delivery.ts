@@ -5,6 +5,7 @@ export type PackageStatus =
   | 'dropped_at_agent'
   | 'picked_up' 
   | 'in_transit' 
+  | 'received_in_warehouse'
   | 'out_for_delivery' 
   | 'delivered' 
   | 'cancelled'
@@ -126,6 +127,7 @@ export const STATUS_LABELS: Record<PackageStatus, string> = {
   dropped_at_agent: 'Dropped at Agent',
   picked_up: 'Picked Up',
   in_transit: 'In Transit',
+  received_in_warehouse: 'Received in Warehouse',
   out_for_delivery: 'Out for Delivery',
   delivered: 'Delivered',
   cancelled: 'Cancelled',
@@ -137,6 +139,7 @@ export const STATUS_COLORS: Record<PackageStatus, string> = {
   dropped_at_agent: 'info',
   picked_up: 'info',
   in_transit: 'info',
+  received_in_warehouse: 'info',
   out_for_delivery: 'primary',
   delivered: 'success',
   cancelled: 'destructive',
