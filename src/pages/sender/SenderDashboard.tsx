@@ -637,6 +637,18 @@ export default function SenderDashboard() {
                       <div className="flex gap-2">
                         {pkg.status === 'refunded' ? (
                           <span className="text-xs text-muted-foreground italic">Refunded</span>
+                        ) : pkg.status !== 'pending' ? (
+                          <>
+                            {pkg.paymentStatus === 'paid' && profile && (
+                              <RefundRequestButton
+                                packageId={pkg.id}
+                                trackingNumber={pkg.trackingNumber}
+                                amount={pkg.cost}
+                                userId={profile.user_id}
+                              />
+                            )}
+                            <span className="text-xs text-muted-foreground italic">Locked — package in progress</span>
+                          </>
                         ) : pkg.paymentStatus === 'paid' ? (
                           <>
                             <ShareWhatsAppButton pkg={pkg} />
