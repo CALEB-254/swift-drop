@@ -179,6 +179,20 @@ export default function Pochi() {
       <div className="h-1 bg-warning" />
 
       <div className="p-4 space-y-4">
+        {!wallet?.hasPin ? (
+          <Card className="border-warning/50 bg-warning/5">
+            <CardContent className="p-6 space-y-3 text-center">
+              <Shield className="w-10 h-10 mx-auto text-warning" />
+              <p className="font-medium">Set up your Pochi wallet</p>
+              <p className="text-xs text-muted-foreground">
+                To keep your money safe, create a 4-digit PIN and choose a security question.
+                Your balance, transactions and withdrawals will appear here once setup is complete.
+              </p>
+              <Button className="w-full" onClick={() => setSetupOpen(true)}>Set up Pochi</Button>
+            </CardContent>
+          </Card>
+        ) : (
+        <>
         {/* Balance Card */}
         <Card className="border-0 shadow-card">
           <CardContent className="p-6 text-center">
@@ -187,22 +201,6 @@ export default function Pochi() {
             <p className="text-sm text-muted-foreground">Balance</p>
           </CardContent>
         </Card>
-
-        {/* Pochi setup prompt */}
-        {!wallet?.hasPin && (
-          <Card className="border-warning/50 bg-warning/5">
-            <CardContent className="p-4 space-y-2">
-              <div className="flex items-center gap-2">
-                <Shield className="w-4 h-4 text-warning" />
-                <p className="font-medium text-sm">Secure your Pochi wallet</p>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Set a 4-digit PIN and a security question to protect your wallet before withdrawing.
-              </p>
-              <Button size="sm" onClick={() => setSetupOpen(true)}>Set up now</Button>
-            </CardContent>
-          </Card>
-        )}
 
         {/* Withdraw Button */}
         <Button
@@ -272,42 +270,6 @@ export default function Pochi() {
                 </Button>
               </div>
             )}
-          </DialogContent>
-        </Dialog>
-
-        {/* Setup dialog */}
-        <Dialog open={setupOpen} onOpenChange={setSetupOpen}>
-          <DialogContent>
-            <DialogHeader><DialogTitle>Set up Pochi security</DialogTitle></DialogHeader>
-            <div className="space-y-3 pt-2">
-              <div className="space-y-1">
-                <Label>4-digit PIN</Label>
-                <Input type="password" inputMode="numeric" maxLength={4} value={setupPin} onChange={e => setSetupPin(e.target.value.replace(/\D/g,''))} />
-              </div>
-              <div className="space-y-1">
-                <Label>Confirm PIN</Label>
-                <Input type="password" inputMode="numeric" maxLength={4} value={setupPin2} onChange={e => setSetupPin2(e.target.value.replace(/\D/g,''))} />
-              </div>
-              <div className="space-y-1">
-                <Label>Security question</Label>
-                <Select value={setupQ} onValueChange={setSetupQ}>
-                  <SelectTrigger><SelectValue placeholder="Choose a question" /></SelectTrigger>
-                  <SelectContent>
-                    {SECURITY_QUESTIONS.map(q => (
-                      <SelectItem key={q} value={q}>{q}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1">
-                <Label>Answer</Label>
-                <Input value={setupA} onChange={e => setSetupA(e.target.value)} />
-              </div>
-              <Button onClick={saveSetup} disabled={savingSetup} className="w-full">
-                {savingSetup ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-                Save
-              </Button>
-            </div>
           </DialogContent>
         </Dialog>
 
@@ -385,6 +347,44 @@ export default function Pochi() {
             </TabsContent>
           </Tabs>
         </div>
+        </>
+        )}
+
+        {/* Setup dialog (always mounted so it can open from the setup prompt) */}
+        <Dialog open={setupOpen} onOpenChange={setSetupOpen}>
+          <DialogContent>
+            <DialogHeader><DialogTitle>Set up Pochi security</DialogTitle></DialogHeader>
+            <div className="space-y-3 pt-2">
+              <div className="space-y-1">
+                <Label>4-digit PIN</Label>
+                <Input type="password" inputMode="numeric" maxLength={4} value={setupPin} onChange={e => setSetupPin(e.target.value.replace(/\D/g,''))} />
+              </div>
+              <div className="space-y-1">
+                <Label>Confirm PIN</Label>
+                <Input type="password" inputMode="numeric" maxLength={4} value={setupPin2} onChange={e => setSetupPin2(e.target.value.replace(/\D/g,''))} />
+              </div>
+              <div className="space-y-1">
+                <Label>Security question</Label>
+                <Select value={setupQ} onValueChange={setSetupQ}>
+                  <SelectTrigger><SelectValue placeholder="Choose a question" /></SelectTrigger>
+                  <SelectContent>
+                    {SECURITY_QUESTIONS.map(q => (
+                      <SelectItem key={q} value={q}>{q}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1">
+                <Label>Answer</Label>
+                <Input value={setupA} onChange={e => setSetupA(e.target.value)} />
+              </div>
+              <Button onClick={saveSetup} disabled={savingSetup} className="w-full">
+                {savingSetup ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                Save
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <HelpButton />
