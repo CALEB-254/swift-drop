@@ -179,6 +179,20 @@ export default function Pochi() {
       <div className="h-1 bg-warning" />
 
       <div className="p-4 space-y-4">
+        {!wallet?.hasPin ? (
+          <Card className="border-warning/50 bg-warning/5">
+            <CardContent className="p-6 space-y-3 text-center">
+              <Shield className="w-10 h-10 mx-auto text-warning" />
+              <p className="font-medium">Set up your Pochi wallet</p>
+              <p className="text-xs text-muted-foreground">
+                To keep your money safe, create a 4-digit PIN and choose a security question.
+                Your balance, transactions and withdrawals will appear here once setup is complete.
+              </p>
+              <Button className="w-full" onClick={() => setSetupOpen(true)}>Set up Pochi</Button>
+            </CardContent>
+          </Card>
+        ) : (
+        <>
         {/* Balance Card */}
         <Card className="border-0 shadow-card">
           <CardContent className="p-6 text-center">
@@ -187,22 +201,6 @@ export default function Pochi() {
             <p className="text-sm text-muted-foreground">Balance</p>
           </CardContent>
         </Card>
-
-        {/* Pochi setup prompt */}
-        {!wallet?.hasPin && (
-          <Card className="border-warning/50 bg-warning/5">
-            <CardContent className="p-4 space-y-2">
-              <div className="flex items-center gap-2">
-                <Shield className="w-4 h-4 text-warning" />
-                <p className="font-medium text-sm">Secure your Pochi wallet</p>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Set a 4-digit PIN and a security question to protect your wallet before withdrawing.
-              </p>
-              <Button size="sm" onClick={() => setSetupOpen(true)}>Set up now</Button>
-            </CardContent>
-          </Card>
-        )}
 
         {/* Withdraw Button */}
         <Button
@@ -385,7 +383,10 @@ export default function Pochi() {
             </TabsContent>
           </Tabs>
         </div>
-      </div>
+        </>
+        )}
+
+        {/* Withdraw multi-step dialog */}
 
       <HelpButton />
       <BottomNav />
