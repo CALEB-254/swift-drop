@@ -279,6 +279,7 @@ export type Database = {
           receiver_name: string
           receiver_phone: string
           rejection_reason: string | null
+          release_code: string | null
           sender_address: string | null
           sender_name: string
           sender_phone: string
@@ -320,6 +321,7 @@ export type Database = {
           receiver_name: string
           receiver_phone: string
           rejection_reason?: string | null
+          release_code?: string | null
           sender_address?: string | null
           sender_name: string
           sender_phone: string
@@ -361,6 +363,7 @@ export type Database = {
           receiver_name?: string
           receiver_phone?: string
           rejection_reason?: string | null
+          release_code?: string | null
           sender_address?: string | null
           sender_name?: string
           sender_phone?: string
@@ -1057,6 +1060,10 @@ export type Database = {
         | { Args: { _package_ids: string[] }; Returns: Json }
         | { Args: { _package_ids: string[]; _pin: string }; Returns: Json }
       reject_conversion: { Args: { _package_id: string }; Returns: Json }
+      release_package: {
+        Args: { _package_id: string; _release_code: string }
+        Returns: Json
+      }
       setup_pochi_security: {
         Args: { _answer: string; _pin: string; _question: string }
         Returns: Json
