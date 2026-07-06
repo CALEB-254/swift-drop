@@ -109,9 +109,11 @@ export function AdminOrders({ data, onRefresh }: Props) {
     const balance = Number((data as any)?.balance_due ?? 0);
     const phone = (data as any)?.phone as string | undefined;
     if (balance > 0 && phone) {
+      let formattedPhone = phone.replace(/\s/g, '').replace(/^\+/, '').replace(/^0/, '254');
+      if (!formattedPhone.startsWith('254')) formattedPhone = '254' + formattedPhone;
       const { error: stkErr } = await supabase.functions.invoke('mpesa-payment', {
         body: {
-          phoneNumber: phone,
+          phoneNumber: formattedPhone,
           amount: balance,
           packageIds: [convertPkg.id],
           paymentMethod: 'stk_push',
@@ -120,7 +122,7 @@ export function AdminOrders({ data, onRefresh }: Props) {
       if (stkErr) {
         toast.error('Conversion applied, but STK push failed', { description: stkErr.message });
       } else {
-        toast.success(`Converted to Doorstep. STK push of KES ${balance} sent to ${phone}.`);
+        toast.success(`Converted to Doorstep. STK push of KES ${balance} sent to ${formattedPhone}.`);
       }
     } else {
       toast.success('Converted to Doorstep. No additional payment needed.');

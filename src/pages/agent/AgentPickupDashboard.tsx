@@ -17,6 +17,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Database } from '@/integrations/supabase/types';
 import { DeliveryType } from '@/types/delivery';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { KeyRound } from 'lucide-react';
 
 type PackageRow = Database['public']['Tables']['packages']['Row'];
 type PackageStatus = Database['public']['Enums']['package_status'];
@@ -98,6 +101,9 @@ export default function AgentPickupDashboard() {
   const [packages, setPackages] = useState<AgentPackage[]>([]);
   const [loading, setLoading] = useState(true);
   const [collectingId, setCollectingId] = useState<string | null>(null);
+  const [releasePkg, setReleasePkg] = useState<AgentPackage | null>(null);
+  const [releaseCode, setReleaseCode] = useState('');
+  const [releasing, setReleasing] = useState(false);
   
   const [activeTab, setActiveTab] = useState('packages');
   const [searchQuery, setSearchQuery] = useState('');
@@ -228,6 +234,36 @@ export default function AgentPickupDashboard() {
     );
   };
 
+  const openGiveOut = (pkg: AgentPackage) => {
+    setReleasePkg(pkg);
+    setReleaseCode('');
+  };
+
+  const confirmGiveOut = async () => {
+    if (!releasePkg) return;
+    if (!/^\d{6}$/.test(releaseCode)) { toast.error('Enter the 6-digit release code'); return; }
+    setReleasing(true);
+    const { error } = await supabase.rpc('release_package' as any, {
+      _package_id: releasePkg.id,
+      _release_code: releaseCode,
+    });
+    setReleasing(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success('Package released to receiver');
+    setReleasePkg(null);
+    setReleaseCode('');
+    fetchPackages();
+  };
+
+  const renderGiveOutAction = (pkg: AgentPackage) => {
+    if (pkg.status !== 'dropped_at_agent') return null;
+    return (
+      <Button size="sm" variant="secondary" className="w-full gap-2" onClick={() => openGiveOut(pkg)}>
+        <KeyRound className="w-4 h-4" /> Give Out
+      </Button>
+    );
+  };
+
   const NoAgentBanner = () => (
     <Card className="border-warning/40 bg-warning/5 mx-4 mt-4">
       <CardContent className="flex items-start gap-3 p-4">
@@ -269,6 +305,7 @@ export default function AgentPickupDashboard() {
             view.pkgs.map(pkg => (
               <PackageCard key={pkg.id} pkg={pkg} showPrint>
                 {renderCODAction(pkg)}
+                {renderGiveOutAction(pkg)}
               </PackageCard>
             ))
           ) : (
@@ -412,6 +449,7 @@ export default function AgentPickupDashboard() {
                 <PackageCard key={pkg.id} pkg={pkg} showPrint>
                   <p className="text-xs text-primary font-medium">✓ On shelf — awaiting collection</p>
                   {renderCODAction(pkg)}
+                  {renderGiveOutAction(pkg)}
                 </PackageCard>
               ))
             ) : (
@@ -427,6 +465,33 @@ export default function AgentPickupDashboard() {
       </div>
 
       <BottomNav />
+
+      <Dialog open={!!releasePkg} onOpenChange={(o) => { if (!o) { setReleasePkg(null); setReleaseCode(''); } }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Give Out — {releasePkg?.trackingNumber}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 pt-2">
+            <p className="text-sm text-muted-foreground">
+              Ask the receiver for their 6-digit release code and enter it below to complete handover.
+            </p>
+            <div className="space-y-1">
+              <Label>Release code</Label>
+              <Input
+                inputMode="numeric"
+                maxLength={6}
+                value={releaseCode}
+                onChange={(e) => setReleaseCode(e.target.value.replace(/\D/g, ''))}
+                placeholder="123456"
+              />
+            </div>
+            <Button onClick={confirmGiveOut} disabled={releasing} className="w-full">
+              {releasing ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+              Confirm Give Out
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

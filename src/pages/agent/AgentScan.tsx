@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ChevronLeft, ChevronRight, Package, Bike, ShoppingBag, Warehouse, PackageCheck, KeyRound } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Package, Bike, ShoppingBag, Warehouse } from 'lucide-react';
 import { BottomNav } from '@/components/BottomNav';
 
 const scanOptions = [
@@ -9,8 +9,6 @@ const scanOptions = [
   { icon: Bike, label: 'Doorstep', path: '/agent/scan/doorstep' },
   { icon: ShoppingBag, label: 'Errand', path: '/agent/scan/errand' },
   { icon: Warehouse, label: 'Create Sack for Warehouse Delivery', path: '/agent/scan/sack' },
-  { icon: PackageCheck, label: 'Receive Sack at Warehouse', path: '/agent/scan/warehouse' },
-  { icon: KeyRound, label: 'Release to Receiver (Release Code)', path: '/agent/scan/release' },
 ];
 
 export default function AgentScan() {
