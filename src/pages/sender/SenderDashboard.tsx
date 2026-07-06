@@ -557,7 +557,7 @@ export default function SenderDashboard() {
             <div className="space-y-3">
               {paginatedPackages.map((pkg) => (
                 <Card key={pkg.id} className="shadow-card hover:shadow-md transition-shadow">
-                  <Link to={`/sender/track?tracking=${pkg.trackingNumber}`}>
+                  <Link to={`/sender/track?q=${pkg.trackingNumber}`}>
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between mb-2">
                         <div>
