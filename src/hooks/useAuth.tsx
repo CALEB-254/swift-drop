@@ -102,6 +102,11 @@ export function useAuth() {
       password,
       options: {
         emailRedirectTo: window.location.origin,
+        data: {
+          full_name: fullName,
+          phone,
+          role,
+        },
       },
     });
 
@@ -109,19 +114,13 @@ export function useAuth() {
       throw error;
     }
 
-    if (data.user) {
-      // Create profile
-      const { error: profileError } = await supabase.from('profiles').insert({
-        user_id: data.user.id,
-        full_name: fullName,
-        phone,
-        address,
-        role,
-      });
-
-      if (profileError) {
-        throw profileError;
-      }
+    // The handle_new_user trigger creates the profile + default user_roles entry
+    // using the metadata above. Only patch the address (not covered by the trigger).
+    if (data.user && address) {
+      await supabase
+        .from('profiles')
+        .update({ address })
+        .eq('user_id', data.user.id);
     }
 
     return data;
