@@ -377,7 +377,7 @@ async function printViaBluetooth(pkg: ReceiptPkg) {
 }
 
 function generateReceiptHTML(pkg: ReceiptPkg) {
-  return `<div style="font-family:monospace;max-width:320px;margin:auto;padding:24px;color:#000">
+  return <div style="font-family:monospace;max-width:320px;margin:auto;padding:24px;color:#000">
     <div style="text-align:center;border-bottom:2px dashed #ccc;padding-bottom:16px;margin-bottom:16px">
       <h1 style="font-size:20px;font-weight:bold">SWIFTDROP</h1>
       <p style="font-size:12px;color:#666">Delivery Receipt</p>
