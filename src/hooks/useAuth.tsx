@@ -114,6 +114,10 @@ export function useAuth() {
       throw error;
     }
 
+    if (!data.user) {
+      throw new Error('Account creation did not complete. Please try again.');
+    }
+
     // The handle_new_user trigger creates the profile + default user_roles entry
     // using the metadata above. Only patch the address (not covered by the trigger).
     if (data.user && address) {
