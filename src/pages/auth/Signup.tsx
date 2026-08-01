@@ -83,7 +83,8 @@ export default function Signup() {
   };
 
   useEffect(() => {
-    if (!authLoading && user && profile) {
+    const verified = !!(user as any)?.email_confirmed_at || !!(user as any)?.confirmed_at;
+    if (!authLoading && user && profile && verified) {
       navigate(profile.role === 'agent' ? '/agent' : '/sender');
     }
   }, [user, profile, authLoading, navigate]);
