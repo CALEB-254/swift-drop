@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { SocialLoginButtons } from '@/components/SocialLoginButtons';
 import { useAuthContext } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Package, ArrowLeft, Eye, EyeOff, User, Truck } from 'lucide-react';
 
@@ -24,6 +25,15 @@ function normalizePhone(raw: string): string | null {
 
 function friendlySignupError(error: any): string {
   const msg = String(error?.message || '').toLowerCase();
+  if (msg.includes('already linked to another account')) {
+    return 'This phone number is already linked to another account. Sign in with that account, or use a different number and try again.';
+  }
+  if (msg.includes('invalid phone')) {
+    return 'That phone number was rejected by the server. Enter a valid Kenyan number, e.g. 0712 345 678, and try again.';
+  }
+  if (msg.includes('invalid full name')) {
+    return 'That name was rejected by the server. Use letters only (at least 3 characters) and try again.';
+  }
   if (msg.includes('already registered') || msg.includes('already been registered') || msg.includes('user already exists')) {
     return 'An account with this email already exists. Try signing in instead, or use "Forgot password".';
   }
@@ -64,6 +74,13 @@ export default function Signup() {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState<string | null>(null);
+  const formErrorRef = useRef<HTMLDivElement>(null);
+
+  const focusField = (field: string) => {
+    const el = document.getElementById(field) as HTMLInputElement | null;
+    el?.focus();
+    el?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  };
 
   useEffect(() => {
     if (!authLoading && user && profile) {
@@ -105,19 +122,33 @@ export default function Signup() {
     setFormError(null);
     const { next, fullName } = validate();
     setErrors(next);
+    const order = ['fullName', 'email', 'phone', 'password', 'confirmPassword'];
     if (Object.keys(next).length > 0) {
+      focusField(order.find((f) => next[f]) || 'fullName');
       toast.error('Please fix the highlighted fields before continuing');
       return;
     }
     const phone = normalizePhone(formData.phone)!;
     setLoading(true);
     try {
+      const { data: taken } = await supabase.rpc('phone_in_use', { _phone: phone });
+      if (taken) {
+        const msg = 'This phone number is already linked to an account. Sign in instead, or use a different number and tap "Create Account" again.';
+        setErrors((prev) => ({ ...prev, phone: msg }));
+        setFormError(msg);
+        focusField('phone');
+        toast.error(msg);
+        return;
+      }
       await signUp(formData.email.trim(), formData.password, fullName, phone, formData.role, formData.address.trim() || undefined);
-      toast.success('Account created successfully!');
-      if (formData.role === 'agent') { navigate('/agent'); } else { navigate('/sender'); }
+      toast.success('Account created! Check your email for the 6-digit verification code.');
+      navigate(`/auth/verify?email=${encodeURIComponent(formData.email.trim())}&type=signup`);
     } catch (error: any) {
       const message = friendlySignupError(error);
       setFormError(message);
+      if (/phone/i.test(message)) { setErrors((p) => ({ ...p, phone: message })); focusField('phone'); }
+      else if (/name/i.test(message)) { setErrors((p) => ({ ...p, fullName: message })); focusField('fullName'); }
+      else { setTimeout(() => formErrorRef.current?.focus(), 0); }
       toast.error(message);
     } finally {
       setLoading(false);
@@ -145,9 +176,9 @@ export default function Signup() {
             <CardDescription>Join SwiftDrop to start sending or delivering packages</CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4" noValidate>
               {formError && (
-                <div role="alert" className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
+                <div ref={formErrorRef} tabIndex={-1} role="alert" aria-live="assertive" className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive outline-none">
                   <p className="font-semibold">Couldn't create your account</p>
                   <p className="mt-1">{formError}</p>
                 </div>
@@ -174,20 +205,20 @@ export default function Signup() {
 
               <div className="space-y-2">
                 <Label htmlFor="fullName">Full Name</Label>
-                <Input id="fullName" type="text" autoComplete="name" placeholder="e.g. Jane Wanjiku" value={formData.fullName} onChange={(e) => handleChange('fullName', e.target.value)} aria-invalid={!!errors.fullName} className="h-12" />
-                {errors.fullName && <p className="text-sm text-destructive">{errors.fullName}</p>}
+                <Input id="fullName" type="text" autoComplete="name" placeholder="e.g. Jane Wanjiku" value={formData.fullName} onChange={(e) => handleChange('fullName', e.target.value)} aria-invalid={!!errors.fullName} aria-describedby={errors.fullName ? 'fullName-error' : undefined} aria-required="true" className="h-12" />
+                {errors.fullName && <p id="fullName-error" role="alert" className="text-sm text-destructive">{errors.fullName}</p>}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" autoComplete="email" placeholder="you@example.com" value={formData.email} onChange={(e) => handleChange('email', e.target.value)} aria-invalid={!!errors.email} className="h-12" />
-                {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
+                <Input id="email" type="email" autoComplete="email" placeholder="you@example.com" value={formData.email} onChange={(e) => handleChange('email', e.target.value)} aria-invalid={!!errors.email} aria-describedby={errors.email ? 'email-error' : undefined} aria-required="true" className="h-12" />
+                {errors.email && <p id="email-error" role="alert" className="text-sm text-destructive">{errors.email}</p>}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="phone">Phone Number</Label>
-                <Input id="phone" type="tel" inputMode="tel" autoComplete="tel" placeholder="0712 345 678" value={formData.phone} onChange={(e) => handleChange('phone', e.target.value)} aria-invalid={!!errors.phone} className="h-12" />
+                <Input id="phone" type="tel" inputMode="tel" autoComplete="tel" placeholder="0712 345 678" value={formData.phone} onChange={(e) => handleChange('phone', e.target.value)} aria-invalid={!!errors.phone} aria-describedby={errors.phone ? 'phone-error' : 'phone-hint'} aria-required="true" className="h-12" />
                 {errors.phone
-                  ? <p className="text-sm text-destructive">{errors.phone}</p>
-                  : <p className="text-xs text-muted-foreground">Kenyan number — saved as +254…</p>}
+                  ? <p id="phone-error" role="alert" className="text-sm text-destructive">{errors.phone}</p>
+                  : <p id="phone-hint" className="text-xs text-muted-foreground">Kenyan number — saved as +254…</p>}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="address">Address (Optional)</Label>
@@ -196,17 +227,17 @@ export default function Signup() {
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
                 <div className="relative">
-                  <Input id="password" type={showPassword ? 'text' : 'password'} autoComplete="new-password" placeholder="At least 6 characters" value={formData.password} onChange={(e) => handleChange('password', e.target.value)} aria-invalid={!!errors.password} className="h-12 pr-12" />
-                  <Button type="button" variant="ghost" size="icon" className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8" onClick={() => setShowPassword(!showPassword)}>
+                  <Input id="password" type={showPassword ? 'text' : 'password'} autoComplete="new-password" placeholder="At least 6 characters" value={formData.password} onChange={(e) => handleChange('password', e.target.value)} aria-invalid={!!errors.password} aria-describedby={errors.password ? 'password-error' : undefined} aria-required="true" className="h-12 pr-12" />
+                  <Button type="button" variant="ghost" size="icon" aria-label={showPassword ? 'Hide password' : 'Show password'} className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8" onClick={() => setShowPassword(!showPassword)}>
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </Button>
                 </div>
-                {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
+                {errors.password && <p id="password-error" role="alert" className="text-sm text-destructive">{errors.password}</p>}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword">Confirm Password</Label>
-                <Input id="confirmPassword" type={showPassword ? 'text' : 'password'} autoComplete="new-password" placeholder="Re-enter your password" value={formData.confirmPassword} onChange={(e) => handleChange('confirmPassword', e.target.value)} aria-invalid={!!errors.confirmPassword} className="h-12" />
-                {errors.confirmPassword && <p className="text-sm text-destructive">{errors.confirmPassword}</p>}
+                <Input id="confirmPassword" type={showPassword ? 'text' : 'password'} autoComplete="new-password" placeholder="Re-enter your password" value={formData.confirmPassword} onChange={(e) => handleChange('confirmPassword', e.target.value)} aria-invalid={!!errors.confirmPassword} aria-describedby={errors.confirmPassword ? 'confirmPassword-error' : undefined} aria-required="true" className="h-12" />
+                {errors.confirmPassword && <p id="confirmPassword-error" role="alert" className="text-sm text-destructive">{errors.confirmPassword}</p>}
               </div>
               <Button type="submit" className="w-full h-12 text-base font-semibold" disabled={loading}>
                 {loading ? 'Creating Account...' : 'Create Account'}
