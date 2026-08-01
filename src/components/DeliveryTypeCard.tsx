@@ -1,15 +1,15 @@
-import { LucideIcon } from 'lucide-react';
+import { ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 
 interface DeliveryTypeCardProps {
-  icon: LucideIcon;
+  icon: ReactNode;
   title: string;
   description: string;
   selected?: boolean;
   onClick?: () => void;
 }
 
-export function DeliveryTypeCard({ icon: Icon, title, description, selected, onClick }: DeliveryTypeCardProps) {
+export function DeliveryTypeCard({ icon, title, description, selected, onClick }: DeliveryTypeCardProps) {
   return (
     <button
       type="button"
@@ -21,7 +21,7 @@ export function DeliveryTypeCard({ icon: Icon, title, description, selected, onC
       )}
     >
       <div className={cn('flex h-11 w-11 shrink-0 items-center justify-center rounded-lg', selected ? 'bg-primary text-primary-foreground' : 'bg-muted text-foreground')}>
-        {Icon && <Icon className="h-5 w-5" />}
+        {icon}
       </div>
       <div className="min-w-0">
         <p className="font-semibold">{title}</p>
