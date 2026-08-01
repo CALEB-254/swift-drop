@@ -393,7 +393,7 @@ function generateReceiptHTML(pkg: ReceiptPkg) {
       ${row('RECEIVER', pkg.receiverName)}
       ${row('TO', pkg.receiverAddress)}
       ${row('PICKUP POINT', pkg.pickupPoint)}
-      ${row('TYPE', getDeliveryTypeName(pkg.deliveryType))}
+      ${row('TYPE', pkg.deliveryType)}
       ${row('WEIGHT (KG)', pkg.weight ?? 0)}
       ${row('VALUE (KES)', pkg.packageValue)}
       ${row('DESCRIPTION', pkg.packageDescription)}
@@ -402,7 +402,7 @@ function generateReceiptHTML(pkg: ReceiptPkg) {
         <p style="text-align:center;font-weight:bold;margin:0 0 4px">TERMS &amp; CONDITIONS</p>
         <p style="margin:0">You MUST declare parcel VALUE. Above Ksh.5000 to be insured by SENDER. Compensation is up to Ksh.5000. Perishable &amp; Fragile not compensated. FRAGILE ITEMS SENT AT OWNERS RISK</p>
       </div>
-      <p style="text-align:center;margin:4px 0">Printed on: ${esc(format(new Date(), 'dd MMM yyyy hh:mm a'))}</p>
+      <p style="text-align:center;margin:4px 0">Printed on: ${esc(new Date().toLocaleString())}</p>
       <p style="text-align:center;margin:4px 0">POWERED BY SWIFTDROP</p>
     </div>
   `;
