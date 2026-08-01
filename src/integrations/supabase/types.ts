@@ -1056,9 +1056,11 @@ export type Database = {
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
       is_super_admin: { Args: { _user_id: string }; Returns: boolean }
+      normalize_ke_phone: { Args: { _raw: string }; Returns: string }
       pay_with_pochi:
         | { Args: { _package_ids: string[] }; Returns: Json }
         | { Args: { _package_ids: string[]; _pin: string }; Returns: Json }
+      phone_in_use: { Args: { _phone: string }; Returns: boolean }
       reject_conversion: { Args: { _package_id: string }; Returns: Json }
       release_package: {
         Args: { _package_id: string; _release_code: string }
