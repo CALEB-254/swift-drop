@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { supabase } from '@/integrations/supabase/client';
+import { lovable } from '@/integrations/lovable/index';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 
@@ -12,37 +12,37 @@ export function SocialLoginButtons({ mode = 'login' }: SocialLoginButtonsProps) 
   const [loadingGoogle, setLoadingGoogle] = useState(false);
   const [loadingApple, setLoadingApple] = useState(false);
 
-  const handleGoogleLogin = async () => {
-    setLoadingGoogle(true);
+  const signIn = async (
+    provider: 'google' | 'apple',
+    setLoading: (v: boolean) => void,
+  ) => {
+    setLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-        },
+      const result = await lovable.auth.signInWithOAuth(provider, {
+        redirect_uri: `${window.location.origin}/auth/callback`,
       });
-      if (error) throw error;
+
+      if (result.error) {
+        toast.error(
+          result.error.message ||
+            `Couldn't sign in with ${provider === 'google' ? 'Google' : 'Apple'}. Please try again.`,
+        );
+        setLoading(false);
+        return;
+      }
+
+      if (result.redirected) return; // browser navigates away
+
+      // Session already set by the helper
+      window.location.href = '/auth/callback';
     } catch (error: any) {
-      toast.error(error.message || 'Failed to sign in with Google');
-      setLoadingGoogle(false);
+      toast.error(error?.message || 'Sign-in failed. Please try again.');
+      setLoading(false);
     }
   };
 
-  const handleAppleLogin = async () => {
-    setLoadingApple(true);
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'apple',
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-        },
-      });
-      if (error) throw error;
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to sign in with Apple');
-      setLoadingApple(false);
-    }
-  };
+  const handleGoogleLogin = () => signIn('google', setLoadingGoogle);
+  const handleAppleLogin = () => signIn('apple', setLoadingApple);
 
   return (
     <div className="space-y-3">
