@@ -42,7 +42,7 @@ export default function Login() {
     if (!loading && user) {
       const emailVerified = !!user.email_confirmed_at;
       if (!emailVerified && user.email) {
-        navigate(`/auth/verify?email=${encodeURIComponent(user.email)}&type=signup`);
+        navigate(`/auth/verify?email=${encodeURIComponent(user.email)}&type=signup&reason=unverified`);
         return;
       }
       const redirectPath =
@@ -67,8 +67,8 @@ export default function Login() {
       const msg = friendlyAuthError(error?.message);
       setFormError(msg);
       toast.error(msg);
-      if (/verify your email/i.test(msg) && email) {
-        navigate(`/auth/verify?email=${encodeURIComponent(email)}&type=signup`);
+      if (/verify your email|not confirmed|unverified/i.test(msg) && email) {
+        navigate(`/auth/verify?email=${encodeURIComponent(email)}&type=signup&reason=unverified`);
       }
     } finally {
       setSubmitting(false);

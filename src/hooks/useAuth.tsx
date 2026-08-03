@@ -16,6 +16,15 @@ interface Profile {
   updated_at: string;
 }
 
+export function normalizePhone(raw: string): string | null {
+  const digits = (raw || '').replace(/[^\d+]/g, '');
+  let n = digits.replace(/^\+/, '');
+  if (n.startsWith('0')) n = '254' + n.slice(1);
+  if (n.startsWith('7') || n.startsWith('1')) n = '254' + n;
+  if (!/^254[17]\d{8}$/.test(n)) return null;
+  return '+' + n;
+}
+
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -97,6 +106,24 @@ export function useAuth() {
     role: 'sender' | 'agent',
     address?: string
   ) => {
+    const normalizedPhone = normalizePhone(phone);
+    if (!normalizedPhone) {
+      throw new Error('Enter a valid Kenyan phone number (e.g. 0712345678).');
+    }
+    if (!fullName || fullName.trim().length < 3) {
+      throw new Error('Please enter your full name (at least 3 characters).');
+    }
+
+    // Block duplicate accounts for the same phone before creating the user.
+    const { data: inUse } = await supabase.rpc('phone_in_use' as any, {
+      _phone: normalizedPhone,
+    });
+    if (inUse === true) {
+      throw new Error(
+        'An account already uses this phone number. Sign in instead, or use a different number.',
+      );
+    }
+
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -104,7 +131,7 @@ export function useAuth() {
         emailRedirectTo: window.location.origin,
         data: {
           full_name: fullName,
-          phone,
+          phone: normalizedPhone,
           role,
         },
       },
