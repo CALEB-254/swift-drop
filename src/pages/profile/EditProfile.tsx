@@ -158,7 +158,7 @@ export default function EditProfile() {
                 <button
                   type="button"
                   onClick={handleAvatarClick}
-                  disabled={uploadingAvatar}
+                  disabled={uploadingAvatar || locked}
                   className="absolute bottom-0 right-0 w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center shadow-lg hover:bg-primary/90 disabled:opacity-50"
                 >
                   {uploadingAvatar ? (
@@ -180,6 +180,15 @@ export default function EditProfile() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
+              {locked && (
+                <div className="flex items-start gap-3 rounded-lg border border-warning/40 bg-warning/10 p-3 text-sm">
+                  <Lock className="mt-0.5 h-4 w-4 text-warning" />
+                  <p>
+                    Your account is managed by an administrator. Contact support to update
+                    your details.
+                  </p>
+                </div>
+              )}
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
@@ -203,6 +212,7 @@ export default function EditProfile() {
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   required
+                  disabled={locked}
                   className="h-12"
                 />
               </div>
@@ -216,6 +226,7 @@ export default function EditProfile() {
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   required
+                  disabled={locked}
                   className="h-12"
                 />
               </div>
@@ -227,6 +238,7 @@ export default function EditProfile() {
                   placeholder="Enter your address (optional)"
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
+                  disabled={locked}
                   className="min-h-[100px] resize-none"
                 />
               </div>
@@ -235,7 +247,7 @@ export default function EditProfile() {
                 <Button
                   type="submit"
                   className="w-full h-12 text-base font-semibold"
-                  disabled={loading}
+                  disabled={loading || locked}
                 >
                   {loading ? (
                     <>
