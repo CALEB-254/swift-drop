@@ -54,8 +54,8 @@ export interface DeliveryPricing {
 }
 
 export const DELIVERY_PRICING: DeliveryPricing = {
-  pickupPointCost: 150,
-  doorstepCost: 300,
+  pickupPointCost: 120,
+  doorstepCost: 250,
   errandCost: 70,
   commissionRate: 0.15,
 };
@@ -64,51 +64,24 @@ export const DELIVERY_TYPES = [
   {
     id: 'pickup_point' as DeliveryType,
     name: 'Agent Pickup Point',
-    description: 'Pick a package from your local mtaani agents across Kenya.',
+    description: 'Pick a package from your Nearest pickup agents across Kenya.',
     icon: 'store',
-    cost: 150,
+    cost: 120,
   },
   {
     id: 'doorstep' as DeliveryType,
     name: 'Doorstep Delivery',
     description: 'Get your package delivered straight to your home.',
     icon: 'truck',
-    cost: 300,
+    cost: 250,
   },
   {
     id: 'errand' as DeliveryType,
     name: 'Errand Parcel',
-    description: 'Pick your package from your favourite parcel provider. Eg. SuperMetro, 2NK etc',
+    description: 'Pick your package from your favourite parcel provider. Eg. Ena Coach, Buscar, 2NK etc',
     icon: 'bus',
     cost: 70,
   },
-];
-
-export const PICKUP_POINTS = [
-  { id: '1', name: 'Central Hub - Downtown', address: '123 Main Street, Downtown' },
-  { id: '2', name: 'East Point Station', address: '456 East Avenue, Eastside' },
-  { id: '3', name: 'West Mall Collection', address: '789 West Boulevard, Westgate' },
-  { id: '4', name: 'North Terminal', address: '321 North Road, Northville' },
-  { id: '5', name: 'South Plaza Hub', address: '654 South Lane, Southpark' },
-];
-
-export const AREAS = [
-  'Nairobi CBD',
-  'Westlands',
-  'Kilimani',
-  'Karen',
-  'Lavington',
-  'Kileleshwa',
-  'Parklands',
-  'Ruaka',
-  'Juja',
-  'Thika',
-  'Kitengela',
-  'Ongata Rongai',
-  'Kasarani',
-  'Embakasi',
-  'South B',
-  'South C',
 ];
 
 export const PACKAGING_COLORS = [
