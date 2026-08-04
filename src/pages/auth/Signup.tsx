@@ -68,7 +68,6 @@ export default function Signup() {
     address: '',
     password: '',
     confirmPassword: '',
-    role: 'sender' as 'sender' | 'agent',
   });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -141,7 +140,7 @@ export default function Signup() {
         toast.error(msg);
         return;
       }
-      await signUp(formData.email.trim(), formData.password, fullName, phone, formData.role, formData.address.trim() || undefined);
+      await signUp(formData.email.trim(), formData.password, fullName, phone, 'sender', formData.address.trim() || undefined);
       toast.success('Account created! Check your email for the 6-digit verification code.');
       navigate(`/auth/verify?email=${encodeURIComponent(formData.email.trim())}&type=signup`);
     } catch (error: any) {
@@ -184,24 +183,14 @@ export default function Signup() {
                   <p className="mt-1">{formError}</p>
                 </div>
               )}
-              <div className="space-y-2">
-                <Label>I want to</Label>
-                <RadioGroup value={formData.role} onValueChange={(value) => handleChange('role', value)} className="grid grid-cols-2 gap-3">
-                  <div className="relative">
-                    <RadioGroupItem value="sender" id="sender" className="peer sr-only" />
-                    <Label htmlFor="sender" className="flex flex-col items-center gap-2 p-4 rounded-xl border-2 cursor-pointer transition-all peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5">
-                      <User className="h-6 w-6" />
-                      <span className="font-medium">Send Packages</span>
-                    </Label>
-                  </div>
-                  <div className="relative">
-                    <RadioGroupItem value="agent" id="agent" className="peer sr-only" />
-                    <Label htmlFor="agent" className="flex flex-col items-center gap-2 p-4 rounded-xl border-2 cursor-pointer transition-all peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5">
-                      <Truck className="h-6 w-6" />
-                      <span className="font-medium">Deliver Packages</span>
-                    </Label>
-                  </div>
-                </RadioGroup>
+              <div className="rounded-xl border-2 border-primary/40 bg-primary/5 p-4 flex items-start gap-3">
+                <User className="h-5 w-5 mt-0.5 text-primary" />
+                <div>
+                  <p className="font-medium">Sender account</p>
+                  <p className="text-xs text-muted-foreground">
+                    Sign-up creates a sender account. Rider and agent accounts are created by an administrator.
+                  </p>
+                </div>
               </div>
 
               <div className="space-y-2">

@@ -19,6 +19,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { BottomNav } from '@/components/BottomNav';
+import { StkWaitingAnimation } from '@/components/StkWaitingAnimation';
 import { format } from 'date-fns';
 import { DELIVERY_TYPES } from '@/types/delivery';
 import {
@@ -594,10 +595,7 @@ export default function Cart() {
             <DialogDescription asChild>
               <div>
               {paymentStatus === 'processing' && (
-                <div className="text-center py-8">
-                  <Loader2 className="w-12 h-12 animate-spin text-primary mx-auto mb-4" />
-                  <p>Please check your phone and enter your M-Pesa PIN...</p>
-                </div>
+                <StkWaitingAnimation amount={totalAmount} phone={phoneNumber} />
               )}
               {paymentStatus === 'success' && (
                 <div className="text-center py-8">

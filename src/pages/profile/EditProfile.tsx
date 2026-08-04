@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { BottomNav } from '@/components/BottomNav';
 import { toast } from 'sonner';
-import { ArrowLeft, Camera, Loader2, User } from 'lucide-react';
+import { ArrowLeft, Camera, Loader2, User, Lock } from 'lucide-react';
 
 export default function EditProfile() {
   const navigate = useNavigate();
@@ -23,6 +23,20 @@ export default function EditProfile() {
   const [avatarUrl, setAvatarUrl] = useState(profile?.avatar_url || '');
   const [loading, setLoading] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [isRider, setIsRider] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from('riders')
+      .select('id')
+      .eq('user_id', user.id)
+      .maybeSingle()
+      .then(({ data }) => setIsRider(!!data));
+  }, [user]);
+
+  // Agent and rider accounts are provisioned by admins and cannot self-edit.
+  const locked = profile?.role === 'agent' || isRider;
 
   const getInitials = (name: string) => {
     return name
@@ -84,6 +98,10 @@ export default function EditProfile() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !profile) return;
+    if (locked) {
+      toast.error('Your profile is managed by an administrator');
+      return;
+    }
 
     setLoading(true);
 
@@ -140,7 +158,7 @@ export default function EditProfile() {
                 <button
                   type="button"
                   onClick={handleAvatarClick}
-                  disabled={uploadingAvatar}
+                  disabled={uploadingAvatar || locked}
                   className="absolute bottom-0 right-0 w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center shadow-lg hover:bg-primary/90 disabled:opacity-50"
                 >
                   {uploadingAvatar ? (
@@ -162,6 +180,15 @@ export default function EditProfile() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
+              {locked && (
+                <div className="flex items-start gap-3 rounded-lg border border-warning/40 bg-warning/10 p-3 text-sm">
+                  <Lock className="mt-0.5 h-4 w-4 text-warning" />
+                  <p>
+                    Your account is managed by an administrator. Contact support to update
+                    your details.
+                  </p>
+                </div>
+              )}
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
@@ -185,6 +212,7 @@ export default function EditProfile() {
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   required
+                  disabled={locked}
                   className="h-12"
                 />
               </div>
@@ -198,6 +226,7 @@ export default function EditProfile() {
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   required
+                  disabled={locked}
                   className="h-12"
                 />
               </div>
@@ -209,6 +238,7 @@ export default function EditProfile() {
                   placeholder="Enter your address (optional)"
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
+                  disabled={locked}
                   className="min-h-[100px] resize-none"
                 />
               </div>
@@ -217,7 +247,7 @@ export default function EditProfile() {
                 <Button
                   type="submit"
                   className="w-full h-12 text-base font-semibold"
-                  disabled={loading}
+                  disabled={loading || locked}
                 >
                   {loading ? (
                     <>

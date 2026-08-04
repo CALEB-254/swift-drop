@@ -15,6 +15,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { STATUS_LABELS, type PackageStatus } from '@/types/delivery';
+import { StkWaitingAnimation } from '@/components/StkWaitingAnimation';
 import type { AdminData } from '@/pages/admin/AdminDashboard';
 
 interface Props { data: AdminData; onRefresh: () => void; }
@@ -33,6 +34,9 @@ export function AdminOrders({ data, onRefresh }: Props) {
   const [convertPkg, setConvertPkg] = useState<any>(null);
   const [convertCost, setConvertCost] = useState('300');
   const [converting, setConverting] = useState(false);
+  const [convertAddress, setConvertAddress] = useState('');
+  const [convertPhone, setConvertPhone] = useState('');
+  const [stkWaiting, setStkWaiting] = useState<{ amount: number; phone: string } | null>(null);
   const [newPkg, setNewPkg] = useState({
     user_id: '', sender_name: '', sender_phone: '',
     receiver_name: '', receiver_phone: '', receiver_address: '',
@@ -100,17 +104,24 @@ export function AdminOrders({ data, onRefresh }: Props) {
     if (!convertPkg) return;
     const newCost = Number(convertCost);
     if (!newCost || newCost <= 0) { toast.error('Enter a valid cost'); return; }
+    if (!convertAddress.trim()) { toast.error('Enter the doorstep delivery location'); return; }
+    let formattedPhone = convertPhone.replace(/\s/g, '').replace(/^\+/, '').replace(/^0/, '254');
+    if (!formattedPhone.startsWith('254')) formattedPhone = '254' + formattedPhone;
+    if (!/^254[17]\d{8}$/.test(formattedPhone)) { toast.error('Enter a valid M-Pesa phone number'); return; }
     setConverting(true);
     const { data, error } = await supabase.rpc('admin_convert_to_doorstep' as any, {
       _package_id: convertPkg.id,
       _new_cost: newCost,
     });
     if (error) { setConverting(false); toast.error(error.message); return; }
+    const { error: addrErr } = await supabase
+      .from('packages')
+      .update({ receiver_address: convertAddress.trim() })
+      .eq('id', convertPkg.id);
+    if (addrErr) toast.error('Location not saved: ' + addrErr.message);
     const balance = Number((data as any)?.balance_due ?? 0);
-    const phone = (data as any)?.phone as string | undefined;
-    if (balance > 0 && phone) {
-      let formattedPhone = phone.replace(/\s/g, '').replace(/^\+/, '').replace(/^0/, '254');
-      if (!formattedPhone.startsWith('254')) formattedPhone = '254' + formattedPhone;
+    if (balance > 0) {
+      setStkWaiting({ amount: balance, phone: formattedPhone });
       const { error: stkErr } = await supabase.functions.invoke('mpesa-payment', {
         body: {
           phoneNumber: formattedPhone,
@@ -120,6 +131,7 @@ export function AdminOrders({ data, onRefresh }: Props) {
         },
       });
       if (stkErr) {
+        setStkWaiting(null);
         toast.error('Conversion applied, but STK push failed', { description: stkErr.message });
       } else {
         toast.success(`Converted to Doorstep. STK push of KES ${balance} sent to ${formattedPhone}.`);
@@ -226,7 +238,7 @@ export function AdminOrders({ data, onRefresh }: Props) {
                   <Truck className="w-4 h-4" />
                 </Button>
                 {pkg.delivery_type !== 'doorstep' && (
-                  <Button variant="ghost" size="sm" title="Convert to Doorstep" onClick={() => { setConvertPkg(pkg); setConvertCost('300'); }}>
+                <Button variant="ghost" size="sm" title="Convert to Doorstep" onClick={() => { setConvertPkg(pkg); setConvertCost('300'); setConvertAddress(pkg.receiver_address || ''); setConvertPhone(pkg.sender_phone || ''); }}>
                     <ArrowRightLeft className="w-4 h-4" />
                   </Button>
                 )}
@@ -431,10 +443,35 @@ export function AdminOrders({ data, onRefresh }: Props) {
             <div className="space-y-2">
               <Label>New doorstep cost (KES)</Label>
               <Input type="number" value={convertCost} onChange={e => setConvertCost(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label>Doorstep delivery location</Label>
+              <Input
+                value={convertAddress}
+                onChange={e => setConvertAddress(e.target.value)}
+                placeholder="e.g. Kilimani, Argwings Kodhek Rd, Apt 4B"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>M-Pesa phone number for the prompt</Label>
+              <Input
+                value={convertPhone}
+                onChange={e => setConvertPhone(e.target.value)}
+                placeholder="0712345678"
+              />
+            </div>
+            <div className="rounded-lg border bg-muted/40 p-3">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Balance to prompt</span>
+                <span className="text-lg font-bold text-primary">
+                  KES {convertPkg?.payment_status === 'paid'
+                    ? Math.max(Number(convertCost || 0) - Number(convertPkg?.cost || 0), 0)
+                    : Number(convertCost || 0)}
+                </span>
+              </div>
               {convertPkg?.payment_status === 'paid' && (
-                <p className="text-xs text-warning">
-                  Sender already paid KES {convertPkg?.cost}. They will be prompted only for the balance
-                  ({Math.max(Number(convertCost) - Number(convertPkg?.cost || 0), 0)} KES).
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Sender already paid KES {convertPkg?.cost}; only the balance is charged.
                 </p>
               )}
             </div>
@@ -442,6 +479,17 @@ export function AdminOrders({ data, onRefresh }: Props) {
               {converting ? 'Converting...' : 'Convert'}
             </Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* STK waiting animation */}
+      <Dialog open={!!stkWaiting} onOpenChange={o => !o && setStkWaiting(null)}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader><DialogTitle>Awaiting sender confirmation</DialogTitle></DialogHeader>
+          <StkWaitingAnimation amount={stkWaiting?.amount} phone={stkWaiting?.phone} />
+          <Button variant="outline" className="w-full" onClick={() => { setStkWaiting(null); onRefresh(); }}>
+            Close
+          </Button>
         </DialogContent>
       </Dialog>
     </div>
