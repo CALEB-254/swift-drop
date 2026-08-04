@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { BottomNav } from '@/components/BottomNav';
 import { toast } from 'sonner';
-import { ArrowLeft, Camera, Loader2, User } from 'lucide-react';
+import { ArrowLeft, Camera, Loader2, User, Lock } from 'lucide-react';
 
 export default function EditProfile() {
   const navigate = useNavigate();
@@ -23,6 +23,20 @@ export default function EditProfile() {
   const [avatarUrl, setAvatarUrl] = useState(profile?.avatar_url || '');
   const [loading, setLoading] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [isRider, setIsRider] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from('riders')
+      .select('id')
+      .eq('user_id', user.id)
+      .maybeSingle()
+      .then(({ data }) => setIsRider(!!data));
+  }, [user]);
+
+  // Agent and rider accounts are provisioned by admins and cannot self-edit.
+  const locked = profile?.role === 'agent' || isRider;
 
   const getInitials = (name: string) => {
     return name
