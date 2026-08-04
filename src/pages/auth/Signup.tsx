@@ -140,7 +140,7 @@ export default function Signup() {
         toast.error(msg);
         return;
       }
-      await signUp(formData.email.trim(), formData.password, fullName, phone, formData.role, formData.address.trim() || undefined);
+      await signUp(formData.email.trim(), formData.password, fullName, phone, 'sender', formData.address.trim() || undefined);
       toast.success('Account created! Check your email for the 6-digit verification code.');
       navigate(`/auth/verify?email=${encodeURIComponent(formData.email.trim())}&type=signup`);
     } catch (error: any) {
