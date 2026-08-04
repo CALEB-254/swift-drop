@@ -238,7 +238,7 @@ export function AdminOrders({ data, onRefresh }: Props) {
                   <Truck className="w-4 h-4" />
                 </Button>
                 {pkg.delivery_type !== 'doorstep' && (
-                  <Button variant="ghost" size="sm" title="Convert to Doorstep" onClick={() => { setConvertPkg(pkg); setConvertCost('300'); }}>
+                <Button variant="ghost" size="sm" title="Convert to Doorstep" onClick={() => { setConvertPkg(pkg); setConvertCost('300'); setConvertAddress(pkg.receiver_address || ''); setConvertPhone(pkg.sender_phone || ''); }}>
                     <ArrowRightLeft className="w-4 h-4" />
                   </Button>
                 )}
