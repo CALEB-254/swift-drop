@@ -98,6 +98,10 @@ export default function EditProfile() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !profile) return;
+    if (locked) {
+      toast.error('Your profile is managed by an administrator');
+      return;
+    }
 
     setLoading(true);
 
