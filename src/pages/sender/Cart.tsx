@@ -594,10 +594,7 @@ export default function Cart() {
             <DialogDescription asChild>
               <div>
               {paymentStatus === 'processing' && (
-                <div className="text-center py-8">
-                  <Loader2 className="w-12 h-12 animate-spin text-primary mx-auto mb-4" />
-                  <p>Please check your phone and enter your M-Pesa PIN...</p>
-                </div>
+                <StkWaitingAnimation amount={totalAmount} phone={phoneNumber} />
               )}
               {paymentStatus === 'success' && (
                 <div className="text-center py-8">
