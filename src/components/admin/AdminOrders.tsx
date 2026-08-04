@@ -443,10 +443,35 @@ export function AdminOrders({ data, onRefresh }: Props) {
             <div className="space-y-2">
               <Label>New doorstep cost (KES)</Label>
               <Input type="number" value={convertCost} onChange={e => setConvertCost(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label>Doorstep delivery location</Label>
+              <Input
+                value={convertAddress}
+                onChange={e => setConvertAddress(e.target.value)}
+                placeholder="e.g. Kilimani, Argwings Kodhek Rd, Apt 4B"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>M-Pesa phone number for the prompt</Label>
+              <Input
+                value={convertPhone}
+                onChange={e => setConvertPhone(e.target.value)}
+                placeholder="0712345678"
+              />
+            </div>
+            <div className="rounded-lg border bg-muted/40 p-3">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Balance to prompt</span>
+                <span className="text-lg font-bold text-primary">
+                  KES {convertPkg?.payment_status === 'paid'
+                    ? Math.max(Number(convertCost || 0) - Number(convertPkg?.cost || 0), 0)
+                    : Number(convertCost || 0)}
+                </span>
+              </div>
               {convertPkg?.payment_status === 'paid' && (
-                <p className="text-xs text-warning">
-                  Sender already paid KES {convertPkg?.cost}. They will be prompted only for the balance
-                  ({Math.max(Number(convertCost) - Number(convertPkg?.cost || 0), 0)} KES).
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Sender already paid KES {convertPkg?.cost}; only the balance is charged.
                 </p>
               )}
             </div>
@@ -454,6 +479,17 @@ export function AdminOrders({ data, onRefresh }: Props) {
               {converting ? 'Converting...' : 'Convert'}
             </Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* STK waiting animation */}
+      <Dialog open={!!stkWaiting} onOpenChange={o => !o && setStkWaiting(null)}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader><DialogTitle>Awaiting sender confirmation</DialogTitle></DialogHeader>
+          <StkWaitingAnimation amount={stkWaiting?.amount} phone={stkWaiting?.phone} />
+          <Button variant="outline" className="w-full" onClick={() => { setStkWaiting(null); onRefresh(); }}>
+            Close
+          </Button>
         </DialogContent>
       </Dialog>
     </div>
