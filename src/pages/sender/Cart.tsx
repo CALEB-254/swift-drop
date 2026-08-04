@@ -19,6 +19,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { BottomNav } from '@/components/BottomNav';
+import { StkWaitingAnimation } from '@/components/StkWaitingAnimation';
 import { format } from 'date-fns';
 import { DELIVERY_TYPES } from '@/types/delivery';
 import {
