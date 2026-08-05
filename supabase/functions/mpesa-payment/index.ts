@@ -16,10 +16,17 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY");
 
-// M-Pesa API URLs (Sandbox - change to api.safaricom.co.ke for production)
-const MPESA_AUTH_URL = "https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials";
-const MPESA_STK_URL = "https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest";
-const MPESA_QUERY_URL = "https://sandbox.safaricom.co.ke/mpesa/stkpushquery/v1/query";
+// M-Pesa API base URL is env-driven: set MPESA_ENV=production to go live.
+// Anything other than "production" (or unset) stays on the sandbox.
+const MPESA_ENV = (Deno.env.get("MPESA_ENV") || "sandbox").toLowerCase();
+const MPESA_BASE_URL =
+  MPESA_ENV === "production" || MPESA_ENV === "live"
+    ? "https://api.safaricom.co.ke"
+    : "https://sandbox.safaricom.co.ke";
+
+const MPESA_AUTH_URL = `${MPESA_BASE_URL}/oauth/v1/generate?grant_type=client_credentials`;
+const MPESA_STK_URL = `${MPESA_BASE_URL}/mpesa/stkpush/v1/processrequest`;
+const MPESA_QUERY_URL = `${MPESA_BASE_URL}/mpesa/stkpushquery/v1/query`;
 
 interface PaymentRequest {
   phoneNumber: string;
