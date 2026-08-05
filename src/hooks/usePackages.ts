@@ -3,6 +3,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { DELIVERY_PRICING, DeliveryType } from '@/types/delivery';
 import { Database } from '@/integrations/supabase/types';
+import { generateTrackingNumber, getCostByType, getCommission } from '@/lib/packageUtils';
+import { logger } from '@/lib/logger';
 
 type PackageRow = Database['public']['Tables']['packages']['Row'];
 type PackageInsert = Database['public']['Tables']['packages']['Insert'];
@@ -39,26 +41,6 @@ export interface Package {
   updatedAt: Date;
 }
 
-// Generate tracking number in SWF-<AGENT_PREFIX>-XXXX format
-const generateTrackingNumber = (agentCode: string = 'D01') => {
-  const safe = (agentCode || 'D01').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4) || 'D01';
-  const randomNum = Math.floor(1000 + Math.random() * 9000);
-  return `SWF-${safe}-${randomNum}`;
-};
-
-const getCostByType = (type: DeliveryType): number => {
-  switch (type) {
-    case 'pickup_point':
-      return DELIVERY_PRICING.pickupPointCost;
-    case 'doorstep':
-      return DELIVERY_PRICING.doorstepCost;
-    case 'errand':
-      return DELIVERY_PRICING.errandCost;
-    default:
-      return DELIVERY_PRICING.pickupPointCost;
-  }
-};
-
 const mapRowToPackage = (row: PackageRow): Package => ({
   id: row.id,
   trackingNumber: row.tracking_number,
@@ -80,11 +62,11 @@ const mapRowToPackage = (row: PackageRow): Package => ({
   status: row.status,
   agentId: row.agent_id,
   isProduct: row.is_product ?? false,
-  paymentStatus: (row as any).payment_status ?? 'pending',
-  rejectionReason: (row as any).rejection_reason ?? null,
-  pendingConversionType: (row as any).pending_conversion_type ?? null,
-  pendingConversionCost: (row as any).pending_conversion_cost != null ? Number((row as any).pending_conversion_cost) : null,
-  pendingConversionBalance: (row as any).pending_conversion_balance != null ? Number((row as any).pending_conversion_balance) : null,
+  paymentStatus: row.payment_status ?? 'pending',
+  rejectionReason: row.rejection_reason ?? null,
+  pendingConversionType: (row.pending_conversion_type as DeliveryType | null) ?? null,
+  pendingConversionCost: row.pending_conversion_cost != null ? Number(row.pending_conversion_cost) : null,
+  pendingConversionBalance: row.pending_conversion_balance != null ? Number(row.pending_conversion_balance) : null,
   createdAt: new Date(row.created_at),
   updatedAt: new Date(row.updated_at),
 });
@@ -136,7 +118,7 @@ export function usePackages() {
       setPackages((data || []).map(mapRowToPackage));
       setError(null);
     } catch (err) {
-      console.error('Error fetching packages:', err);
+      logger.error('Error fetching packages:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch packages');
     } finally {
       setLoading(false);
@@ -190,7 +172,7 @@ export function usePackages() {
     const cost = typeof data.cost === 'number' && !Number.isNaN(data.cost)
       ? data.cost
       : getCostByType(data.deliveryType);
-    const commission = cost * DELIVERY_PRICING.commissionRate;
+    const commission = getCommission(cost);
 
     let agentPrefix = 'D01';
     if (data.senderAgentId) {
@@ -199,7 +181,7 @@ export function usePackages() {
         .select('code_prefix, business_name')
         .eq('id', data.senderAgentId)
         .maybeSingle();
-      const raw = (agentRow as any)?.code_prefix
+      const raw = agentRow?.code_prefix
         || (agentRow?.business_name ? agentRow.business_name.slice(0, 3) : 'D01');
       agentPrefix = raw;
     }
@@ -225,7 +207,7 @@ export function usePackages() {
       is_product: data.isProduct || false,
       pickup_agent_id: data.pickupAgentId || null,
       cod_amount: data.codAmount || 0,
-      ...(data.courierId ? { courier_id: data.courierId } as any : {}),
+      ...(data.courierId ? { courier_id: data.courierId } : {}),
     };
 
     const { data: newPackage, error: insertError } = await supabase
@@ -235,7 +217,7 @@ export function usePackages() {
       .single();
 
     if (insertError) {
-      console.error('Error creating package:', insertError);
+      logger.error('Error creating package:', insertError);
       throw new Error(insertError.message);
     }
 
@@ -251,7 +233,7 @@ export function usePackages() {
       .maybeSingle();
 
     if (fetchError) {
-      console.error('Error fetching package:', fetchError);
+      logger.error('Error fetching package:', fetchError);
       return null;
     }
 
@@ -266,7 +248,7 @@ export function usePackages() {
       .eq('id', id);
 
     if (updateError) {
-      console.error('Error updating package status:', updateError);
+      logger.error('Error updating package status:', updateError);
       throw new Error(updateError.message);
     }
   };
