@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Camera, X, SwitchCamera, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { logger } from "@/lib/logger";
 
 interface QRScannerProps {
   open: boolean;
@@ -30,7 +31,7 @@ export function QRScanner({ open, onClose, onScan }: QRScannerProps) {
         scannerRef.current = null;
       }
     } catch (err) {
-      console.error('Error stopping scanner:', err);
+      logger.error('Error stopping scanner:', err);
     }
   }, []);
 
@@ -72,7 +73,7 @@ export function QRScanner({ open, onClose, onScan }: QRScannerProps) {
         () => {} // Ignore scan failures
       );
     } catch (err) {
-      console.error('Scanner init error:', err);
+      logger.error('Scanner init error:', err);
       setError('Failed to start camera scanner');
     }
   }, [stopScanning, handleScanSuccess]);

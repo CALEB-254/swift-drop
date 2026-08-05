@@ -10,6 +10,7 @@ import { UserCog, AlertCircle, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import type { AdminData } from '@/pages/admin/AdminDashboard';
+import { logger } from "@/lib/logger";
 
 interface Props { data: AdminData; onRefresh: () => void; }
 
@@ -180,7 +181,7 @@ export function AdminVendors({ data, onRefresh }: Props) {
       zone_id: form.zone_id || null,
     });
     if (error) {
-      console.error('Create agent failed:', error);
+      logger.error('Create agent failed:', error);
       const errInfo = { action: 'Create agent', message: error.message || 'Failed to create agent', details: (error as any).details, hint: (error as any).hint, code: (error as any).code };
       setLastError(errInfo);
       toast.error(errInfo.message, { description: errInfo.details || errInfo.hint });
@@ -206,7 +207,7 @@ export function AdminVendors({ data, onRefresh }: Props) {
       zone_id: form.zone_id || null,
     }).eq('id', editAgent.id);
     if (error) {
-      console.error('Update agent failed:', error);
+      logger.error('Update agent failed:', error);
       const errInfo = { action: 'Update agent', message: error.message, details: (error as any).details, hint: (error as any).hint, code: (error as any).code };
       setLastError(errInfo);
       toast.error(errInfo.message, { description: errInfo.details || errInfo.hint });
@@ -222,7 +223,7 @@ export function AdminVendors({ data, onRefresh }: Props) {
   const deleteAgent = async (id: string) => {
     const { error } = await supabase.from('agents').delete().eq('id', id);
     if (error) {
-      console.error('Delete agent failed:', error);
+      logger.error('Delete agent failed:', error);
       const errInfo = { action: 'Delete agent', message: error.message, details: (error as any).details, hint: (error as any).hint, code: (error as any).code };
       setLastError(errInfo);
       toast.error(errInfo.message, { description: errInfo.details || errInfo.hint });
@@ -248,7 +249,7 @@ export function AdminVendors({ data, onRefresh }: Props) {
     }
     const { error } = await supabase.from('agents').update({ user_id: ownerId }).eq('id', assignAgent.id);
     if (error) {
-      console.error('Assign manager failed:', error);
+      logger.error('Assign manager failed:', error);
       const errInfo = { action: 'Assign manager', message: error.message, details: (error as any).details, hint: (error as any).hint, code: (error as any).code };
       setLastError(errInfo);
       toast.error(errInfo.message, { description: errInfo.details || errInfo.hint });

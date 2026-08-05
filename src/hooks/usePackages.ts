@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
-import { DELIVERY_PRICING, DeliveryType } from '@/types/delivery';
+import { DeliveryType } from '@/types/delivery';
 import { Database } from '@/integrations/supabase/types';
 import { generateTrackingNumber, getCostByType, getCommission } from '@/lib/packageUtils';
 import { logger } from '@/lib/logger';

@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { BottomNav } from '@/components/BottomNav';
 import { toast } from 'sonner';
 import { ArrowLeft, Camera, Loader2, User, Lock } from 'lucide-react';
+import { logger } from "@/lib/logger";
 
 export default function EditProfile() {
   const navigate = useNavigate();
@@ -88,7 +89,7 @@ export default function EditProfile() {
       setAvatarUrl(publicUrl);
       toast.success('Avatar uploaded successfully');
     } catch (error: any) {
-      console.error('Avatar upload error:', error);
+      logger.error('Avatar upload error:', error);
       toast.error(error.message || 'Failed to upload avatar');
     } finally {
       setUploadingAvatar(false);
@@ -122,7 +123,7 @@ export default function EditProfile() {
       toast.success('Profile updated successfully');
       navigate(-1);
     } catch (error: any) {
-      console.error('Profile update error:', error);
+      logger.error('Profile update error:', error);
       toast.error(error.message || 'Failed to update profile');
     } finally {
       setLoading(false);

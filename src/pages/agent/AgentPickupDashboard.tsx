@@ -20,6 +20,7 @@ import { DeliveryType } from '@/types/delivery';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { KeyRound } from 'lucide-react';
+import { logger } from "@/lib/logger";
 
 type PackageRow = Database['public']['Tables']['packages']['Row'];
 type PackageStatus = Database['public']['Enums']['package_status'];
@@ -137,7 +138,7 @@ export default function AgentPickupDashboard() {
       if (error) throw error;
       setPackages((data || []).map(mapRow));
     } catch (err) {
-      console.error('Error fetching packages:', err);
+      logger.error('Error fetching packages:', err);
     } finally {
       setLoading(false);
     }
