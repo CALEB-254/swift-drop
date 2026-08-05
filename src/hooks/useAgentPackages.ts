@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { DELIVERY_PRICING, DeliveryType } from '@/types/delivery';
 import { Database } from '@/integrations/supabase/types';
+import { logger } from "@/lib/logger";
 
 type PackageRow = Database['public']['Tables']['packages']['Row'];
 type PackageStatus = Database['public']['Enums']['package_status'];
@@ -118,7 +119,7 @@ export function useAgentPackages() {
       if (fetchError) throw fetchError;
       setAvailablePackages((data || []).map(mapRowToPackage));
     } catch (err) {
-      console.error('Error fetching available packages:', err);
+      logger.error('Error fetching available packages:', err);
     }
   }, [user, isAgent]);
 
@@ -136,7 +137,7 @@ export function useAgentPackages() {
       if (fetchError) throw fetchError;
       setMyPackages((data || []).map(mapRowToPackage));
     } catch (err) {
-      console.error('Error fetching my packages:', err);
+      logger.error('Error fetching my packages:', err);
     }
   }, [user, isAgent]);
 
@@ -152,7 +153,7 @@ export function useAgentPackages() {
       await Promise.all([fetchAvailablePackages(), fetchMyPackages()]);
       setError(null);
     } catch (err) {
-      console.error('Error fetching packages:', err);
+      logger.error('Error fetching packages:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch packages');
     } finally {
       setLoading(false);
@@ -199,7 +200,7 @@ export function useAgentPackages() {
       .eq('id', packageId);
 
     if (updateError) {
-      console.error('Error accepting package:', updateError);
+      logger.error('Error accepting package:', updateError);
       throw new Error(updateError.message);
     }
   };
@@ -215,7 +216,7 @@ export function useAgentPackages() {
       .eq('id', packageId);
 
     if (updateError) {
-      console.error('Error updating package status:', updateError);
+      logger.error('Error updating package status:', updateError);
       throw new Error(updateError.message);
     }
   };

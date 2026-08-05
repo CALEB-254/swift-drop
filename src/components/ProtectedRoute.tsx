@@ -3,6 +3,7 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { Loader2 } from 'lucide-react';
 import { EmailVerificationBlock } from './EmailVerificationBlock';
+import { resolveRoleRedirect } from '@/lib/routing';
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -48,9 +49,8 @@ export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) 
   }
 
   // Only enforce role check if profile exists and requiredRole is specified
-  if (requiredRole && profile && profile.role !== requiredRole) {
-    // Redirect to the appropriate dashboard based on user's role
-    const redirectPath = profile.role === 'admin' ? '/admin' : profile.role === 'agent' ? '/rider' : '/sender';
+  const redirectPath = resolveRoleRedirect(profile?.role, requiredRole);
+  if (redirectPath) {
     return <Navigate to={redirectPath} replace />;
   }
 

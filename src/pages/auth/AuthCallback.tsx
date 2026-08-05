@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2 } from 'lucide-react';
+import { logger } from "@/lib/logger";
 
 export default function AuthCallback() {
   const navigate = useNavigate();
@@ -30,7 +31,7 @@ export default function AuthCallback() {
           navigate('/auth/login');
         }
       } catch (err: any) {
-        console.error('Auth callback error:', err);
+        logger.error('Auth callback error:', err);
         setError(err.message || 'Authentication failed');
         setTimeout(() => navigate('/auth/login'), 3000);
       }

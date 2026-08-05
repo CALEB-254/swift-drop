@@ -9,7 +9,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { ArrowLeft, ShoppingCart, Search } from 'lucide-react';
 import { usePackages } from '@/hooks/usePackages';
 import { useAuth } from '@/hooks/useAuth';
-import { AREAS, PACKAGING_COLORS, DeliveryType, DELIVERY_TYPES } from '@/types/delivery';
+import { PACKAGING_COLORS, DeliveryType, DELIVERY_TYPES } from '@/types/delivery';
 import { toast } from 'sonner';
 import { BottomNav } from '@/components/BottomNav';
 import { HelpButton } from '@/components/HelpButton';

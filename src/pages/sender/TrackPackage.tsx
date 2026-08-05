@@ -12,6 +12,7 @@ import { QRScanner } from '@/components/QRScanner';
 import { BottomNav } from '@/components/BottomNav';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
+import { logger } from "@/lib/logger";
 
 const TrackPackage = forwardRef<HTMLDivElement>(function TrackPackage(_, ref) {
   const [searchParams] = useSearchParams();
@@ -38,7 +39,7 @@ const TrackPackage = forwardRef<HTMLDivElement>(function TrackPackage(_, ref) {
       const result = await getPackageByTracking(query);
       setPkg(result);
     } catch (error) {
-      console.error('Error searching package:', error);
+      logger.error('Error searching package:', error);
       setPkg(null);
     } finally {
       setLoading(false);

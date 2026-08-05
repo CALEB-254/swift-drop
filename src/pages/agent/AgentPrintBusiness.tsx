@@ -11,6 +11,7 @@ import { ReceiptPreviewDrawer } from '@/components/ReceiptPreviewDrawer';
 import { QRScanner } from '@/components/QRScanner';
 import { toPng } from 'html-to-image';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
+import { logger } from "@/lib/logger";
 
 const SCAN_OPTIONS = [
   { key: 'pickup_point', label: 'Mtaani', icon: Package },
@@ -50,7 +51,7 @@ export default function AgentPrintBusiness() {
         toast.error('No packages found for this business/sender');
       }
     } catch (err) {
-      console.error(err);
+      logger.error(err);
       toast.error('Search failed');
     } finally {
       setSearching(false);
@@ -98,7 +99,7 @@ export default function AgentPrintBusiness() {
         setPackages(allPkgs || []);
       }
     } catch (err) {
-      console.error(err);
+      logger.error(err);
       toast.error('Search failed');
     } finally {
       setSearching(false);
@@ -131,7 +132,7 @@ export default function AgentPrintBusiness() {
         toast.error('No package found for this QR code');
       }
     } catch (err) {
-      console.error(err);
+      logger.error(err);
       toast.error('Search failed');
     } finally {
       setSearching(false);

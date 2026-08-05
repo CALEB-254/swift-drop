@@ -1,0 +1,21 @@
+/* Reusable helper classes. Keyframes for the animate-* helpers live in animations.css. */
+@layer utilities {
+  /* Backgrounds built from the gradient tokens */
+  .gradient-primary { background: var(--gradient-primary); }
+  .gradient-accent  { background: var(--gradient-accent); }
+  .gradient-hero    { background: var(--gradient-hero); }
+
+  /* Elevation helpers */
+  .shadow-card { box-shadow: var(--shadow-card); }
+  .shadow-glow { box-shadow: var(--shadow-glow); }
+
+  /* Motion */
+  .animate-float      { animation: float 3s ease-in-out infinite; }
+  .animate-pulse-soft { animation: pulse-soft 2s ease-in-out infinite; }
+  .animate-slide-up   { animation: slide-up 0.5s ease-out forwards; }
+  .animate-fade-in    { animation: fade-in 0.4s ease-out forwards; }
+
+  /* Layout accents used by section headers and highlighted inputs */
+  .section-accent { @apply border-l-4 border-primary pl-3; }
+  .input-accent   { @apply border-2 border-primary/60 focus:border-primary; }
+}

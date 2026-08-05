@@ -29,6 +29,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
+import { logger } from "@/lib/logger";
 
 interface CartPackage {
   id: string;
@@ -132,7 +133,7 @@ export default function Cart() {
         setTillNumber(data.tillNumber);
       }
     } catch (err) {
-      console.error('Fetch till number error:', err);
+      logger.error('Fetch till number error:', err);
     }
   };
 
@@ -187,7 +188,7 @@ export default function Cart() {
         throw new Error(data.error || 'Payment initiation failed');
       }
     } catch (error: any) {
-      console.error('Payment error:', error);
+      logger.error('Payment error:', error);
       setPaymentStatus('failed');
       toast.error(error.message || 'Payment failed. Please try again.');
     } finally {
@@ -223,7 +224,7 @@ export default function Cart() {
         throw new Error(data?.error || 'Verification failed');
       }
     } catch (err: any) {
-      console.error('Verify error:', err);
+      logger.error('Verify error:', err);
       toast.error(err.message || 'Could not verify payment');
     } finally {
       setIsVerifying(false);
@@ -265,7 +266,7 @@ export default function Cart() {
           toast.error('Payment verification timed out. Please check your M-Pesa messages.');
         }
       } catch (error) {
-        console.error('Status check error:', error);
+        logger.error('Status check error:', error);
         if (attempts < maxAttempts) {
           setTimeout(checkStatus, 3000);
         }
