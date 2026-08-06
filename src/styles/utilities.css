@@ -28,3 +28,7 @@
   border-color: hsl(var(--primary) / 0.6);
 }
 .input-accent:focus { border-color: hsl(var(--primary)); }
+
+/* Hide scrollbars on horizontal filter rails */
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }

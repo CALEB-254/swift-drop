@@ -1,23 +1,17 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { 
-  ArrowLeft, 
-  Bell, 
-  Package, 
-  Truck, 
-  CheckCircle, 
-  Clock, 
-  AlertCircle,
-  Trash2,
-  Check
+import {
+  ArrowLeft, Bell, Package, Truck, CheckCircle, Clock, AlertCircle,
+  Trash2, Check, Megaphone, Wallet,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { BottomNav } from '@/components/BottomNav';
 import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 interface Notification {
   id: string;
@@ -25,25 +19,42 @@ interface Notification {
   title: string;
   message: string;
   type: string;
+  category: string | null;
+  media_url: string | null;
+  media_type: string | null;
   is_read: boolean;
   tracking_number: string | null;
   created_at: string;
 }
 
-const getNotificationIcon = (type: string) => {
+const CATEGORIES = [
+  { key: 'all', label: 'All' },
+  { key: 'packages', label: 'Packages' },
+  { key: 'payments', label: 'Payments' },
+  { key: 'general', label: 'General' },
+  { key: 'offers', label: 'Offers' },
+] as const;
+
+/** Falls back to inferring a category from the notification type. */
+const resolveCategory = (n: Notification): string => {
+  if (n.category) return n.category;
+  const t = n.type || '';
+  if (t.includes('payment') || t.includes('refund') || t.includes('wallet')) return 'payments';
+  if (n.tracking_number) return 'packages';
+  if (t.includes('promo') || t.includes('offer')) return 'offers';
+  return 'general';
+};
+
+const categoryIcon = (category: string, type: string) => {
+  if (category === 'payments') return <Wallet className="w-5 h-5 text-primary" />;
+  if (category === 'offers') return <Megaphone className="w-5 h-5 text-accent" />;
   switch (type) {
-    case 'delivery_created':
-      return <Package className="w-5 h-5 text-primary" />;
-    case 'in_transit':
-      return <Truck className="w-5 h-5 text-blue-500" />;
-    case 'delivered':
-      return <CheckCircle className="w-5 h-5 text-green-500" />;
-    case 'pending':
-      return <Clock className="w-5 h-5 text-amber-500" />;
-    case 'alert':
-      return <AlertCircle className="w-5 h-5 text-red-500" />;
-    default:
-      return <Bell className="w-5 h-5 text-muted-foreground" />;
+    case 'delivery_created': return <Package className="w-5 h-5 text-primary" />;
+    case 'in_transit': return <Truck className="w-5 h-5 text-primary" />;
+    case 'delivered': return <CheckCircle className="w-5 h-5 text-primary" />;
+    case 'pending': return <Clock className="w-5 h-5 text-warning" />;
+    case 'alert': return <AlertCircle className="w-5 h-5 text-destructive" />;
+    default: return <Bell className="w-5 h-5 text-muted-foreground" />;
   }
 };
 
@@ -52,84 +63,77 @@ export default function Notifications() {
   const { user, loading: authLoading } = useAuthContext();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeCategory, setActiveCategory] = useState<string>('all');
 
   useEffect(() => {
     if (!authLoading && !user) {
       navigate('/auth/login');
       return;
     }
+    if (!user) return;
 
-    if (user) {
-      fetchNotifications();
-    }
-  }, [user, authLoading]);
-
-  const fetchNotifications = async () => {
-    try {
+    const fetchNotifications = async () => {
       const { data, error } = await supabase
         .from('notifications')
         .select('*')
-        .eq('user_id', user?.id)
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setNotifications(data || []);
-    } catch (error: any) {
-      toast.error('Failed to load notifications');
-    } finally {
+      if (error) toast.error('Failed to load notifications');
+      setNotifications((data as Notification[]) || []);
       setLoading(false);
-    }
-  };
+    };
+    fetchNotifications();
+
+    const channel = supabase
+      .channel('information-desk')
+      .on('postgres_changes', {
+        event: 'INSERT', schema: 'public', table: 'notifications',
+        filter: `user_id=eq.${user.id}`,
+      }, (payload) => {
+        setNotifications(prev => [payload.new as Notification, ...prev]);
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [user, authLoading, navigate]);
 
   const markAsRead = async (id: string) => {
-    try {
-      const { error } = await supabase
-        .from('notifications')
-        .update({ is_read: true })
-        .eq('id', id);
-
-      if (error) throw error;
-      
-      setNotifications(prev => 
-        prev.map(n => n.id === id ? { ...n, is_read: true } : n)
-      );
-    } catch (error: any) {
-      toast.error('Failed to mark as read');
-    }
+    const { error } = await supabase.from('notifications').update({ is_read: true }).eq('id', id);
+    if (error) return toast.error('Failed to mark as read');
+    setNotifications(prev => prev.map(n => (n.id === id ? { ...n, is_read: true } : n)));
   };
 
   const markAllAsRead = async () => {
-    try {
-      const { error } = await supabase
-        .from('notifications')
-        .update({ is_read: true })
-        .eq('user_id', user?.id)
-        .eq('is_read', false);
-
-      if (error) throw error;
-      
-      setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
-      toast.success('All notifications marked as read');
-    } catch (error: any) {
-      toast.error('Failed to mark all as read');
-    }
+    const { error } = await supabase
+      .from('notifications').update({ is_read: true })
+      .eq('user_id', user?.id).eq('is_read', false);
+    if (error) return toast.error('Failed to mark all as read');
+    setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+    toast.success('All notifications marked as read');
   };
 
   const deleteNotification = async (id: string) => {
-    try {
-      const { error } = await supabase
-        .from('notifications')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-      
-      setNotifications(prev => prev.filter(n => n.id !== id));
-      toast.success('Notification deleted');
-    } catch (error: any) {
-      toast.error('Failed to delete notification');
-    }
+    const { error } = await supabase.from('notifications').delete().eq('id', id);
+    if (error) return toast.error('Failed to delete notification');
+    setNotifications(prev => prev.filter(n => n.id !== id));
+    toast.success('Notification deleted');
   };
+
+  const counts = useMemo(() => {
+    const c: Record<string, number> = { all: notifications.length };
+    notifications.forEach(n => {
+      const cat = resolveCategory(n);
+      c[cat] = (c[cat] || 0) + 1;
+    });
+    return c;
+  }, [notifications]);
+
+  const visible = useMemo(
+    () => (activeCategory === 'all'
+      ? notifications
+      : notifications.filter(n => resolveCategory(n) === activeCategory)),
+    [notifications, activeCategory]
+  );
 
   const unreadCount = notifications.filter(n => !n.is_read).length;
 
@@ -142,116 +146,135 @@ export default function Notifications() {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-20">
-      {/* Header */}
-      <header className="bg-primary text-primary-foreground p-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Button 
-              variant="ghost" 
-              size="icon"
-              onClick={() => navigate(-1)}
-              className="text-primary-foreground hover:bg-primary-foreground/10"
-              aria-label="Back"
-            >
+    <div className="min-h-screen bg-background pb-24">
+      <header className="bg-background sticky top-0 z-20 border-b border-border">
+        <div className="flex items-center justify-between p-4">
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="icon" onClick={() => navigate(-1)} aria-label="Back">
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div>
-              <h1 className="font-bold text-lg">Notifications</h1>
+              <h1 className="font-display font-bold text-xl">Information desk</h1>
               {unreadCount > 0 && (
-                <p className="text-sm opacity-80">{unreadCount} unread</p>
+                <p className="text-xs text-muted-foreground">{unreadCount} unread</p>
               )}
             </div>
           </div>
-          
           {unreadCount > 0 && (
-            <Button 
-              variant="ghost" 
-              size="sm"
-              onClick={markAllAsRead}
-              className="text-primary-foreground hover:bg-primary-foreground/10"
-            >
-              <Check className="w-4 h-4 mr-1" />
-              Mark all read
+            <Button variant="ghost" size="sm" onClick={markAllAsRead}>
+              <Check className="w-4 h-4 mr-1" /> Mark all read
             </Button>
           )}
         </div>
+
+        {/* Category filters */}
+        <div className="flex gap-2 overflow-x-auto px-4 pb-3 no-scrollbar">
+          {CATEGORIES.map(c => (
+            <button
+              key={c.key}
+              onClick={() => setActiveCategory(c.key)}
+              className={cn(
+                'shrink-0 rounded-full px-4 py-1.5 text-sm font-medium border transition-colors',
+                activeCategory === c.key
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : 'bg-secondary text-muted-foreground border-border'
+              )}
+            >
+              {c.label}
+              {counts[c.key] ? <span className="ml-1.5 opacity-70">{counts[c.key]}</span> : null}
+            </button>
+          ))}
+        </div>
       </header>
 
-      {/* Content */}
       <div className="p-4 space-y-3">
-        {notifications.length === 0 ? (
-          <Card className="border-0 shadow-sm">
-            <CardContent className="p-8 text-center">
+        {visible.length === 0 ? (
+          <Card className="border-0 shadow-card">
+            <CardContent className="p-10 text-center">
               <Bell className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="font-semibold text-lg mb-2">No notifications yet</h3>
+              <h2 className="font-display font-semibold text-lg mb-1">Nothing here yet</h2>
               <p className="text-muted-foreground text-sm">
-                You'll receive updates about your deliveries here
+                Updates about your deliveries and offers will appear here.
               </p>
             </CardContent>
           </Card>
         ) : (
-          notifications.map((notification) => (
-            <Card 
-              key={notification.id} 
-              className={`border-0 shadow-sm transition-all ${
-                !notification.is_read ? 'bg-primary/5 border-l-4 border-l-primary' : ''
-              }`}
-            >
-              <CardContent className="p-4">
-                <div className="flex gap-3">
-                  <div className="shrink-0 mt-0.5">
-                    {getNotificationIcon(notification.type)}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-2">
-                      <h4 className={`font-medium text-sm ${!notification.is_read ? 'font-semibold' : ''}`}>
-                        {notification.title}
-                      </h4>
-                      <span className="text-xs text-muted-foreground shrink-0">
-                        {format(new Date(notification.created_at), 'MMM d, h:mm a')}
-                      </span>
+          visible.map(n => {
+            const category = resolveCategory(n);
+            return (
+              <Card
+                key={n.id}
+                className={cn(
+                  'border-0 shadow-card overflow-hidden transition-all',
+                  !n.is_read && 'ring-1 ring-primary/40'
+                )}
+                onClick={() => !n.is_read && markAsRead(n.id)}
+              >
+                <CardContent className="p-4">
+                  <div className="flex gap-3">
+                    <div className="shrink-0 mt-0.5 w-10 h-10 rounded-full bg-secondary flex items-center justify-center">
+                      {categoryIcon(category, n.type)}
                     </div>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {notification.message}
-                    </p>
-                    {notification.tracking_number && (
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2">
+                        <h3 className={cn('text-sm', !n.is_read ? 'font-semibold' : 'font-medium')}>
+                          {n.title}
+                        </h3>
+                        <span className="text-[11px] text-muted-foreground shrink-0">
+                          {format(new Date(n.created_at), 'MMM d, h:mm a')}
+                        </span>
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-1 whitespace-pre-line">
+                        {n.message}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Media banner */}
+                  {n.media_url && (
+                    n.media_type === 'video' ? (
+                      <video
+                        src={n.media_url}
+                        controls
+                        className="mt-3 w-full rounded-xl max-h-64 bg-black"
+                      />
+                    ) : (
+                      <img
+                        src={n.media_url}
+                        alt={n.title}
+                        loading="lazy"
+                        className="mt-3 w-full rounded-xl object-cover max-h-64"
+                      />
+                    )
+                  )}
+
+                  <div className="flex items-center gap-2 mt-3">
+                    {n.tracking_number && (
                       <Button
-                        variant="link"
+                        variant="secondary"
                         size="sm"
-                        className="p-0 h-auto mt-2 text-primary"
-                        onClick={() => navigate(`/sender/track?id=${notification.tracking_number}`)}
+                        className="h-8 text-xs"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/sender/track?q=${n.tracking_number}`);
+                        }}
                       >
-                        Track: {notification.tracking_number}
+                        Track {n.tracking_number}
                       </Button>
                     )}
-                    <div className="flex items-center gap-2 mt-3">
-                      {!notification.is_read && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 text-xs"
-                          onClick={() => markAsRead(notification.id)}
-                        >
-                          <Check className="w-3 h-3 mr-1" />
-                          Mark as read
-                        </Button>
-                      )}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 text-xs text-destructive hover:text-destructive"
-                        onClick={() => deleteNotification(notification.id)}
-                      >
-                        <Trash2 className="w-3 h-3 mr-1" />
-                        Delete
-                      </Button>
-                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 text-xs text-destructive hover:text-destructive ml-auto"
+                      onClick={(e) => { e.stopPropagation(); deleteNotification(n.id); }}
+                    >
+                      <Trash2 className="w-3 h-3 mr-1" /> Delete
+                    </Button>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))
+                </CardContent>
+              </Card>
+            );
+          })
         )}
       </div>
 
