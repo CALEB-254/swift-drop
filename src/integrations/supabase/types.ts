@@ -143,6 +143,8 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          media_type: string | null
+          media_url: string | null
           message: string
           sent_by: string
           target_type: string
@@ -152,6 +154,8 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          media_type?: string | null
+          media_url?: string | null
           message: string
           sent_by: string
           target_type?: string
@@ -161,6 +165,8 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          media_type?: string | null
+          media_url?: string | null
           message?: string
           sent_by?: string
           target_type?: string
@@ -215,9 +221,12 @@ export type Database = {
       }
       notifications: {
         Row: {
+          category: string | null
           created_at: string
           id: string
           is_read: boolean
+          media_type: string | null
+          media_url: string | null
           message: string
           title: string
           tracking_number: string | null
@@ -225,9 +234,12 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          category?: string | null
           created_at?: string
           id?: string
           is_read?: boolean
+          media_type?: string | null
+          media_url?: string | null
           message: string
           title: string
           tracking_number?: string | null
@@ -235,9 +247,12 @@ export type Database = {
           user_id: string
         }
         Update: {
+          category?: string | null
           created_at?: string
           id?: string
           is_read?: boolean
+          media_type?: string | null
+          media_url?: string | null
           message?: string
           title?: string
           tracking_number?: string | null
@@ -1043,6 +1058,7 @@ export type Database = {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["admin_role"]
       }
+      get_public_tracking: { Args: { _tracking_number: string }; Returns: Json }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["user_role"]

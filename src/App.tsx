@@ -27,6 +27,8 @@ import AgentScanErrand from "./pages/agent/AgentScanErrand";
 import AgentScanSack from "./pages/agent/AgentScanSack";
 import AgentScanWarehouse from "./pages/agent/AgentScanWarehouse";
 import AgentScanRelease from "./pages/agent/AgentScanRelease";
+import AgentCommissions from "./pages/agent/AgentCommissions";
+import PublicTracking from "./pages/PublicTracking";
 import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
 import ForgotPassword from "./pages/auth/ForgotPassword";
@@ -88,6 +90,7 @@ const App = () => (
             <Route path="/agent/scan/sack" element={<ProtectedRoute requiredRole="agent"><AgentScanSack /></ProtectedRoute>} />
             <Route path="/agent/scan/warehouse" element={<ProtectedRoute requiredRole="agent"><AgentScanWarehouse /></ProtectedRoute>} />
             <Route path="/agent/scan/release" element={<ProtectedRoute requiredRole="agent"><AgentScanRelease /></ProtectedRoute>} />
+            <Route path="/agent/commissions" element={<ProtectedRoute requiredRole="agent"><AgentCommissions /></ProtectedRoute>} />
             <Route path="/agent/stock" element={<ProtectedRoute requiredRole="agent"><AgentPickupDashboard /></ProtectedRoute>} />
             
             {/* Profile Routes */}
@@ -99,6 +102,8 @@ const App = () => (
             <Route path="/agents" element={<ProtectedRoute><AgentList /></ProtectedRoute>} />
             <Route path="/customers" element={<ProtectedRoute><Customers /></ProtectedRoute>} />
             <Route path="/terms" element={<Terms />} />
+            {/* Public, login-free package tracking */}
+            <Route path="/t/:trackingNumber" element={<PublicTracking />} />
             <Route path="/feedback" element={<ProtectedRoute><Feedback /></ProtectedRoute>} />
 
             {/* Admin Routes */}

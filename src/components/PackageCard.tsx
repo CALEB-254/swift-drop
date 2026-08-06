@@ -3,6 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { PackageQRCode } from './PackageQRCode';
 import { PrintReceiptButton } from './PrintReceiptButton';
 import { DownloadReceiptButton } from './DownloadReceiptButton';
+import { TrackJourneyButton } from './TrackJourneyButton';
 import { Package as PackageIcon, MapPin, User, Phone, Clock } from 'lucide-react';
 import { format } from 'date-fns';
 import { PackageStatus, DeliveryType } from '@/types/delivery';
@@ -30,10 +31,12 @@ interface PackageCardProps {
   showActions?: boolean;
   showQRCode?: boolean;
   showPrint?: boolean;
+  /** Show the "Track order" button that opens the package journey. Default: true. */
+  showTrack?: boolean;
   children?: React.ReactNode;
 }
 
-export function PackageCard({ pkg, onClick, showQRCode = false, showPrint = false, children }: PackageCardProps) {
+export function PackageCard({ pkg, onClick, showQRCode = false, showPrint = false, showTrack = true, children }: PackageCardProps) {
   return (
     <Card 
       className="shadow-card hover:shadow-lg transition-all duration-300 cursor-pointer border-0 overflow-hidden group"
@@ -99,6 +102,19 @@ export function PackageCard({ pkg, onClick, showQRCode = false, showPrint = fals
             </div>
           </div>
           
+          {/* Track order */}
+          {showTrack && (
+            <div className="pt-3 border-t border-border" onClick={(e) => e.stopPropagation()}>
+              <TrackJourneyButton
+                trackingNumber={pkg.trackingNumber}
+                status={pkg.status}
+                variant="default"
+                size="default"
+                className="w-full justify-center"
+              />
+            </div>
+          )}
+
           {/* QR Code Section */}
           {showQRCode && (
             <div className="pt-3 border-t border-border flex justify-center" onClick={(e) => e.stopPropagation()}>

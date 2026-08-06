@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
-import { Loader2, Clock, CheckCircle2 } from 'lucide-react';
+import { Loader2, Package as PackageIcon, MapPin, Circle } from 'lucide-react';
 
-interface JourneyEvent {
+export interface JourneyEvent {
   id: string;
   title: string;
   message: string;
@@ -13,13 +13,23 @@ interface JourneyEvent {
 
 interface Props {
   trackingNumber: string;
+  /** Pre-loaded events (public tracking page). When set, no fetching happens. */
+  events?: JourneyEvent[];
 }
 
-export function PackageJourney({ trackingNumber }: Props) {
-  const [events, setEvents] = useState<JourneyEvent[]>([]);
-  const [loading, setLoading] = useState(true);
+/** Timeline of everything that happened to a package, newest last. */
+export function PackageJourney({ trackingNumber, events: providedEvents }: Props) {
+  const [events, setEvents] = useState<JourneyEvent[]>(providedEvents || []);
+  const [loading, setLoading] = useState(!providedEvents);
 
   useEffect(() => {
+    if (providedEvents) {
+      setEvents(providedEvents);
+      setLoading(false);
+      return;
+    }
+
+    let active = true;
     const load = async () => {
       setLoading(true);
       const { data } = await supabase
@@ -27,7 +37,8 @@ export function PackageJourney({ trackingNumber }: Props) {
         .select('id, title, message, type, created_at')
         .eq('tracking_number', trackingNumber)
         .order('created_at', { ascending: true });
-      setEvents((data as any) || []);
+      if (!active) return;
+      setEvents((data as JourneyEvent[]) || []);
       setLoading(false);
     };
     load();
@@ -42,8 +53,8 @@ export function PackageJourney({ trackingNumber }: Props) {
       })
       .subscribe();
 
-    return () => { supabase.removeChannel(channel); };
-  }, [trackingNumber]);
+    return () => { active = false; supabase.removeChannel(channel); };
+  }, [trackingNumber, providedEvents]);
 
   if (loading) {
     return (
@@ -62,22 +73,32 @@ export function PackageJourney({ trackingNumber }: Props) {
   }
 
   return (
-    <ol className="relative border-l border-border ml-3 space-y-4">
+    <ol className="space-y-0">
       {events.map((e, idx) => {
-        const isLatest = idx === events.length - 1;
+        const isFirst = idx === 0;
+        const isLast = idx === events.length - 1;
+        const Icon = isFirst ? PackageIcon : isLast ? MapPin : Circle;
         return (
-          <li key={e.id} className="ml-6">
-            <span className={`absolute -left-3 flex items-center justify-center w-6 h-6 rounded-full ring-4 ring-background ${
-              isLatest ? 'bg-primary text-primary-foreground' : 'bg-secondary text-foreground'
-            }`}>
-              {isLatest ? <Clock className="w-3 h-3" /> : <CheckCircle2 className="w-3 h-3" />}
-            </span>
-            <div className="bg-secondary/50 rounded-lg p-3">
-              <p className="font-medium text-sm">{e.title}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">{e.message}</p>
-              <p className="text-[11px] text-muted-foreground mt-1">
-                {format(new Date(e.created_at), 'MMM d, yyyy • h:mm a')}
+          <li key={e.id} className="flex gap-3">
+            {/* Marker + connector */}
+            <div className="flex flex-col items-center">
+              <span className="w-7 h-7 shrink-0 rounded-full border-2 border-primary/70 bg-primary/10 flex items-center justify-center">
+                <Icon className="w-3.5 h-3.5 text-primary" />
+              </span>
+              {!isLast && (
+                <span
+                  className="flex-1 w-px my-1 border-l-2 border-dashed border-primary/40"
+                  aria-hidden="true"
+                />
+              )}
+            </div>
+
+            {/* Event body */}
+            <div className={isLast ? 'pb-1 flex-1' : 'pb-5 flex-1'}>
+              <p className="text-xs text-muted-foreground">
+                {format(new Date(e.created_at), 'h:mm:ss a, EEE MMM dd yyyy')}
               </p>
+              <p className="text-sm leading-snug mt-0.5">{e.message || e.title}</p>
             </div>
           </li>
         );

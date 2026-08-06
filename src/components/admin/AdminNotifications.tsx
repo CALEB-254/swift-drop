@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Bell, Send, Users, User } from 'lucide-react';
+import { Bell, Send, ImagePlus, X, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import type { AdminData } from '@/pages/admin/AdminDashboard';
@@ -19,6 +19,42 @@ export function AdminNotifications({ data }: Props) {
   const [targetUserId, setTargetUserId] = useState('');
   const [sending, setSending] = useState(false);
   const [searchUser, setSearchUser] = useState('');
+  const [mediaUrl, setMediaUrl] = useState<string | null>(null);
+  const [mediaType, setMediaType] = useState<'image' | 'video' | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [category, setCategory] = useState('general');
+
+  /** Uploads to the private notification-media bucket and keeps a long-lived signed URL. */
+  const handleMediaUpload = async (file: File) => {
+    const isVideo = file.type.startsWith('video/');
+    if (!file.type.startsWith('image/') && !isVideo) {
+      toast.error('Only images and videos are supported');
+      return;
+    }
+    if (file.size > 25 * 1024 * 1024) {
+      toast.error('File too large', { description: 'Maximum size is 25MB.' });
+      return;
+    }
+    setUploading(true);
+    try {
+      const path = `broadcasts/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+      const { error: upErr } = await supabase.storage
+        .from('notification-media')
+        .upload(path, file, { cacheControl: '3600', upsert: false });
+      if (upErr) { toast.error('Upload failed', { description: upErr.message }); return; }
+
+      const { data: signed, error: signErr } = await supabase.storage
+        .from('notification-media')
+        .createSignedUrl(path, 60 * 60 * 24 * 365 * 5);
+      if (signErr || !signed) { toast.error('Could not generate media link'); return; }
+
+      setMediaUrl(signed.signedUrl);
+      setMediaType(isVideo ? 'video' : 'image');
+      toast.success('Media attached');
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const filteredUsers = data.users.filter(u =>
     searchUser && (u.full_name.toLowerCase().includes(searchUser.toLowerCase()) || u.phone.includes(searchUser))
@@ -40,6 +76,9 @@ export function AdminNotifications({ data }: Props) {
           title: title.trim(),
           message: message.trim(),
           type: 'admin_broadcast',
+          category,
+          media_url: mediaUrl,
+          media_type: mediaType,
         }));
         const { error } = await supabase.from('notifications').insert(notifs);
         if (error) { toast.error(error.message); return; }
@@ -50,6 +89,9 @@ export function AdminNotifications({ data }: Props) {
           message: message.trim(),
           target_type: 'all',
           sent_by: user.id,
+          category,
+          media_url: mediaUrl,
+          media_type: mediaType,
         });
 
         toast.success(`Notification sent to ${data.users.length} users`);
@@ -61,6 +103,9 @@ export function AdminNotifications({ data }: Props) {
           title: title.trim(),
           message: message.trim(),
           type: 'admin_broadcast',
+          category,
+          media_url: mediaUrl,
+          media_type: mediaType,
         }));
         const { error } = await supabase.from('notifications').insert(notifs);
         if (error) { toast.error(error.message); return; }
@@ -72,6 +117,9 @@ export function AdminNotifications({ data }: Props) {
           title: title.trim(),
           message: message.trim(),
           type: 'admin_message',
+          category,
+          media_url: mediaUrl,
+          media_type: mediaType,
         });
         if (error) { toast.error(error.message); return; }
 
@@ -81,6 +129,9 @@ export function AdminNotifications({ data }: Props) {
           target_type: 'specific',
           target_user_ids: [targetUserId],
           sent_by: user.id,
+          category,
+          media_url: mediaUrl,
+          media_type: mediaType,
         });
 
         toast.success('Notification sent');
@@ -90,6 +141,8 @@ export function AdminNotifications({ data }: Props) {
       setMessage('');
       setTargetUserId('');
       setSearchUser('');
+      setMediaUrl(null);
+      setMediaType(null);
     } finally {
       setSending(false);
     }
@@ -159,7 +212,58 @@ export function AdminNotifications({ data }: Props) {
               <Textarea value={message} onChange={e => setMessage(e.target.value)} placeholder="Write your notification message..." className="min-h-[80px]" />
             </div>
 
-            <Button className="w-full gap-2" onClick={sendNotification} disabled={sending}>
+            <div className="space-y-2">
+              <Label>Category</Label>
+              <Select value={category} onValueChange={setCategory}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="general">General</SelectItem>
+                  <SelectItem value="packages">Packages</SelectItem>
+                  <SelectItem value="payments">Payments</SelectItem>
+                  <SelectItem value="offers">Offers</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="broadcast-media">Photo or video (optional)</Label>
+              {mediaUrl ? (
+                <div className="relative rounded-lg overflow-hidden border border-border">
+                  {mediaType === 'video' ? (
+                    <video src={mediaUrl} controls className="w-full max-h-48 bg-black" />
+                  ) : (
+                    <img src={mediaUrl} alt="Attached media preview" className="w-full max-h-48 object-cover" />
+                  )}
+                  <Button
+                    type="button" variant="secondary" size="icon"
+                    aria-label="Remove media"
+                    className="absolute top-2 right-2 h-7 w-7"
+                    onClick={() => { setMediaUrl(null); setMediaType(null); }}
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              ) : (
+                <label
+                  htmlFor="broadcast-media"
+                  className="flex items-center justify-center gap-2 h-20 rounded-lg border-2 border-dashed border-border cursor-pointer text-sm text-muted-foreground hover:border-primary/60"
+                >
+                  {uploading
+                    ? <><Loader2 className="w-4 h-4 animate-spin" /> Uploading…</>
+                    : <><ImagePlus className="w-4 h-4" /> Upload photo or video</>}
+                </label>
+              )}
+              <input
+                id="broadcast-media"
+                type="file"
+                accept="image/*,video/*"
+                className="sr-only"
+                disabled={uploading}
+                onChange={e => { const f = e.target.files?.[0]; if (f) handleMediaUpload(f); e.target.value = ''; }}
+              />
+            </div>
+
+            <Button className="w-full gap-2" onClick={sendNotification} disabled={sending || uploading}>
               <Send className="w-4 h-4" /> {sending ? 'Sending...' : 'Send Notification'}
             </Button>
           </div>
