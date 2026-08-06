@@ -25,6 +25,7 @@ import { PrintReceiptButton } from '@/components/PrintReceiptButton';
 import { DownloadReceiptButton } from '@/components/DownloadReceiptButton';
 import { ShareWhatsAppButton } from '@/components/ShareWhatsAppButton';
 import { PackageQRCode } from '@/components/PackageQRCode';
+import { TrackJourneyButton } from '@/components/TrackJourneyButton';
 import { PrinterDrawer } from '@/components/PrinterDrawer';
 import { supabase } from '@/integrations/supabase/client';
 import { Trash2 } from 'lucide-react';
@@ -79,18 +80,28 @@ export default function SenderDashboard() {
   const [showPrinterDrawer, setShowPrinterDrawer] = useState(false);
 
   const handleDeleteUnpaid = async (id: string) => {
-    if (!confirm('Remove this unpaid package?')) return;
-    const { error } = await supabase
+    if (!confirm('Remove this unpaid package? This cannot be undone.')) return;
+    // `.select()` returns the deleted rows, so an empty array means the delete was
+    // silently blocked by RLS (e.g. package already paid or moved past pending).
+    const { data, error } = await supabase
       .from('packages')
       .delete()
       .eq('id', id)
-      .eq('payment_status', 'pending');
+      .neq('payment_status', 'paid')
+      .select('id');
+
     if (error) {
       toast.error('Failed to delete', { description: error.message });
-    } else {
-      toast.success('Package removed');
-      refetch();
+      return;
     }
+    if (!data || data.length === 0) {
+      toast.error('Package could not be removed', {
+        description: 'Only unpaid packages that are still pending can be deleted.',
+      });
+      return;
+    }
+    toast.success('Package removed');
+    refetch();
   };
 
   // Filter packages based on search, status, and date range
@@ -603,7 +614,8 @@ export default function SenderDashboard() {
                         <QrCode className="w-3.5 h-3.5" />
                         <span className="font-mono">{pkg.trackingNumber}</span>
                       </Button>
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 items-center">
+                        <TrackJourneyButton trackingNumber={pkg.trackingNumber} status={pkg.status} />
                         {pkg.status === 'refunded' ? (
                           <span className="text-xs text-muted-foreground italic">Refunded</span>
                         ) : pkg.status !== 'pending' ? (
