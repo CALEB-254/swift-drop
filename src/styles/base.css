@@ -1,16 +1,18 @@
-/* Global element defaults. Keep this file tiny — component styling belongs in components. */
-@layer base {
-  * {
-    @apply border-border;
-  }
+/* Global element defaults. Plain CSS (no @layer/@apply) so each file can be
+   processed standalone by Vite. Component styling belongs in components. */
+* {
+  border-color: hsl(var(--border));
+}
 
-  body {
-    @apply bg-background text-foreground antialiased;
-    font-family: 'Poppins', system-ui, sans-serif;
-  }
+body {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-family: 'Poppins', system-ui, sans-serif;
+}
 
-  h1, h2, h3, h4, h5, h6 {
-    font-family: 'Poppins', system-ui, sans-serif;
-    font-weight: 600;
-  }
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Poppins', system-ui, sans-serif;
+  font-weight: 600;
 }
