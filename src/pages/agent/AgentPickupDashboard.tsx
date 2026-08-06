@@ -440,6 +440,11 @@ export default function AgentPickupDashboard() {
                 count={doorstepPackages.length}
                 onClick={() => setActiveView('doorstep')}
               />
+              <ActionCard
+                icon={<Wallet className="w-8 h-8 text-primary" />}
+                label="My commissions"
+                onClick={() => navigate('/agent/commissions')}
+              />
             </div>
           </TabsContent>
 
