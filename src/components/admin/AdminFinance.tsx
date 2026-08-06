@@ -3,6 +3,7 @@ import { DollarSign, TrendingUp, Receipt, Percent } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { format, subDays, startOfWeek, startOfMonth } from 'date-fns';
 import type { AdminData } from '@/pages/admin/AdminDashboard';
+import { AdminReconciliation } from './AdminReconciliation';
 
 interface Props { data: AdminData; onRefresh: () => void; }
 
@@ -109,6 +110,7 @@ export function AdminFinance({ data }: Props) {
           </div>
         </CardContent>
       </Card>
+      <AdminReconciliation data={data} />
     </div>
   );
 }
