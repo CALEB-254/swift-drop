@@ -1,5 +1,4 @@
 /* Design tokens — colours, gradients, shadows. All colours are HSL triplets. */
-@layer base {
   :root {
     --background: 150 20% 6%;
     --foreground: 0 0% 95%;
@@ -115,4 +114,4 @@
 
     --gradient-hero: linear-gradient(180deg, hsl(145 63% 35%) 0%, hsl(145 63% 48%) 100%);
   }
-}
+
