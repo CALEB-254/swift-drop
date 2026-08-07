@@ -23,6 +23,7 @@ interface Notification {
   media_url: string | null;
   media_type: string | null;
   is_read: boolean;
+  read_at: string | null;
   tracking_number: string | null;
   created_at: string;
 }
@@ -227,6 +228,12 @@ export default function Notifications() {
                       <p className="text-sm text-muted-foreground mt-1 whitespace-pre-line">
                         {n.message}
                       </p>
+                      {n.is_read && n.read_at && (
+                        <p className="text-[11px] text-muted-foreground mt-1.5 flex items-center gap-1">
+                          <Check className="w-3 h-3 text-primary" />
+                          Read {format(new Date(n.read_at), 'MMM d, h:mm a')}
+                        </p>
+                      )}
                     </div>
                   </div>
 

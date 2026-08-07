@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ShieldCheck, AlertTriangle, RefreshCw, Loader2 } from 'lucide-react';
+import { ShieldCheck, AlertTriangle, RefreshCw, Loader2, Download } from 'lucide-react';
+import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { logger } from '@/lib/logger';
@@ -153,6 +154,28 @@ export function AdminReconciliation({ data }: Props) {
   const warnings = mismatches.filter(m => m.severity === 'warn').length;
   const verified = logs.filter(l => l.status === 'success').length - errors;
 
+  const exportCsv = () => {
+    if (mismatches.length === 0) { toast.error('Nothing to export'); return; }
+    const esc = (v: string) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+    const rows = [
+      ['Severity', 'Issue', 'Details', 'Date'],
+      ...mismatches.map(m => [
+        m.severity === 'error' ? 'Mismatch' : 'Review',
+        m.label,
+        m.detail,
+        format(new Date(m.when), 'yyyy-MM-dd HH:mm'),
+      ]),
+    ];
+    const csv = rows.map(r => r.map(esc).join(',')).join('\r\n');
+    const url = URL.createObjectURL(new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' }));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `mpesa-reconciliation-${format(new Date(), 'yyyy-MM-dd-HHmm')}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success(`Exported ${mismatches.length} rows`);
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -160,9 +183,17 @@ export function AdminReconciliation({ data }: Props) {
           <ShieldCheck className="w-5 h-5 text-primary" />
           <p className="text-sm font-medium">M-PESA Reconciliation</p>
         </div>
-        <Button variant="ghost" size="sm" onClick={load} disabled={loading} className="gap-1.5">
-          <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} /> Refresh
-        </Button>
+        <div className="flex items-center gap-1">
+          <Button
+            variant="ghost" size="sm" onClick={exportCsv}
+            disabled={loading || mismatches.length === 0} className="gap-1.5"
+          >
+            <Download className="w-4 h-4" /> Export CSV
+          </Button>
+          <Button variant="ghost" size="sm" onClick={load} disabled={loading} className="gap-1.5">
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} /> Refresh
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-3 gap-3">
