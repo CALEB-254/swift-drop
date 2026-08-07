@@ -141,6 +141,7 @@ export type Database = {
       }
       broadcast_notifications: {
         Row: {
+          category: string
           created_at: string
           id: string
           media_type: string | null
@@ -152,6 +153,7 @@ export type Database = {
           title: string
         }
         Insert: {
+          category?: string
           created_at?: string
           id?: string
           media_type?: string | null
@@ -163,6 +165,7 @@ export type Database = {
           title: string
         }
         Update: {
+          category?: string
           created_at?: string
           id?: string
           media_type?: string | null
@@ -228,6 +231,7 @@ export type Database = {
           media_type: string | null
           media_url: string | null
           message: string
+          read_at: string | null
           title: string
           tracking_number: string | null
           type: string
@@ -241,6 +245,7 @@ export type Database = {
           media_type?: string | null
           media_url?: string | null
           message: string
+          read_at?: string | null
           title: string
           tracking_number?: string | null
           type?: string
@@ -254,6 +259,7 @@ export type Database = {
           media_type?: string | null
           media_url?: string | null
           message?: string
+          read_at?: string | null
           title?: string
           tracking_number?: string | null
           type?: string
@@ -766,6 +772,59 @@ export type Database = {
           },
         ]
       }
+      tracking_links: {
+        Row: {
+          created_at: string
+          created_by: string
+          expires_at: string | null
+          id: string
+          last_viewed_at: string | null
+          package_id: string
+          pin_hash: string | null
+          revoked: boolean
+          token: string
+          tracking_number: string
+          updated_at: string
+          view_count: number
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          expires_at?: string | null
+          id?: string
+          last_viewed_at?: string | null
+          package_id: string
+          pin_hash?: string | null
+          revoked?: boolean
+          token: string
+          tracking_number: string
+          updated_at?: string
+          view_count?: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          expires_at?: string | null
+          id?: string
+          last_viewed_at?: string | null
+          package_id?: string
+          pin_hash?: string | null
+          revoked?: boolean
+          token?: string
+          tracking_number?: string
+          updated_at?: string
+          view_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tracking_links_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "packages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_preferences: {
         Row: {
           bluetooth_enabled: boolean | null
@@ -1054,11 +1113,19 @@ export type Database = {
         Args: { _amount: number; _phone: string }
         Returns: Json
       }
+      create_tracking_link: {
+        Args: { _expires_at?: string; _package_id: string; _pin?: string }
+        Returns: Json
+      }
       get_admin_level: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["admin_role"]
       }
       get_public_tracking: { Args: { _tracking_number: string }; Returns: Json }
+      get_shared_tracking: {
+        Args: { _pin?: string; _token: string }
+        Returns: Json
+      }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["user_role"]

@@ -1,14 +1,24 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Bell, Send, ImagePlus, X, Loader2 } from 'lucide-react';
+import { Bell, Send, ImagePlus, X, Loader2, CheckCheck, Eye, RefreshCw } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { format } from 'date-fns';
 import type { AdminData } from '@/pages/admin/AdminDashboard';
+
+interface Receipt {
+  id: string;
+  user_id: string;
+  title: string;
+  is_read: boolean;
+  read_at: string | null;
+  created_at: string;
+}
 
 interface Props { data: AdminData; onRefresh: () => void; }
 
@@ -23,6 +33,26 @@ export function AdminNotifications({ data }: Props) {
   const [mediaType, setMediaType] = useState<'image' | 'video' | null>(null);
   const [uploading, setUploading] = useState(false);
   const [category, setCategory] = useState('general');
+  const [receipts, setReceipts] = useState<Receipt[]>([]);
+  const [loadingReceipts, setLoadingReceipts] = useState(true);
+
+  /** Read receipts for messages sent from the admin dashboard. */
+  const loadReceipts = useCallback(async () => {
+    setLoadingReceipts(true);
+    const { data: rows } = await supabase
+      .from('notifications')
+      .select('id, user_id, title, is_read, read_at, created_at')
+      .in('type', ['admin_broadcast', 'admin_message'])
+      .order('created_at', { ascending: false })
+      .limit(100);
+    setReceipts((rows as Receipt[]) || []);
+    setLoadingReceipts(false);
+  }, []);
+
+  useEffect(() => { loadReceipts(); }, [loadReceipts]);
+
+  const nameFor = (userId: string) =>
+    data.users.find(u => u.user_id === userId)?.full_name || 'User';
 
   /** Uploads to the private notification-media bucket and keeps a long-lived signed URL. */
   const handleMediaUpload = async (file: File) => {
@@ -143,6 +173,7 @@ export function AdminNotifications({ data }: Props) {
       setSearchUser('');
       setMediaUrl(null);
       setMediaType(null);
+      loadReceipts();
     } finally {
       setSending(false);
     }
@@ -287,6 +318,52 @@ export function AdminNotifications({ data }: Props) {
               </Button>
             ))}
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Read receipts */}
+      <Card className="border-0 shadow-card">
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Eye className="w-4 h-4 text-primary" />
+              <p className="text-sm font-medium">Read receipts</p>
+            </div>
+            <Button variant="ghost" size="sm" className="gap-1.5" onClick={loadReceipts} disabled={loadingReceipts}>
+              <RefreshCw className={`w-4 h-4 ${loadingReceipts ? 'animate-spin' : ''}`} /> Refresh
+            </Button>
+          </div>
+          {loadingReceipts ? (
+            <div className="flex justify-center py-6"><Loader2 className="w-5 h-5 animate-spin text-primary" /></div>
+          ) : receipts.length === 0 ? (
+            <p className="text-xs text-muted-foreground">No admin messages sent yet.</p>
+          ) : (
+            <>
+              <p className="text-xs text-muted-foreground mb-2">
+                {receipts.filter(r => r.is_read).length} of {receipts.length} recent messages viewed
+              </p>
+              <div className="space-y-2 max-h-80 overflow-y-auto">
+                {receipts.map(r => (
+                  <div key={r.id} className="flex items-start justify-between gap-2 p-2 rounded-lg bg-secondary/30">
+                    <div className="min-w-0">
+                      <p className="text-xs font-medium truncate">{r.title}</p>
+                      <p className="text-[11px] text-muted-foreground truncate">
+                        {nameFor(r.user_id)} · sent {format(new Date(r.created_at), 'MMM d, h:mm a')}
+                      </p>
+                    </div>
+                    {r.is_read ? (
+                      <span className="text-[10px] text-primary flex items-center gap-1 shrink-0">
+                        <CheckCheck className="w-3 h-3" />
+                        {r.read_at ? format(new Date(r.read_at), 'MMM d, h:mm a') : 'Read'}
+                      </span>
+                    ) : (
+                      <span className="text-[10px] text-muted-foreground shrink-0">Unread</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
         </CardContent>
       </Card>
     </div>

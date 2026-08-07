@@ -43,6 +43,7 @@ import Terms from "./pages/Terms";
 import Feedback from "./pages/Feedback";
 import Customers from "./pages/Customers";
 import AdminDashboard from "./pages/admin/AdminDashboard";
+import SharedTracking from "./pages/SharedTracking";
 
 const queryClient = new QueryClient();
 
@@ -104,6 +105,8 @@ const App = () => (
             <Route path="/terms" element={<Terms />} />
             {/* Public, login-free package tracking */}
             <Route path="/t/:trackingNumber" element={<PublicTracking />} />
+            {/* Secure shareable tracking link (optional PIN / expiry) */}
+            <Route path="/s/:token" element={<SharedTracking />} />
             <Route path="/feedback" element={<ProtectedRoute><Feedback /></ProtectedRoute>} />
 
             {/* Admin Routes */}
