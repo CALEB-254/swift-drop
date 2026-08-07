@@ -615,7 +615,7 @@ export default function SenderDashboard() {
                         <span className="font-mono">{pkg.trackingNumber}</span>
                       </Button>
                       <div className="flex gap-2 items-center">
-                        <TrackJourneyButton trackingNumber={pkg.trackingNumber} status={pkg.status} />
+                        <TrackJourneyButton trackingNumber={pkg.trackingNumber} packageId={pkg.id} status={pkg.status} />
                         {pkg.status === 'refunded' ? (
                           <span className="text-xs text-muted-foreground italic">Refunded</span>
                         ) : pkg.status !== 'pending' ? (

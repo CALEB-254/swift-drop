@@ -107,6 +107,7 @@ export function PackageCard({ pkg, onClick, showQRCode = false, showPrint = fals
             <div className="pt-3 border-t border-border" onClick={(e) => e.stopPropagation()}>
               <TrackJourneyButton
                 trackingNumber={pkg.trackingNumber}
+                packageId={pkg.id}
                 status={pkg.status}
                 variant="default"
                 size="default"
