@@ -22,6 +22,7 @@ export default function AgentDashboard() {
     acceptPackage,
     updatePackageStatus,
     getNextStatus,
+    collectCash,
   } = useAgentPackages();
   
   const [activeTab, setActiveTab] = useState('available');
@@ -44,6 +45,18 @@ export default function AgentDashboard() {
       setActiveTab('active');
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to accept package');
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
+  const handleCollectCash = async (packageId: string) => {
+    try {
+      setProcessingId(packageId);
+      await collectCash(packageId);
+      toast.success('Cash collection recorded');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to record collection');
     } finally {
       setProcessingId(null);
     }
@@ -218,6 +231,10 @@ export default function AgentDashboard() {
             {activePackages.length > 0 ? (
               activePackages.map((pkg) => {
                 const nextStatus = getNextStatus(pkg.status);
+                const orderCash = pkg.codCollected ? 0 : pkg.codAmount;
+                const feeCash = pkg.feeOnDelivery && !pkg.feeCollected ? pkg.cost : 0;
+                const totalCash = orderCash + feeCash;
+                const cashPending = totalCash > 0;
                 return (
                   <PackageCard key={pkg.id} pkg={pkg}>
                     <div className="space-y-3">
@@ -225,18 +242,67 @@ export default function AgentDashboard() {
                         <span className="text-sm text-muted-foreground">Current Status</span>
                         <StatusBadge status={pkg.status} />
                       </div>
+                      {(pkg.codAmount > 0 || pkg.feeOnDelivery) && (
+                        <div className="rounded-lg border border-border bg-muted/40 p-3 space-y-2">
+                          {pkg.codAmount > 0 && (
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="text-muted-foreground">Order Amount</span>
+                              <span className={pkg.codCollected ? 'line-through text-muted-foreground' : 'font-medium'}>
+                                KES {pkg.codAmount.toLocaleString()}
+                              </span>
+                            </div>
+                          )}
+                          {pkg.feeOnDelivery && (
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="text-muted-foreground">Collect My Cash (delivery fee)</span>
+                              <span className={pkg.feeCollected ? 'line-through text-muted-foreground' : 'font-medium'}>
+                                KES {pkg.cost.toLocaleString()}
+                              </span>
+                            </div>
+                          )}
+                          <div className="flex items-center justify-between border-t border-border pt-2">
+                            <span className="text-sm font-semibold">Total Cash to Collect</span>
+                            <span className="font-display font-bold text-success">
+                              KES {totalCash.toLocaleString()}
+                            </span>
+                          </div>
+                          {cashPending ? (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="w-full"
+                              onClick={() => handleCollectCash(pkg.id)}
+                              disabled={processingId === pkg.id}
+                            >
+                              {processingId === pkg.id ? (
+                                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                              ) : null}
+                              Mark KES {totalCash.toLocaleString()} collected
+                            </Button>
+                          ) : (
+                            <p className="text-xs text-success flex items-center gap-1">
+                              <CheckCircle className="w-3.5 h-3.5" /> All cash collected
+                            </p>
+                          )}
+                        </div>
+                      )}
                       {nextStatus && (
                         <Button
                           variant="hero"
                           className="w-full"
                           onClick={() => handleUpdateStatus(pkg.id, nextStatus)}
-                          disabled={processingId === pkg.id}
+                          disabled={processingId === pkg.id || (nextStatus === 'delivered' && cashPending)}
                         >
                           {processingId === pkg.id ? (
                             <Loader2 className="w-4 h-4 animate-spin mr-2" />
                           ) : null}
                           Mark as {nextStatus.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
                         </Button>
+                      )}
+                      {nextStatus === 'delivered' && cashPending && (
+                        <p className="text-xs text-muted-foreground text-center">
+                          Collect KES {totalCash.toLocaleString()} before marking delivered.
+                        </p>
                       )}
                       <Button
                         variant="destructive"
