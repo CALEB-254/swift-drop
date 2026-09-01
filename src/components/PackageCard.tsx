@@ -62,44 +62,44 @@ export function PackageCard({ pkg, onClick, showQRCode = false, showPrint = fals
         
         <div className="p-4 space-y-4">
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1">
+            <div className="space-y-1 min-w-0">
               <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">From</p>
-              <div className="flex items-center gap-2">
-                <User className="w-4 h-4 text-primary" />
-                <span className="text-sm font-medium">{pkg.senderName}</span>
+              <div className="flex items-center gap-2 min-w-0">
+                <User className="w-4 h-4 text-primary shrink-0" />
+                <span className="text-sm font-medium truncate">{pkg.senderName}</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Phone className="w-3.5 h-3.5 text-muted-foreground" />
-                <span className="text-xs text-muted-foreground">{pkg.senderPhone}</span>
+              <div className="flex items-center gap-2 min-w-0">
+                <Phone className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                <span className="text-xs text-muted-foreground truncate">{pkg.senderPhone}</span>
               </div>
             </div>
             
-            <div className="space-y-1">
+            <div className="space-y-1 min-w-0">
               <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">To</p>
-              <div className="flex items-center gap-2">
-                <User className="w-4 h-4 text-accent" />
-                <span className="text-sm font-medium">{pkg.receiverName}</span>
+              <div className="flex items-center gap-2 min-w-0">
+                <User className="w-4 h-4 text-accent shrink-0" />
+                <span className="text-sm font-medium truncate">{pkg.receiverName}</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Phone className="w-3.5 h-3.5 text-muted-foreground" />
-                <span className="text-xs text-muted-foreground">{pkg.receiverPhone}</span>
+              <div className="flex items-center gap-2 min-w-0">
+                <Phone className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                <span className="text-xs text-muted-foreground truncate">{pkg.receiverPhone}</span>
               </div>
             </div>
           </div>
           
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <MapPin className="w-4 h-4 text-primary" />
+          <div className="flex items-center gap-2 text-sm text-muted-foreground min-w-0">
+            <MapPin className="w-4 h-4 text-primary shrink-0" />
             <span className="truncate">
               {pkg.deliveryType === 'pickup_point' ? pkg.pickupPoint : pkg.receiverAddress}
             </span>
           </div>
           
-          <div className="flex items-center justify-between pt-3 border-t border-border">
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <Clock className="w-3.5 h-3.5" />
-              <span>{format(pkg.createdAt, 'MMM d, yyyy • h:mm a')}</span>
+          <div className="flex items-center justify-between gap-2 pt-3 border-t border-border">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground min-w-0">
+              <Clock className="w-3.5 h-3.5 shrink-0" />
+              <span className="truncate">{format(pkg.createdAt, 'MMM d, yyyy • h:mm a')}</span>
             </div>
-            <div className="font-display font-bold text-lg text-primary">
+            <div className="font-display font-bold text-lg text-primary shrink-0">
               KES {pkg.cost.toLocaleString()}
             </div>
           </div>
