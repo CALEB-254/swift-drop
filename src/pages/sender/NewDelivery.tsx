@@ -46,6 +46,7 @@ export default function NewDelivery() {
     deliveryAddress: '',
     codAmount: '',
     collectCash: false,
+    payOnDelivery: false,
   });
 
   // Fetch agents for pickup point selection
@@ -152,6 +153,7 @@ export default function NewDelivery() {
         packageValue: parseFloat(formData.packageValue) || undefined,
         packagingColor: deliveryType === 'errand' ? undefined : (formData.packagingColor || undefined),
         codAmount: parseFloat(formData.codAmount) || 0,
+        payOnDelivery: deliveryType === 'doorstep' && formData.payOnDelivery,
         cost: computedCost,
       });
 
@@ -499,6 +501,32 @@ export default function NewDelivery() {
           )}
         </div>
 
+        {/* Pay on Delivery — doorstep only */}
+        {deliveryType === 'doorstep' && (
+          <div>
+            <h2 className="section-accent font-semibold mb-4">Delivery Fee Payment</h2>
+            <div className="flex items-start gap-2">
+              <Checkbox
+                id="payOnDelivery"
+                checked={formData.payOnDelivery}
+                onCheckedChange={(checked) =>
+                  setFormData({ ...formData, payOnDelivery: checked === true })
+                }
+              />
+              <div className="space-y-1">
+                <Label htmlFor="payOnDelivery" className="cursor-pointer">
+                  Pay on Delivery (KES {computedCost})
+                </Label>
+                <p className="text-xs text-muted-foreground">
+                  {formData.payOnDelivery
+                    ? 'The doorstep fee will not be charged at checkout. The rider will collect it on delivery as "Collect My Cash".'
+                    : 'Leave unchecked to pay the doorstep fee now at checkout.'}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Collect on Delivery — not available for errand */}
         {deliveryType !== 'errand' && (
         <div>
@@ -550,7 +578,11 @@ export default function NewDelivery() {
             className="w-full"
             size="lg"
           >
-            {isSubmitting ? 'Creating Delivery...' : `Create Delivery - KES ${computedCost}`}
+            {isSubmitting
+              ? 'Creating Delivery...'
+              : formData.payOnDelivery && deliveryType === 'doorstep'
+                ? `Create Delivery - Pay KES ${computedCost} on delivery`
+                : `Create Delivery - KES ${computedCost}`}
           </Button>
         </div>
       </div>

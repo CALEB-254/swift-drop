@@ -33,6 +33,8 @@ export interface Package {
   agentId: string | null;
   isProduct: boolean;
   paymentStatus: string;
+  feeOnDelivery?: boolean;
+  feeCollected?: boolean;
   rejectionReason?: string | null;
   pendingConversionType?: DeliveryType | null;
   pendingConversionCost?: number | null;
@@ -63,6 +65,8 @@ const mapRowToPackage = (row: PackageRow): Package => ({
   agentId: row.agent_id,
   isProduct: row.is_product ?? false,
   paymentStatus: row.payment_status ?? 'pending',
+  feeOnDelivery: !!(row as any).fee_on_delivery,
+  feeCollected: !!(row as any).fee_collected,
   rejectionReason: row.rejection_reason ?? null,
   pendingConversionType: (row.pending_conversion_type as DeliveryType | null) ?? null,
   pendingConversionCost: row.pending_conversion_cost != null ? Number(row.pending_conversion_cost) : null,
@@ -90,6 +94,7 @@ export interface CreatePackageData {
   isProduct?: boolean;
   codAmount?: number;
   cost?: number;
+  payOnDelivery?: boolean;
 }
 
 export function usePackages() {
@@ -207,6 +212,8 @@ export function usePackages() {
       is_product: data.isProduct || false,
       pickup_agent_id: data.pickupAgentId || null,
       cod_amount: data.codAmount || 0,
+      fee_on_delivery: data.payOnDelivery || false,
+      ...(data.payOnDelivery ? { payment_status: 'pay_on_delivery' } : {}),
       ...(data.courierId ? { courier_id: data.courierId } : {}),
     };
 

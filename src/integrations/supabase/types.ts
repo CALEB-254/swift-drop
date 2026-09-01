@@ -279,6 +279,9 @@ export type Database = {
           courier_id: string | null
           created_at: string
           delivery_type: Database["public"]["Enums"]["delivery_type"]
+          fee_collected: boolean
+          fee_collected_at: string | null
+          fee_on_delivery: boolean
           id: string
           is_product: boolean | null
           mpesa_receipt_number: string | null
@@ -321,6 +324,9 @@ export type Database = {
           courier_id?: string | null
           created_at?: string
           delivery_type: Database["public"]["Enums"]["delivery_type"]
+          fee_collected?: boolean
+          fee_collected_at?: string | null
+          fee_on_delivery?: boolean
           id?: string
           is_product?: boolean | null
           mpesa_receipt_number?: string | null
@@ -363,6 +369,9 @@ export type Database = {
           courier_id?: string | null
           created_at?: string
           delivery_type?: Database["public"]["Enums"]["delivery_type"]
+          fee_collected?: boolean
+          fee_collected_at?: string | null
+          fee_on_delivery?: boolean
           id?: string
           is_product?: boolean | null
           mpesa_receipt_number?: string | null
@@ -1105,6 +1114,7 @@ export type Database = {
         Args: { _new_cost: number; _package_id: string }
         Returns: Json
       }
+      collect_delivery_cash: { Args: { _package_id: string }; Returns: Json }
       consume_pochi_withdrawal_code: {
         Args: { _code: string }
         Returns: boolean
