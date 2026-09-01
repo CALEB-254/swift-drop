@@ -44,17 +44,19 @@ export function PackageCard({ pkg, onClick, showQRCode = false, showPrint = fals
     >
       <CardContent className="p-0">
         <div className="gradient-primary p-4 text-primary-foreground">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-primary-foreground/10 rounded-lg backdrop-blur-sm">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-3 min-w-0 flex-1">
+              <div className="p-2 bg-primary-foreground/10 rounded-lg backdrop-blur-sm shrink-0">
                 <PackageIcon className="w-5 h-5" />
               </div>
-              <div>
-                <p className="font-display font-semibold">{pkg.trackingNumber}</p>
-                <p className="text-xs opacity-80">{pkg.packageDescription}</p>
+              <div className="min-w-0 flex-1">
+                <p className="font-display font-semibold truncate">{pkg.trackingNumber}</p>
+                <p className="text-xs opacity-80 truncate">{pkg.packageDescription}</p>
               </div>
             </div>
-            <StatusBadge status={pkg.status} className="bg-primary-foreground/10 border-primary-foreground/20 text-primary-foreground" />
+            <div className="shrink-0">
+              <StatusBadge status={pkg.status} className="bg-primary-foreground/10 border-primary-foreground/20 text-primary-foreground" />
+            </div>
           </div>
         </div>
         
