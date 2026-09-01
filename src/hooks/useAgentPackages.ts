@@ -29,6 +29,10 @@ export interface Package {
   status: PackageStatus;
   agentId: string | null;
   isProduct: boolean;
+  codAmount: number;
+  codCollected: boolean;
+  feeOnDelivery: boolean;
+  feeCollected: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -54,6 +58,10 @@ const mapRowToPackage = (row: PackageRow): Package => ({
   status: row.status,
   agentId: row.agent_id,
   isProduct: row.is_product ?? false,
+  codAmount: row.cod_amount ? Number(row.cod_amount) : 0,
+  codCollected: !!row.cod_collected,
+  feeOnDelivery: !!(row as any).fee_on_delivery,
+  feeCollected: !!(row as any).fee_collected,
   createdAt: new Date(row.created_at),
   updatedAt: new Date(row.updated_at),
 });
@@ -221,6 +229,18 @@ export function useAgentPackages() {
     }
   };
 
+  // Record cash collected at the door (delivery fee + COD)
+  const collectCash = async (packageId: string): Promise<void> => {
+    const { error: rpcError } = await supabase.rpc('collect_delivery_cash' as any, {
+      _package_id: packageId,
+    });
+    if (rpcError) {
+      logger.error('Error collecting cash:', rpcError);
+      throw new Error(rpcError.message);
+    }
+    await fetchPackages();
+  };
+
   // Get next status in workflow
   const getNextStatus = (currentStatus: PackageStatus): PackageStatus | null => {
     const statusFlow: Record<PackageStatus, PackageStatus | null> = {
@@ -256,6 +276,7 @@ export function useAgentPackages() {
     error,
     acceptPackage,
     updatePackageStatus,
+    collectCash,
     getNextStatus,
     refetch: fetchPackages,
   };
