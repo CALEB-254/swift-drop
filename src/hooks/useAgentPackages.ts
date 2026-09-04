@@ -250,6 +250,7 @@ export function useAgentPackages() {
       in_transit: 'received_in_warehouse',
       received_in_warehouse: 'out_for_delivery',
       out_for_delivery: 'delivered',
+      awaiting_payment: 'delivered',
       delivered: null,
       cancelled: null,
       refunded: null,
