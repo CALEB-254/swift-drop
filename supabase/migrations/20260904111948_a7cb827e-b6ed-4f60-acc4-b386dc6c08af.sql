@@ -1,0 +1,1 @@
+ALTER TYPE public.package_status ADD VALUE IF NOT EXISTS 'awaiting_payment' AFTER 'out_for_delivery';

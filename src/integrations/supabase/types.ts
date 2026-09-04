@@ -1178,6 +1178,7 @@ export type Database = {
         | "picked_up"
         | "in_transit"
         | "out_for_delivery"
+        | "awaiting_payment"
         | "delivered"
         | "cancelled"
         | "refunded"
@@ -1326,6 +1327,7 @@ export const Constants = {
         "picked_up",
         "in_transit",
         "out_for_delivery",
+        "awaiting_payment",
         "delivered",
         "cancelled",
         "refunded",
