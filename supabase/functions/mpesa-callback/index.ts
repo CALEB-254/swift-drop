@@ -43,6 +43,71 @@ serve(async (req) => {
       );
     }
 
+    // Extract receipt number from callback metadata
+    let mpesaReceiptNumber = "";
+    if (CallbackMetadata?.Item) {
+      for (const item of CallbackMetadata.Item) {
+        if (item.Name === "MpesaReceiptNumber") mpesaReceiptNumber = String(item.Value || "");
+      }
+    }
+
+    // ── Pay on Delivery / Collect My Cash collections ──
+    const { data: collection } = await supabase
+      .from("cash_collections")
+      .select("*")
+      .eq("checkout_request_id", CheckoutRequestID)
+      .eq("status", "pending")
+      .maybeSingle();
+
+    if (collection) {
+      if (ResultCode === 0) {
+        await supabase
+          .from("cash_collections")
+          .update({ status: "paid", mpesa_receipt: mpesaReceiptNumber })
+          .eq("id", collection.id);
+
+        // Goods amount is credited to the sender's Pochi wallet by the
+        // cod_collected trigger; the delivery fee stays in the app account.
+        await supabase
+          .from("packages")
+          .update({
+            payment_status: "paid",
+            paid_at: new Date().toISOString(),
+            mpesa_receipt_number: mpesaReceiptNumber,
+            checkout_request_id: null,
+            fee_collected: true,
+            fee_collected_at: new Date().toISOString(),
+            cod_collected: Number(collection.goods_amount) > 0 ? true : undefined,
+          })
+          .eq("id", collection.package_id);
+
+        await supabase.from("payment_logs").insert({
+          user_id: collection.sender_id,
+          package_ids: [collection.package_id],
+          tracking_numbers: [collection.tracking_number],
+          amount: Number(collection.delivery_fee),
+          payment_method: "stk_on_delivery",
+          mpesa_receipt_number: mpesaReceiptNumber,
+          checkout_request_id: CheckoutRequestID,
+          status: "completed",
+        });
+      } else {
+        await supabase
+          .from("cash_collections")
+          .update({ status: "failed", dispute_reason: ResultDesc })
+          .eq("id", collection.id);
+        await supabase
+          .from("packages")
+          .update({ payment_status: "pending", checkout_request_id: null })
+          .eq("id", collection.package_id);
+      }
+
+      return new Response(
+        JSON.stringify({ ResultCode: 0, ResultDesc: "Accepted" }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
     // Find packages matching this specific CheckoutRequestID
     const { data: packages, error: queryError } = await supabase
       .from("packages")
@@ -60,16 +125,6 @@ serve(async (req) => {
 
     const packageIds = packages.map((p) => p.id);
 
-    // Extract receipt number from callback metadata
-    let mpesaReceiptNumber = "";
-
-    if (CallbackMetadata?.Item) {
-      for (const item of CallbackMetadata.Item) {
-        if (item.Name === "MpesaReceiptNumber") {
-          mpesaReceiptNumber = String(item.Value || "");
-        }
-      }
-    }
 
     if (ResultCode === 0) {
       console.log("Payment successful:", mpesaReceiptNumber);

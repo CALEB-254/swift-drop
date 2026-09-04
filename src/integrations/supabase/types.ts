@@ -178,6 +178,83 @@ export type Database = {
         }
         Relationships: []
       }
+      cash_collections: {
+        Row: {
+          checkout_request_id: string | null
+          created_at: string
+          delivery_fee: number
+          dispute_reason: string | null
+          disputed_at: string | null
+          disputed_by: string | null
+          goods_amount: number
+          id: string
+          method: string
+          mpesa_receipt: string | null
+          package_id: string
+          payment_type: string
+          phone: string | null
+          resolved_at: string | null
+          rider_id: string | null
+          sender_id: string | null
+          status: string
+          total_amount: number
+          tracking_number: string
+          updated_at: string
+        }
+        Insert: {
+          checkout_request_id?: string | null
+          created_at?: string
+          delivery_fee?: number
+          dispute_reason?: string | null
+          disputed_at?: string | null
+          disputed_by?: string | null
+          goods_amount?: number
+          id?: string
+          method?: string
+          mpesa_receipt?: string | null
+          package_id: string
+          payment_type?: string
+          phone?: string | null
+          resolved_at?: string | null
+          rider_id?: string | null
+          sender_id?: string | null
+          status?: string
+          total_amount?: number
+          tracking_number: string
+          updated_at?: string
+        }
+        Update: {
+          checkout_request_id?: string | null
+          created_at?: string
+          delivery_fee?: number
+          dispute_reason?: string | null
+          disputed_at?: string | null
+          disputed_by?: string | null
+          goods_amount?: number
+          id?: string
+          method?: string
+          mpesa_receipt?: string | null
+          package_id?: string
+          payment_type?: string
+          phone?: string | null
+          resolved_at?: string | null
+          rider_id?: string | null
+          sender_id?: string | null
+          status?: string
+          total_amount?: number
+          tracking_number?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cash_collections_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "packages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       couriers: {
         Row: {
           created_at: string
@@ -1127,6 +1204,10 @@ export type Database = {
         Args: { _expires_at?: string; _package_id: string; _pin?: string }
         Returns: Json
       }
+      flag_cash_dispute: {
+        Args: { _collection_id: string; _reason: string }
+        Returns: Json
+      }
       get_admin_level: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["admin_role"]
@@ -1159,6 +1240,10 @@ export type Database = {
         Args: { _package_id: string; _release_code: string }
         Returns: Json
       }
+      resolve_cash_dispute: {
+        Args: { _collection_id: string; _notes?: string }
+        Returns: Json
+      }
       setup_pochi_security: {
         Args: { _answer: string; _pin: string; _question: string }
         Returns: Json
@@ -1178,6 +1263,7 @@ export type Database = {
         | "picked_up"
         | "in_transit"
         | "out_for_delivery"
+        | "awaiting_payment"
         | "delivered"
         | "cancelled"
         | "refunded"
@@ -1201,12 +1287,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1230,11 +1316,11 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1255,11 +1341,11 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1280,11 +1366,11 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1297,11 +1383,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1326,6 +1412,7 @@ export const Constants = {
         "picked_up",
         "in_transit",
         "out_for_delivery",
+        "awaiting_payment",
         "delivered",
         "cancelled",
         "refunded",
