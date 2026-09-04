@@ -178,6 +178,83 @@ export type Database = {
         }
         Relationships: []
       }
+      cash_collections: {
+        Row: {
+          checkout_request_id: string | null
+          created_at: string
+          delivery_fee: number
+          dispute_reason: string | null
+          disputed_at: string | null
+          disputed_by: string | null
+          goods_amount: number
+          id: string
+          method: string
+          mpesa_receipt: string | null
+          package_id: string
+          payment_type: string
+          phone: string | null
+          resolved_at: string | null
+          rider_id: string | null
+          sender_id: string | null
+          status: string
+          total_amount: number
+          tracking_number: string
+          updated_at: string
+        }
+        Insert: {
+          checkout_request_id?: string | null
+          created_at?: string
+          delivery_fee?: number
+          dispute_reason?: string | null
+          disputed_at?: string | null
+          disputed_by?: string | null
+          goods_amount?: number
+          id?: string
+          method?: string
+          mpesa_receipt?: string | null
+          package_id: string
+          payment_type?: string
+          phone?: string | null
+          resolved_at?: string | null
+          rider_id?: string | null
+          sender_id?: string | null
+          status?: string
+          total_amount?: number
+          tracking_number: string
+          updated_at?: string
+        }
+        Update: {
+          checkout_request_id?: string | null
+          created_at?: string
+          delivery_fee?: number
+          dispute_reason?: string | null
+          disputed_at?: string | null
+          disputed_by?: string | null
+          goods_amount?: number
+          id?: string
+          method?: string
+          mpesa_receipt?: string | null
+          package_id?: string
+          payment_type?: string
+          phone?: string | null
+          resolved_at?: string | null
+          rider_id?: string | null
+          sender_id?: string | null
+          status?: string
+          total_amount?: number
+          tracking_number?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cash_collections_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "packages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       couriers: {
         Row: {
           created_at: string
@@ -1127,6 +1204,10 @@ export type Database = {
         Args: { _expires_at?: string; _package_id: string; _pin?: string }
         Returns: Json
       }
+      flag_cash_dispute: {
+        Args: { _collection_id: string; _reason: string }
+        Returns: Json
+      }
       get_admin_level: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["admin_role"]
@@ -1157,6 +1238,10 @@ export type Database = {
       reject_conversion: { Args: { _package_id: string }; Returns: Json }
       release_package: {
         Args: { _package_id: string; _release_code: string }
+        Returns: Json
+      }
+      resolve_cash_dispute: {
+        Args: { _collection_id: string; _notes?: string }
         Returns: Json
       }
       setup_pochi_security: {
