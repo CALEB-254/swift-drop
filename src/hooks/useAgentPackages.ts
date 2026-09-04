@@ -33,6 +33,7 @@ export interface Package {
   codCollected: boolean;
   feeOnDelivery: boolean;
   feeCollected: boolean;
+  paymentStatus: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -62,6 +63,7 @@ const mapRowToPackage = (row: PackageRow): Package => ({
   codCollected: !!row.cod_collected,
   feeOnDelivery: !!(row as any).fee_on_delivery,
   feeCollected: !!(row as any).fee_collected,
+  paymentStatus: (row as any).payment_status ?? 'pending',
   createdAt: new Date(row.created_at),
   updatedAt: new Date(row.updated_at),
 });
@@ -241,6 +243,25 @@ export function useAgentPackages() {
     await fetchPackages();
   };
 
+  // Initiate an M-Pesa STK push to the receiver for cash due on delivery
+  const collectPayment = async (packageId: string, phone?: string) => {
+    const { data, error: fnError } = await supabase.functions.invoke('collect-payment', {
+      body: { packageId, phone },
+    });
+    if (fnError) throw new Error(fnError.message);
+    if (!data?.success) throw new Error(data?.error || 'Failed to send payment prompt');
+    await fetchPackages();
+    return data as { checkoutRequestId: string; amount: number };
+  };
+
+  const checkCollectionStatus = async (packageId: string) => {
+    const { data, error: fnError } = await supabase.functions.invoke('collect-payment', {
+      body: { packageId, action: 'status' },
+    });
+    if (fnError) throw new Error(fnError.message);
+    return (data?.status as string) || 'none';
+  };
+
   // Get next status in workflow
   const getNextStatus = (currentStatus: PackageStatus): PackageStatus | null => {
     const statusFlow: Record<PackageStatus, PackageStatus | null> = {
@@ -278,6 +299,8 @@ export function useAgentPackages() {
     acceptPackage,
     updatePackageStatus,
     collectCash,
+    collectPayment,
+    checkCollectionStatus,
     getNextStatus,
     refetch: fetchPackages,
   };
