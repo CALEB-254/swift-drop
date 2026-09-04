@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { ArrowLeft, ShoppingCart, Search } from 'lucide-react';
 import { usePackages } from '@/hooks/usePackages';
 import { useAuth } from '@/hooks/useAuth';
@@ -29,6 +30,8 @@ export default function NewDelivery() {
   const [destArea, setDestArea] = useState<string>('');
   const [destZoneId, setDestZoneId] = useState<string>('');
   const [fromAgentId, setFromAgentId] = useState<string>('');
+  type PaymentOption = 'pay_now' | 'pay_on_delivery' | 'collect_my_cash';
+  const [paymentOption, setPaymentOption] = useState<PaymentOption>('pay_now');
   
   const deliveryType = (searchParams.get('type') as DeliveryType) || 'pickup_point';
   const deliveryTypeInfo = DELIVERY_TYPES.find(t => t.id === deliveryType);
@@ -153,7 +156,7 @@ export default function NewDelivery() {
         packageValue: parseFloat(formData.packageValue) || undefined,
         packagingColor: deliveryType === 'errand' ? undefined : (formData.packagingColor || undefined),
         codAmount: parseFloat(formData.codAmount) || 0,
-        payOnDelivery: deliveryType === 'doorstep' && formData.payOnDelivery,
+        payOnDelivery: deliveryType !== 'errand' && paymentOption !== 'pay_now',
         cost: computedCost,
       });
 
@@ -582,7 +585,7 @@ export default function NewDelivery() {
           >
             {isSubmitting
               ? 'Creating Delivery...'
-              : formData.payOnDelivery && deliveryType === 'doorstep'
+              : paymentOption !== 'pay_now' && deliveryType !== 'errand'
                 ? `Create Delivery - Pay KES ${computedCost} on delivery`
                 : `Create Delivery - KES ${computedCost}`}
           </Button>
