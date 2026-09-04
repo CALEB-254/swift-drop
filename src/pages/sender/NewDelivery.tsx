@@ -501,74 +501,76 @@ export default function NewDelivery() {
           )}
         </div>
 
-        {/* Pay on Delivery — doorstep only */}
-        {deliveryType === 'doorstep' && (
-          <div>
-            <h2 className="section-accent font-semibold mb-4">Delivery Fee Payment</h2>
-            <div className="flex items-start gap-2">
-              <Checkbox
-                id="payOnDelivery"
-                checked={formData.payOnDelivery}
-                onCheckedChange={(checked) =>
-                  setFormData({ ...formData, payOnDelivery: checked === true })
-                }
-              />
-              <div className="space-y-1">
-                <Label htmlFor="payOnDelivery" className="cursor-pointer">
-                  Pay on Delivery (KES {computedCost})
-                </Label>
-                <p className="text-xs text-muted-foreground">
-                  {formData.payOnDelivery
-                    ? 'The doorstep fee will not be charged at checkout. The rider will collect it on delivery as "Collect My Cash".'
-                    : 'Leave unchecked to pay the doorstep fee now at checkout.'}
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Collect on Delivery — not available for errand */}
+        {/* Payment option */}
         {deliveryType !== 'errand' && (
         <div>
-          <h2 className="section-accent font-semibold mb-4">Collect on Delivery (COD)</h2>
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <Checkbox
-                id="collectCash"
-                checked={formData.collectCash}
-                onCheckedChange={(checked) => {
-                  const isChecked = checked === true;
-                  setFormData({
-                    ...formData,
-                    collectCash: isChecked,
-                    codAmount: isChecked
-                      ? (formData.codAmount || formData.packageValue || '')
-                      : '',
-                  });
-                }}
-              />
-              <Label htmlFor="collectCash" className="cursor-pointer">
-                Collect my cash from receiver
-              </Label>
+          <h2 className="section-accent font-semibold mb-4">Payment</h2>
+          <RadioGroup
+            value={paymentOption}
+            onValueChange={(v) => {
+              const opt = v as PaymentOption;
+              setPaymentOption(opt);
+              setFormData((prev) => ({
+                ...prev,
+                payOnDelivery: opt !== 'pay_now',
+                collectCash: opt === 'collect_my_cash',
+                codAmount:
+                  opt === 'collect_my_cash'
+                    ? (prev.codAmount || prev.packageValue || '')
+                    : '',
+              }));
+            }}
+            className="space-y-3"
+          >
+            <div className="flex items-start gap-2 rounded-lg border border-border p-3">
+              <RadioGroupItem value="pay_now" id="pay_now" className="mt-1" />
+              <div>
+                <Label htmlFor="pay_now" className="cursor-pointer">Pay Now (KES {computedCost})</Label>
+                <p className="text-xs text-muted-foreground">You pay the delivery fee at checkout.</p>
+              </div>
             </div>
-            {formData.collectCash && (
-              <div className="space-y-2">
-                <Label>Amount to collect (editable)</Label>
-                <Input
-                  placeholder="Amount"
-                  type="number"
-                  value={formData.codAmount}
-                  onChange={(e) => setFormData({ ...formData, codAmount: e.target.value })}
-                  className="input-accent"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Defaults to your package value. This amount will be collected from the receiver and deposited to your Pochi wallet.
-                </p>
+
+            {deliveryType === 'doorstep' && (
+              <div className="flex items-start gap-2 rounded-lg border border-border p-3">
+                <RadioGroupItem value="pay_on_delivery" id="pay_on_delivery" className="mt-1" />
+                <div>
+                  <Label htmlFor="pay_on_delivery" className="cursor-pointer">Pay on Delivery (KES {computedCost})</Label>
+                  <p className="text-xs text-muted-foreground">
+                    The receiver pays the delivery fee by M-Pesa when the rider arrives. Nothing is charged now.
+                  </p>
+                </div>
               </div>
             )}
-          </div>
+
+            <div className="flex items-start gap-2 rounded-lg border border-border p-3">
+              <RadioGroupItem value="collect_my_cash" id="collect_my_cash" className="mt-1" />
+              <div className="w-full space-y-2">
+                <Label htmlFor="collect_my_cash" className="cursor-pointer">Collect My Cash</Label>
+                <p className="text-xs text-muted-foreground">
+                  The receiver pays for the goods plus the delivery fee on delivery. The goods amount is credited to your Pochi wallet.
+                </p>
+                {paymentOption === 'collect_my_cash' && (
+                  <div className="space-y-2">
+                    <Label>Goods amount to collect (editable)</Label>
+                    <Input
+                      placeholder="Amount"
+                      type="number"
+                      value={formData.codAmount}
+                      onChange={(e) => setFormData({ ...formData, codAmount: e.target.value })}
+                      className="input-accent"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Total the receiver pays: KES{' '}
+                      {((parseFloat(formData.codAmount) || 0) + computedCost).toLocaleString()}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </RadioGroup>
         </div>
         )}
+
 
         {/* Submit Button */}
         <div className="pt-4">
