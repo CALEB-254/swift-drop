@@ -344,6 +344,65 @@ export type Database = {
         }
         Relationships: []
       }
+      package_logs: {
+        Row: {
+          action: string
+          actor_id: string | null
+          actor_name: string | null
+          actor_role: string | null
+          created_at: string
+          id: string
+          latitude: number | null
+          location_text: string | null
+          longitude: number | null
+          notes: string | null
+          package_id: string
+          status_after: string | null
+          status_before: string | null
+          tracking_number: string | null
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          actor_name?: string | null
+          actor_role?: string | null
+          created_at?: string
+          id?: string
+          latitude?: number | null
+          location_text?: string | null
+          longitude?: number | null
+          notes?: string | null
+          package_id: string
+          status_after?: string | null
+          status_before?: string | null
+          tracking_number?: string | null
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          actor_name?: string | null
+          actor_role?: string | null
+          created_at?: string
+          id?: string
+          latitude?: number | null
+          location_text?: string | null
+          longitude?: number | null
+          notes?: string | null
+          package_id?: string
+          status_after?: string | null
+          status_before?: string | null
+          tracking_number?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "package_logs_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "packages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       packages: {
         Row: {
           agent_id: string | null
