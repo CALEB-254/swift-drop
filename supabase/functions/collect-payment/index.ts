@@ -80,7 +80,13 @@ serve(async (req) => {
     if (pkgErr || !pkg) return json({ success: false, error: "Package not found" }, 404);
 
     const { data: isAdmin } = await supabase.rpc("is_admin", { _user_id: userId });
-    if (pkg.agent_id !== userId && !isAdmin) {
+    const { data: riderRow } = await supabase
+      .from("riders")
+      .select("id")
+      .eq("user_id", userId)
+      .maybeSingle();
+    const isAssignedRider = !!riderRow && pkg.assigned_rider_id === riderRow.id;
+    if (pkg.agent_id !== userId && !isAssignedRider && !isAdmin) {
       return json({ success: false, error: "You are not assigned to this package" }, 403);
     }
 
@@ -133,7 +139,7 @@ serve(async (req) => {
     await supabase.from("cash_collections").insert({
       package_id: pkg.id,
       tracking_number: pkg.tracking_number,
-      rider_id: pkg.agent_id,
+      rider_id: pkg.assigned_rider_id ?? riderRow?.id ?? null,
       sender_id: pkg.user_id,
       payment_type: goodsAmount > 0 ? "collect_my_cash" : "pay_on_delivery",
       goods_amount: goodsAmount,

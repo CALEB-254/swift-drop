@@ -75,8 +75,8 @@ serve(async (req) => {
             paid_at: new Date().toISOString(),
             mpesa_receipt_number: mpesaReceiptNumber,
             checkout_request_id: null,
-            fee_collected: true,
-            fee_collected_at: new Date().toISOString(),
+            fee_collected: Number(collection.delivery_fee) > 0 ? true : undefined,
+            fee_collected_at: Number(collection.delivery_fee) > 0 ? new Date().toISOString() : undefined,
             cod_collected: Number(collection.goods_amount) > 0 ? true : undefined,
           })
           .eq("id", collection.package_id);
