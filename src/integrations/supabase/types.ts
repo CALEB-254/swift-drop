@@ -1290,6 +1290,16 @@ export type Database = {
       is_admin: { Args: { _user_id: string }; Returns: boolean }
       is_super_admin: { Args: { _user_id: string }; Returns: boolean }
       normalize_ke_phone: { Args: { _raw: string }; Returns: string }
+      notify_admins: {
+        Args: {
+          _category: string
+          _message: string
+          _title: string
+          _tracking: string
+          _type: string
+        }
+        Returns: undefined
+      }
       pay_with_pochi:
         | { Args: { _package_ids: string[] }; Returns: Json }
         | { Args: { _package_ids: string[]; _pin: string }; Returns: Json }
