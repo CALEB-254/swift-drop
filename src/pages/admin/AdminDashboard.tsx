@@ -27,6 +27,7 @@ import { AdminRefunds } from '@/components/admin/AdminRefunds';
 import { AdminSLA } from '@/components/admin/AdminSLA';
 import { AdminBulkActions } from '@/components/admin/AdminBulkActions';
 import { AdminCouriers } from '@/components/admin/AdminCouriers';
+import { AdminCashCollections } from '@/components/admin/AdminCashCollections';
 
 export interface AdminData {
   packages: any[];
@@ -63,6 +64,7 @@ const TABS = [
   { value: 'couriers', label: 'Couriers', icon: Truck, roles: ['super_admin', 'operations_admin'] },
   { value: 'bulk', label: 'Bulk', icon: Layers, roles: ['super_admin', 'operations_admin'] },
   { value: 'sla', label: 'SLA', icon: Activity, roles: ['super_admin', 'operations_admin', 'finance_admin'] },
+  { value: 'cash', label: 'Cash', icon: DollarSign, roles: ['super_admin', 'finance_admin', 'operations_admin'] },
   { value: 'refunds', label: 'Refunds', icon: RotateCcw, roles: ['super_admin', 'finance_admin', 'support_admin'] },
   { value: 'notifications', label: 'Notify', icon: Bell, roles: ['super_admin', 'operations_admin'] },
   { value: 'support', label: 'Support', icon: HeadphonesIcon, roles: ['super_admin', 'support_admin'] },
@@ -191,6 +193,7 @@ export default function AdminDashboard() {
           <TabsContent value="couriers"><AdminCouriers /></TabsContent>
           <TabsContent value="bulk"><AdminBulkActions data={data} onRefresh={fetchAllData} /></TabsContent>
           <TabsContent value="sla"><AdminSLA data={data} onRefresh={fetchAllData} /></TabsContent>
+          <TabsContent value="cash"><AdminCashCollections /></TabsContent>
           <TabsContent value="refunds"><AdminRefunds data={data} onRefresh={fetchAllData} /></TabsContent>
           <TabsContent value="notifications"><AdminNotifications data={data} onRefresh={fetchAllData} /></TabsContent>
           <TabsContent value="support"><AdminSupport data={data} onRefresh={fetchAllData} /></TabsContent>
