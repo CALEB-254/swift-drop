@@ -147,7 +147,15 @@ export default function Login() {
               }`}
             >
               <div className="flex-1 overflow-y-auto px-6 py-6">
-                <h3 className="text-xl font-bold text-primary-foreground mb-5 text-center">Login</h3>
+                <h3 className="text-xl font-bold text-primary-foreground mb-4 text-center">Login</h3>
+                <div className="mb-4 grid grid-cols-2 gap-2 rounded-full border border-primary-foreground/20 p-1">
+                  {(['sender', 'staff'] as const).map((t) => (
+                    <button key={t} type="button" onClick={() => setAccountType(t)}
+                      className={`h-9 rounded-full text-sm font-medium transition-colors ${accountType === t ? 'bg-primary text-primary-foreground' : 'text-primary-foreground/60'}`}>
+                      {t === 'sender' ? 'Sender' : 'Agent / Rider'}
+                    </button>
+                  ))}
+                </div>
                 <form onSubmit={handleLogin} className="space-y-4">{formError && (<p role="alert" className="text-sm text-destructive">{formError}</p>)}
                   <div className="space-y-2">
                     <Label className="text-primary-foreground/70">Email</Label>
@@ -274,7 +282,15 @@ export default function Login() {
             isLogin ? 'opacity-100 translate-x-0 z-[1]' : 'opacity-0 -translate-x-8 z-0'
           }`}>
             <div className="w-full max-w-sm">
-              <h3 className="text-2xl font-bold text-primary-foreground mb-6">Login</h3>
+              <h3 className="text-2xl font-bold text-primary-foreground mb-4">Login</h3>
+              <div className="mb-5 grid grid-cols-2 gap-2 rounded-full border border-primary-foreground/20 p-1">
+                {(['sender', 'staff'] as const).map((t) => (
+                  <button key={t} type="button" onClick={() => setAccountType(t)}
+                    className={`h-9 rounded-full text-sm font-medium transition-colors ${accountType === t ? 'bg-primary text-primary-foreground' : 'text-primary-foreground/60'}`}>
+                    {t === 'sender' ? 'Sender' : 'Agent / Rider'}
+                  </button>
+                ))}
+              </div>
               <form onSubmit={handleLogin} className="space-y-4">{formError && (<p role="alert" className="text-sm text-destructive">{formError}</p>)}
                 <div className="space-y-2">
                   <Label className="text-primary-foreground/70">Email</Label>
