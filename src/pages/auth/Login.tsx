@@ -174,21 +174,29 @@ export default function Login() {
                   <Button type="submit" className="w-full h-12 text-base font-semibold rounded-full" disabled={submitting}>
                     {submitting ? 'Signing in...' : 'Login'}
                   </Button>
-                  <div className="text-right">
-                    <Link to="/auth/forgot-password" className="text-sm text-primary hover:underline">Forgot Password?</Link>
-                  </div>
+                  {accountType === 'sender' && (
+                    <div className="text-right">
+                      <Link to="/auth/forgot-password" className="text-sm text-primary hover:underline">Forgot Password?</Link>
+                    </div>
+                  )}
                 </form>
                 <div className="mt-4">
                   <SocialLoginButtons mode="login" />
                 </div>
-                <div className="mt-4 text-center pb-4">
-                  <p className="text-primary-foreground/60">
-                    Don't have an account?{' '}
-                    <button onClick={() => setIsLogin(false)} className="text-primary font-semibold hover:underline">
-                      Sign Up
-                    </button>
+                {accountType === 'sender' ? (
+                  <div className="mt-4 text-center pb-4">
+                    <p className="text-primary-foreground/60">
+                      Don't have an account?{' '}
+                      <button onClick={() => setIsLogin(false)} className="text-primary font-semibold hover:underline">
+                        Sign Up
+                      </button>
+                    </p>
+                  </div>
+                ) : (
+                  <p className="mt-4 text-center text-sm text-primary-foreground/50 pb-4">
+                    Agent and rider accounts are created by the admin.
                   </p>
-                </div>
+                )}
               </div>
             </div>
 
@@ -201,25 +209,6 @@ export default function Login() {
               <div className="flex-1 overflow-y-auto px-6 py-6">
                 <h3 className="text-xl font-bold text-primary-foreground mb-5 text-center">Register</h3>
                 <form onSubmit={handleSignup} className="space-y-3">{formError && (<p role="alert" className="text-sm text-destructive">{formError}</p>)}
-                  <div className="space-y-2">
-                    <Label className="text-primary-foreground/70">I want to</Label>
-                    <RadioGroup value={role} onValueChange={(v) => setRole(v as 'sender' | 'agent')} className="grid grid-cols-2 gap-3">
-                      <div className="relative">
-                        <RadioGroupItem value="sender" id="m-sender" className="peer sr-only" />
-                        <Label htmlFor="m-sender" className="flex flex-col items-center gap-1 p-3 rounded-xl border border-primary-foreground/20 cursor-pointer transition-all peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/10 text-primary-foreground/70 peer-data-[state=checked]:text-primary">
-                          <User className="h-5 w-5" />
-                          <span className="text-xs font-medium">Send</span>
-                        </Label>
-                      </div>
-                      <div className="relative">
-                        <RadioGroupItem value="agent" id="m-agent" className="peer sr-only" />
-                        <Label htmlFor="m-agent" className="flex flex-col items-center gap-1 p-3 rounded-xl border border-primary-foreground/20 cursor-pointer transition-all peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/10 text-primary-foreground/70 peer-data-[state=checked]:text-primary">
-                          <Truck className="h-5 w-5" />
-                          <span className="text-xs font-medium">Deliver</span>
-                        </Label>
-                      </div>
-                    </RadioGroup>
-                  </div>
                   <div className="space-y-1">
                     <Label className="text-primary-foreground/70">Full Name</Label>
                     <Input type="text" placeholder="Enter your full name" value={fullName}
@@ -308,17 +297,25 @@ export default function Login() {
                 <Button type="submit" className="w-full h-12 text-base font-semibold rounded-full" disabled={submitting}>
                   {submitting ? 'Signing in...' : 'Login'}
                 </Button>
-                <div className="text-right">
-                  <Link to="/auth/forgot-password" className="text-sm text-primary hover:underline">Forgot Password?</Link>
-                </div>
+                {accountType === 'sender' && (
+                  <div className="text-right">
+                    <Link to="/auth/forgot-password" className="text-sm text-primary hover:underline">Forgot Password?</Link>
+                  </div>
+                )}
               </form>
               <div className="mt-4"><SocialLoginButtons mode="login" /></div>
-              <div className="mt-4 text-center">
-                <p className="text-primary-foreground/60">
-                  Don't have an account?{' '}
-                  <button onClick={() => setIsLogin(false)} className="text-primary font-semibold hover:underline">Sign Up</button>
+              {accountType === 'sender' ? (
+                <div className="mt-4 text-center">
+                  <p className="text-primary-foreground/60">
+                    Don't have an account?{' '}
+                    <button onClick={() => setIsLogin(false)} className="text-primary font-semibold hover:underline">Sign Up</button>
+                  </p>
+                </div>
+              ) : (
+                <p className="mt-4 text-center text-sm text-primary-foreground/50">
+                  Agent and rider accounts are created by the admin.
                 </p>
-              </div>
+              )}
             </div>
           </div>
 
@@ -329,20 +326,6 @@ export default function Login() {
             <div className="w-full max-w-sm">
               <h3 className="text-2xl font-bold text-primary-foreground mb-6">Register</h3>
               <form onSubmit={handleSignup} className="space-y-3">{formError && (<p role="alert" className="text-sm text-destructive">{formError}</p>)}
-                <RadioGroup value={role} onValueChange={(v) => setRole(v as 'sender' | 'agent')} className="grid grid-cols-2 gap-3">
-                  <div className="relative">
-                    <RadioGroupItem value="sender" id="d-sender" className="peer sr-only" />
-                    <Label htmlFor="d-sender" className="flex flex-col items-center gap-1 p-2 rounded-xl border border-primary-foreground/20 cursor-pointer transition-all peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/10 text-primary-foreground/70 peer-data-[state=checked]:text-primary">
-                      <User className="h-5 w-5" /><span className="text-xs">Send</span>
-                    </Label>
-                  </div>
-                  <div className="relative">
-                    <RadioGroupItem value="agent" id="d-agent" className="peer sr-only" />
-                    <Label htmlFor="d-agent" className="flex flex-col items-center gap-1 p-2 rounded-xl border border-primary-foreground/20 cursor-pointer transition-all peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/10 text-primary-foreground/70 peer-data-[state=checked]:text-primary">
-                      <Truck className="h-5 w-5" /><span className="text-xs">Deliver</span>
-                    </Label>
-                  </div>
-                </RadioGroup>
                 <Input type="text" placeholder="Full Name" value={fullName} onChange={(e) => setFullName(e.target.value)} required
                   className="h-11 bg-transparent border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/30 focus:border-primary" />
                 <Input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required
