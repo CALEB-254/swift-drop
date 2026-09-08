@@ -6,8 +6,7 @@ import { Label } from '@/components/ui/label';
 import { SocialLoginButtons } from '@/components/SocialLoginButtons';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import { Package, Eye, EyeOff, User, Truck } from 'lucide-react';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Package, Eye, EyeOff } from 'lucide-react';
 
 function friendlyAuthError(message: string): string {
   const m = (message || '').toLowerCase();
@@ -189,9 +188,11 @@ export default function Login() {
                     </div>
                   )}
                 </form>
-                <div className="mt-4">
-                  <SocialLoginButtons mode="login" />
-                </div>
+                {accountType === 'sender' && (
+                  <div className="mt-4">
+                    <SocialLoginButtons mode="login" />
+                  </div>
+                )}
                 {accountType === 'sender' ? (
                   <div className="mt-4 text-center pb-4">
                     <p className="text-primary-foreground/60">
@@ -320,7 +321,7 @@ export default function Login() {
                   </div>
                 )}
               </form>
-              <div className="mt-4"><SocialLoginButtons mode="login" /></div>
+              {accountType === 'sender' && <div className="mt-4"><SocialLoginButtons mode="login" /></div>}
               {accountType === 'sender' ? (
                 <div className="mt-4 text-center">
                   <p className="text-primary-foreground/60">
