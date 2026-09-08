@@ -36,7 +36,8 @@ export default function Login() {
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [role, setRole] = useState<'sender' | 'agent'>('sender');
+  const role = 'sender' as const;
+  const [accountType, setAccountType] = useState<'sender' | 'staff'>('sender');
 
   useEffect(() => {
     if (!loading && user) {
