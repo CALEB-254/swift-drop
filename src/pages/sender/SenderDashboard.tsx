@@ -212,6 +212,14 @@ export default function SenderDashboard() {
   };
 
   // Export to PDF (using browser print)
+  const escapeHtml = (value: unknown) =>
+    String(value ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+
   const exportToPDF = () => {
     const printContent = `
       <!DOCTYPE html>
@@ -272,12 +280,12 @@ export default function SenderDashboard() {
               .map(
                 (pkg) => `
               <tr>
-                <td>${pkg.trackingNumber}</td>
-                <td>${STATUS_LABELS[pkg.status] || pkg.status}</td>
-                <td>${pkg.receiverName}</td>
-                <td>${pkg.receiverPhone}</td>
-                <td>${getDeliveryTypeName(pkg.deliveryType)}</td>
-                <td>KES ${pkg.cost}</td>
+                <td>${escapeHtml(pkg.trackingNumber)}</td>
+                <td>${escapeHtml(STATUS_LABELS[pkg.status] || pkg.status)}</td>
+                <td>${escapeHtml(pkg.receiverName)}</td>
+                <td>${escapeHtml(pkg.receiverPhone)}</td>
+                <td>${escapeHtml(getDeliveryTypeName(pkg.deliveryType))}</td>
+                <td>KES ${escapeHtml(pkg.cost)}</td>
                 <td>${format(pkg.createdAt, 'MMM dd, yyyy')}</td>
               </tr>
             `

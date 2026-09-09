@@ -3,30 +3,30 @@ import { generateTrackingNumber, getCostByType, getCommission } from "@/lib/pack
 import { DELIVERY_PRICING } from "@/types/delivery";
 
 describe("generateTrackingNumber", () => {
-  it("uses the SWF-<PREFIX>-#### format", () => {
-    expect(generateTrackingNumber("KMB")).toMatch(/^SWF-KMB-\d{4}$/);
+  it("uses the SWF-<PREFIX>-<random> format", () => {
+    expect(generateTrackingNumber("KMB")).toMatch(/^SWF-KMB-[2-9A-HJ-NP-Z]{10}$/);
   });
 
   it("uppercases and strips non-alphanumeric characters", () => {
-    expect(generateTrackingNumber("ka-b!")).toMatch(/^SWF-KAB-\d{4}$/);
+    expect(generateTrackingNumber("ka-b!")).toMatch(/^SWF-KAB-[2-9A-HJ-NP-Z]{10}$/);
   });
 
   it("caps the prefix at 4 characters", () => {
-    expect(generateTrackingNumber("ABCDEFG")).toMatch(/^SWF-ABCD-\d{4}$/);
+    expect(generateTrackingNumber("ABCDEFG")).toMatch(/^SWF-ABCD-[2-9A-HJ-NP-Z]{10}$/);
   });
 
   it("falls back to D01 for empty or unusable prefixes", () => {
-    expect(generateTrackingNumber("")).toMatch(/^SWF-D01-\d{4}$/);
-    expect(generateTrackingNumber("!!!")).toMatch(/^SWF-D01-\d{4}$/);
-    expect(generateTrackingNumber()).toMatch(/^SWF-D01-\d{4}$/);
+    expect(generateTrackingNumber("")).toMatch(/^SWF-D01-[2-9A-HJ-NP-Z]{10}$/);
+    expect(generateTrackingNumber("!!!")).toMatch(/^SWF-D01-[2-9A-HJ-NP-Z]{10}$/);
+    expect(generateTrackingNumber()).toMatch(/^SWF-D01-[2-9A-HJ-NP-Z]{10}$/);
   });
 
-  it("always produces a 4-digit suffix between 1000 and 9999", () => {
-    for (let i = 0; i < 50; i++) {
-      const n = Number(generateTrackingNumber("D01").split("-")[2]);
-      expect(n).toBeGreaterThanOrEqual(1000);
-      expect(n).toBeLessThanOrEqual(9999);
+  it("produces unique high-entropy suffixes", () => {
+    const seen = new Set<string>();
+    for (let i = 0; i < 200; i++) {
+      seen.add(generateTrackingNumber("D01").split("-")[2]);
     }
+    expect(seen.size).toBe(200);
   });
 });
 

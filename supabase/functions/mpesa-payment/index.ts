@@ -183,57 +183,84 @@ serve(async (req) => {
         );
       }
 
-      // Check code hasn't been used already
-      const { data: existing } = await supabase
-        .from("packages")
-        .select("id")
-        .eq("mpesa_receipt_number", code)
-        .limit(1);
+      // Check the code hasn't been used or claimed already
+      const [{ data: existing }, { data: claimed }] = await Promise.all([
+        supabase.from("packages").select("id").eq("mpesa_receipt_number", code).limit(1),
+        supabase.from("payment_logs").select("id").eq("mpesa_receipt_number", code).limit(1),
+      ]);
 
-      if (existing && existing.length > 0) {
+      if ((existing && existing.length > 0) || (claimed && claimed.length > 0)) {
         return new Response(
           JSON.stringify({ success: false, error: "This M-Pesa code has already been used." }),
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
-      const { error: updErr } = await supabase
-        .from("packages")
-        .update({
-          payment_status: "paid",
-          mpesa_receipt_number: code,
-          paid_at: new Date().toISOString(),
-        })
-        .in("id", packageIds);
+      // A code typed by the customer is NOT proof of payment. Only a code that
+      // matches a Safaricom-confirmed transaction (STK callback record) can settle
+      // a package. Anything else is stored as a claim for admin verification.
+      const { data: confirmed } = await supabase
+        .from("cash_collections")
+        .select("id, total_amount, package_id, status")
+        .eq("mpesa_receipt", code)
+        .eq("status", "paid")
+        .maybeSingle();
 
-      if (updErr) {
-        return new Response(
-          JSON.stringify({ success: false, error: updErr.message }),
-          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-
-      // Record payment in logs
       const totalAmount = pkgs.reduce((s: number, p: any) => s + Number(p.cost), 0);
       const { data: trackRows } = await supabase
         .from("packages")
         .select("tracking_number")
         .in("id", packageIds);
+      const trackingNumbers = (trackRows || []).map((r: any) => r.tracking_number);
+
+      const verified =
+        !!confirmed && Number(confirmed.total_amount) >= totalAmount;
+
+      if (verified) {
+        const { error: updErr } = await supabase
+          .from("packages")
+          .update({
+            payment_status: "paid",
+            mpesa_receipt_number: code,
+            paid_at: new Date().toISOString(),
+          })
+          .in("id", packageIds);
+
+        if (updErr) {
+          return new Response(
+            JSON.stringify({ success: false, error: updErr.message }),
+            { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+      } else {
+        await supabase
+          .from("packages")
+          .update({ payment_status: "processing" })
+          .in("id", packageIds);
+      }
+
       await supabase.from("payment_logs").insert({
         user_id: userId,
         package_ids: packageIds,
-        tracking_numbers: (trackRows || []).map((r: any) => r.tracking_number),
+        tracking_numbers: trackingNumbers,
         amount: totalAmount,
         payment_method: "till",
         mpesa_receipt_number: code,
-        status: "completed",
+        status: verified ? "completed" : "pending_verification",
       });
 
       return new Response(
-        JSON.stringify({ success: true, status: "completed" }),
+        JSON.stringify({
+          success: true,
+          status: verified ? "completed" : "pending_verification",
+          message: verified
+            ? "Payment confirmed."
+            : "Payment code received. Your delivery will be confirmed once we match the payment with M-Pesa.",
+        }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
 
     // Check payment status
     if (body.action === "check_status" && body.checkoutRequestId) {

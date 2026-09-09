@@ -17,6 +17,8 @@ import { toast } from 'sonner';
 import { STATUS_LABELS, type PackageStatus } from '@/types/delivery';
 import { StkWaitingAnimation } from '@/components/StkWaitingAnimation';
 import type { AdminData } from '@/pages/admin/AdminDashboard';
+import { generateTrackingNumber } from '@/lib/packageUtils';
+
 
 interface Props { data: AdminData; onRefresh: () => void; }
 
@@ -144,7 +146,7 @@ export function AdminOrders({ data, onRefresh }: Props) {
     onRefresh();
   };
 
-  const generateTracking = () => `SWF-ADM-${Math.floor(1000 + Math.random() * 9000)}`;
+  const generateTracking = () => generateTrackingNumber('ADM');
 
   const createPackage = async () => {
     if (!newPkg.user_id || !newPkg.sender_name || !newPkg.sender_phone || !newPkg.receiver_name || !newPkg.receiver_phone || !newPkg.receiver_address) {

@@ -148,7 +148,7 @@ export default function AgentPickupDashboard() {
     if (!agentRecord) return;
     fetchPackages();
     const channel = supabase
-      .channel('agent-pickup-packages')
+      .channel(`agent-pickup-packages-${agentRecord.id}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'packages' }, () => {
         fetchPackages();
       })
