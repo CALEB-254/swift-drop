@@ -144,7 +144,7 @@ export function AdminOrders({ data, onRefresh }: Props) {
     onRefresh();
   };
 
-  const generateTracking = () => `SWF-ADM-${Math.floor(1000 + Math.random() * 9000)}`;
+  const generateTracking = () => generateTrackingNumber('ADM');
 
   const createPackage = async () => {
     if (!newPkg.user_id || !newPkg.sender_name || !newPkg.sender_phone || !newPkg.receiver_name || !newPkg.receiver_phone || !newPkg.receiver_address) {
