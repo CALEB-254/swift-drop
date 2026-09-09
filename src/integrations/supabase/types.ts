@@ -1250,6 +1250,13 @@ export type Database = {
         Args: { _new_cost: number; _package_id: string }
         Returns: Json
       }
+      admin_set_user_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["user_role"]
+          _user_id: string
+        }
+        Returns: Json
+      }
       collect_delivery_cash: { Args: { _package_id: string }; Returns: Json }
       consume_pochi_withdrawal_code: {
         Args: { _code: string }
