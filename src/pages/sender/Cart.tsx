@@ -218,11 +218,16 @@ export default function Cart() {
 
       if (data?.success) {
         setPaymentStatus('success');
-        toast.success('Payment verified successfully!');
+        toast.success(
+          data.status === 'completed'
+            ? 'Payment verified successfully!'
+            : data.message || 'Payment code received. We will confirm it shortly.'
+        );
         await fetchCartPackages();
       } else {
         throw new Error(data?.error || 'Verification failed');
       }
+
     } catch (err: any) {
       logger.error('Verify error:', err);
       toast.error(err.message || 'Could not verify payment');
