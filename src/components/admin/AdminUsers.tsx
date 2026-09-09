@@ -33,17 +33,19 @@ export function AdminUsers({ data, onRefresh, adminLevel }: Props) {
   const getUserPackageCount = (userId: string) => data.packages.filter(p => p.user_id === userId).length;
 
   const updateUserRole = async (userId: string, newRole: string) => {
-    const { error: roleError } = await supabase.from('user_roles').upsert(
-      { user_id: userId, role: newRole as any },
-      { onConflict: 'user_id,role' }
-    );
-    if (roleError) { toast.error('Failed to update role: ' + roleError.message); return; }
-    
-    // Also update profile role
-    await supabase.from('profiles').update({ role: newRole as any }).eq('user_id', userId);
+    if (newRole === 'admin' && !isSuperAdmin) {
+      toast.error('Only a super admin can grant admin access');
+      return;
+    }
+    const { error } = await supabase.rpc('admin_set_user_role', {
+      _user_id: userId,
+      _role: newRole as any,
+    });
+    if (error) { toast.error('Failed to update role: ' + error.message); return; }
     toast.success('User role updated');
     onRefresh();
   };
+
 
   const createUser = async () => {
     if (!newUser.full_name || !newUser.phone || !newUser.email || !newUser.password) {
