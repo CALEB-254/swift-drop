@@ -163,15 +163,21 @@ export function useRiderPackages() {
     fetchPackages();
     if (!user) return;
     const channel = supabase
-      .channel('rider-packages-changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'packages' }, () => {
-        fetchPackages();
-      })
+      .channel(`rider-packages-changes-${user.id}`)
+      .on(
+        'postgres_changes',
+        rider?.id
+          ? { event: '*', schema: 'public', table: 'packages', filter: `assigned_rider_id=eq.${rider.id}` }
+          : { event: '*', schema: 'public', table: 'packages' },
+        () => {
+          fetchPackages();
+        }
+      )
       .subscribe();
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, fetchPackages]);
+  }, [user, rider?.id, fetchPackages]);
 
   const logAction = useCallback(
     async (

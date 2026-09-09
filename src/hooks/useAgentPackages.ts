@@ -177,7 +177,7 @@ export function useAgentPackages() {
     fetchPackages();
 
     const channel = supabase
-      .channel('agent-packages-changes')
+      .channel(`agent-packages-changes-${user.id}`)
       .on(
         'postgres_changes',
         {

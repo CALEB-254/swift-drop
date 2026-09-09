@@ -17,6 +17,8 @@ import { toast } from 'sonner';
 import { STATUS_LABELS, type PackageStatus } from '@/types/delivery';
 import { StkWaitingAnimation } from '@/components/StkWaitingAnimation';
 import type { AdminData } from '@/pages/admin/AdminDashboard';
+import { generateTrackingNumber } from '@/lib/packageUtils';
+
 
 interface Props { data: AdminData; onRefresh: () => void; }
 

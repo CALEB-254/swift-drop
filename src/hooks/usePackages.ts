@@ -144,6 +144,7 @@ export function usePackages() {
           event: '*',
           schema: 'public',
           table: 'packages',
+          filter: `user_id=eq.${user.id}`,
         },
         (payload) => {
           if (payload.eventType === 'INSERT') {
