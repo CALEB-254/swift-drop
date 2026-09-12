@@ -1316,6 +1316,15 @@ export type Database = {
         Args: { _package_id: string; _release_code: string }
         Returns: Json
       }
+      release_package_without_code: {
+        Args: {
+          _package_id: string
+          _receiver_id_number: string
+          _receiver_name: string
+          _receiver_phone: string
+        }
+        Returns: Json
+      }
       resolve_cash_dispute: {
         Args: { _collection_id: string; _notes?: string }
         Returns: Json
