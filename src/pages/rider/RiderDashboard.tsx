@@ -40,6 +40,7 @@ import {
 } from 'lucide-react';
 import { StatusBadge } from '@/components/StatusBadge';
 import { StkWaitingAnimation } from '@/components/StkWaitingAnimation';
+import { GiveOutDialog } from '@/components/GiveOutDialog';
 import { useAuth } from '@/hooks/useAuth';
 import {
   useRiderPackages,
@@ -611,27 +612,19 @@ export default function RiderDashboard() {
       </Dialog>
 
       {/* Give out dialog */}
-      <Dialog open={!!releaseTarget} onOpenChange={(o) => !o && setReleaseTarget(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Give Out Package</DialogTitle>
-            <DialogDescription>Ask the recipient for the release code sent to them.</DialogDescription>
-          </DialogHeader>
-          <Input
-            value={releaseCode}
-            onChange={(e) => setReleaseCode(e.target.value)}
-            placeholder="6-digit release code"
-            inputMode="numeric"
-          />
-          <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setReleaseTarget(null)}>Cancel</Button>
-            <Button variant="hero" onClick={handleGiveOut} disabled={busyId === releaseTarget?.id}>
-              {busyId === releaseTarget?.id && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
-              Confirm Handover
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <GiveOutDialog
+        target={
+          releaseTarget
+            ? {
+                id: releaseTarget.id,
+                trackingNumber: releaseTarget.trackingNumber,
+                deliveryType: releaseTarget.deliveryType,
+              }
+            : null
+        }
+        onClose={() => setReleaseTarget(null)}
+        onReleased={() => refetch()}
+      />
 
       {/* Package details */}
       <Sheet open={!!detail} onOpenChange={(o) => !o && setDetail(null)}>

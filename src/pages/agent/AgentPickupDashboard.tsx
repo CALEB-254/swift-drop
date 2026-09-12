@@ -20,6 +20,7 @@ import { DeliveryType } from '@/types/delivery';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { KeyRound } from 'lucide-react';
+import { GiveOutDialog } from '@/components/GiveOutDialog';
 import { logger } from "@/lib/logger";
 
 type PackageRow = Database['public']['Tables']['packages']['Row'];
@@ -472,32 +473,19 @@ export default function AgentPickupDashboard() {
 
       <BottomNav />
 
-      <Dialog open={!!releasePkg} onOpenChange={(o) => { if (!o) { setReleasePkg(null); setReleaseCode(''); } }}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Give Out — {releasePkg?.trackingNumber}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-3 pt-2">
-            <p className="text-sm text-muted-foreground">
-              Ask the receiver for their 6-digit release code and enter it below to complete handover.
-            </p>
-            <div className="space-y-1">
-              <Label>Release code</Label>
-              <Input
-                inputMode="numeric"
-                maxLength={6}
-                value={releaseCode}
-                onChange={(e) => setReleaseCode(e.target.value.replace(/\D/g, ''))}
-                placeholder="123456"
-              />
-            </div>
-            <Button onClick={confirmGiveOut} disabled={releasing} className="w-full">
-              {releasing ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-              Confirm Give Out
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <GiveOutDialog
+        target={
+          releasePkg
+            ? {
+                id: releasePkg.id,
+                trackingNumber: releasePkg.trackingNumber,
+                deliveryType: releasePkg.deliveryType,
+              }
+            : null
+        }
+        onClose={() => { setReleasePkg(null); setReleaseCode(''); }}
+        onReleased={() => fetchPackages()}
+      />
     </div>
   );
 }
