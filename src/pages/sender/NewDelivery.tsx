@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { ArrowLeft, ShoppingCart, Search } from 'lucide-react';
+import { ArrowLeft, ShoppingCart, Search, Package, MapPin, CreditCard, ShieldCheck } from 'lucide-react';
 import { usePackages } from '@/hooks/usePackages';
 import { useAuth } from '@/hooks/useAuth';
 import { PACKAGING_COLORS, DeliveryType, DELIVERY_TYPES } from '@/types/delivery';
@@ -177,38 +177,24 @@ export default function NewDelivery() {
   return (
     <div className="min-h-screen bg-background pb-20">
       {/* Header */}
-      <div className="bg-card border-b border-border sticky top-0 z-40">
-        <div className="flex items-center justify-between p-4">
-          <div className="flex items-center gap-4">
-            <Link to="/sender" aria-label="Back">
-              <button className="text-primary" aria-label="Back">
-                <ArrowLeft className="w-6 h-6" />
-              </button>
-            </Link>
-            <h1 className="font-display text-lg font-semibold">SwiftDrop</h1>
-          </div>
-          <button className="p-2" aria-label="Cart">
-            <ShoppingCart className="w-6 h-6" />
-          </button>
+      <div className="sticky top-0 z-40 border-b border-border bg-card/95 backdrop-blur-sm">
+        <div className="mx-auto flex max-w-6xl items-center justify-between p-4">
+          <Link to="/sender" className="flex items-center gap-3" aria-label="Back to home">
+            <ArrowLeft className="h-5 w-5 text-primary" />
+            <span className="font-display text-lg font-semibold">Swift<span className="text-primary">Drop</span></span>
+          </Link>
+          <Button variant="ghost" size="icon" asChild><Link to="/sender/cart" aria-label="Cart"><ShoppingCart className="h-5 w-5" /></Link></Button>
         </div>
       </div>
 
-      <div className="p-4 space-y-6">
-        {/* Customer Search */}
-        <div className="relative">
-          <div className="bg-muted rounded-lg flex items-center overflow-hidden">
-            <div className="px-4">
-              <Search className="w-5 h-5 text-muted-foreground" />
-            </div>
-            <Input
-              placeholder="Choose customer"
-              className="border-0 focus-visible:ring-0 bg-transparent"
-            />
-          </div>
-        </div>
-
+      <div className="mx-auto max-w-6xl px-4 py-6">
+        <div className="mb-5 flex items-start gap-3"><ArrowLeft className="mt-1 h-5 w-5 text-primary" /><div><h1 className="text-xl font-semibold">Create Delivery</h1><p className="text-sm text-muted-foreground">Fill in the details below to create a new delivery package.</p></div></div>
+        <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1.6fr)_minmax(280px,1fr)]">
+        <div className="space-y-3">
         {/* Customer Details */}
-        <div className="space-y-4">
+        <section className="rounded-lg border border-border bg-card p-4 sm:p-5">
+          <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold"><span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">1</span><Package className="h-4 w-4 text-primary" /> Customer Information</h2>
+        <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
             <Label>Customer name</Label>
             <Input
@@ -230,10 +216,11 @@ export default function NewDelivery() {
             />
           </div>
         </div>
+        </section>
 
         {/* From Area Section */}
-        <div>
-          <h2 className="section-accent font-semibold mb-4">Where Are You Sending From?</h2>
+        <section className="rounded-lg border border-border bg-card p-4 sm:p-5">
+          <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold"><span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">2</span><MapPin className="h-4 w-4 text-primary" /> Where Are You Sending From?</h2>
           <div className="space-y-2">
             <Label>Sender Agent</Label>
             <Select
@@ -261,11 +248,11 @@ export default function NewDelivery() {
               </p>
             )}
           </div>
-        </div>
+        </section>
 
         {/* Package Section */}
-        <div>
-          <h2 className="section-accent font-semibold mb-4">Package</h2>
+        <section className="rounded-lg border border-border bg-card p-4 sm:p-5">
+          <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold"><span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">3</span><Package className="h-4 w-4 text-primary" /> Package</h2>
           
           {/* Package/Product Toggle */}
           <div className="flex items-center gap-4 mb-4 bg-muted rounded-lg p-1 w-fit">
@@ -299,7 +286,7 @@ export default function NewDelivery() {
             </p>
           )}
 
-          <div className="space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label>What are you selling?</Label>
               <Input
@@ -342,11 +329,11 @@ export default function NewDelivery() {
               </div>
             )}
           </div>
-        </div>
+        </section>
 
         {/* To Area Section */}
-        <div>
-          <h2 className="section-accent font-semibold mb-4">Where Are You Sending To?</h2>
+        <section className="rounded-lg border border-border bg-card p-4 sm:p-5">
+          <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold"><span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">4</span><MapPin className="h-4 w-4 text-primary" /> Where Are You Sending To?</h2>
           
           {deliveryType === 'errand' ? (
             <div className="space-y-4">
@@ -502,12 +489,12 @@ export default function NewDelivery() {
             )}
           </div>
           )}
-        </div>
+        </section>
 
         {/* Payment option */}
         {deliveryType !== 'errand' && (
-        <div>
-          <h2 className="section-accent font-semibold mb-4">Payment</h2>
+        <section className="rounded-lg border border-border bg-card p-4 sm:p-5">
+          <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold"><span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">5</span><CreditCard className="h-4 w-4 text-primary" /> Payment</h2>
           <RadioGroup
             value={paymentOption}
             onValueChange={(v) => {
@@ -523,9 +510,9 @@ export default function NewDelivery() {
                     : '',
               }));
             }}
-            className="space-y-3"
+            className="grid gap-3 sm:grid-cols-2"
           >
-            <div className="flex items-start gap-2 rounded-lg border border-border p-3">
+            <div className={`flex items-start gap-2 rounded-md border p-3 ${paymentOption === 'pay_now' ? 'border-primary bg-primary/10' : 'border-border'}`}>
               <RadioGroupItem value="pay_now" id="pay_now" className="mt-1" />
               <div>
                 <Label htmlFor="pay_now" className="cursor-pointer">Pay Now (KES {computedCost})</Label>
@@ -534,7 +521,7 @@ export default function NewDelivery() {
             </div>
 
             {deliveryType === 'doorstep' && (
-              <div className="flex items-start gap-2 rounded-lg border border-border p-3">
+              <div className={`flex items-start gap-2 rounded-md border p-3 ${paymentOption === 'pay_on_delivery' ? 'border-primary bg-primary/10' : 'border-border'}`}>
                 <RadioGroupItem value="pay_on_delivery" id="pay_on_delivery" className="mt-1" />
                 <div>
                   <Label htmlFor="pay_on_delivery" className="cursor-pointer">Pay on Delivery (KES {computedCost})</Label>
@@ -545,7 +532,7 @@ export default function NewDelivery() {
               </div>
             )}
 
-            <div className="flex items-start gap-2 rounded-lg border border-border p-3">
+            <div className={`flex items-start gap-2 rounded-md border p-3 ${paymentOption === 'collect_my_cash' ? 'border-primary bg-primary/10' : 'border-border'}`}>
               <RadioGroupItem value="collect_my_cash" id="collect_my_cash" className="mt-1" />
               <div className="w-full space-y-2">
                 <Label htmlFor="collect_my_cash" className="cursor-pointer">Collect My Cash</Label>
@@ -571,12 +558,12 @@ export default function NewDelivery() {
               </div>
             </div>
           </RadioGroup>
-        </div>
+        </section>
         )}
 
 
         {/* Submit Button */}
-        <div className="pt-4">
+        <div className="pt-2 lg:hidden">
           <Button 
             onClick={handleSubmit}
             disabled={isSubmitting}
@@ -589,6 +576,23 @@ export default function NewDelivery() {
                 ? `Create Delivery - Pay KES ${computedCost} on delivery`
                 : `Create Delivery - KES ${computedCost}`}
           </Button>
+        </div>
+        </div>
+        <aside className="hidden space-y-4 lg:block lg:sticky lg:top-24">
+          <div className="overflow-hidden rounded-lg border border-border bg-card">
+            <div className="flex items-center gap-3 border-b border-border bg-primary/10 p-4"><Package className="h-5 w-5 text-primary" /><div><h2 className="text-sm font-semibold">Delivery Summary</h2><p className="text-xs text-muted-foreground">Quick overview of your package details</p></div></div>
+            <dl className="divide-y divide-border px-4 text-sm">
+              <div className="flex justify-between gap-4 py-3"><dt>Customer</dt><dd className="min-w-0 truncate text-muted-foreground">{formData.customerName || 'Not set'}</dd></div>
+              <div className="flex justify-between gap-4 py-3"><dt>Phone</dt><dd className="min-w-0 truncate text-muted-foreground">{formData.customerPhone || 'Not set'}</dd></div>
+              <div className="flex justify-between gap-4 py-3"><dt>From</dt><dd className="min-w-0 truncate text-muted-foreground">{fromAgent?.business_name || 'Not set'}</dd></div>
+              <div className="flex justify-between gap-4 py-3"><dt>To</dt><dd className="min-w-0 truncate text-muted-foreground">{selectedAgent?.business_name || destZone?.name || errandLocation?.name || 'Not set'}</dd></div>
+              <div className="flex justify-between gap-4 py-3"><dt>Package</dt><dd className="text-muted-foreground">{formData.packageDescription || 'Not set'}</dd></div>
+              <div className="flex justify-between gap-4 py-3"><dt>Payment</dt><dd className="text-muted-foreground">{paymentOption === 'pay_now' ? 'Pay Now' : paymentOption === 'pay_on_delivery' ? 'Pay on Delivery' : 'Collect My Cash'}</dd></div>
+            </dl>
+          </div>
+          <div className="flex gap-3 rounded-lg border border-primary/30 bg-primary/10 p-4"><ShieldCheck className="h-5 w-5 shrink-0 text-primary" /><div><p className="text-sm font-semibold">Safe &amp; Secure</p><p className="mt-1 text-xs text-muted-foreground">Your delivery is protected with tracking and verified handover.</p></div></div>
+          <Button onClick={handleSubmit} disabled={isSubmitting} className="w-full" size="lg">{isSubmitting ? 'Creating Delivery...' : `Create Delivery - KES ${computedCost}`}</Button>
+        </aside>
         </div>
       </div>
 
