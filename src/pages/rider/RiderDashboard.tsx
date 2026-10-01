@@ -77,6 +77,7 @@ export default function RiderDashboard() {
     giveOutPackage,
     fetchLogs,
     setOnline,
+    refetch,
   } = useRiderPackages();
 
   const [activeTab, setActiveTab] = useState('assigned');
