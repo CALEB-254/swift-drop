@@ -6,7 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import {
   LayoutDashboard, Users, Package, DollarSign, Settings, HeadphonesIcon,
   Megaphone, Shield, Loader2, RefreshCw, Truck, Store, Bell, Search,
-  MapPin, FileText, RotateCcw, Activity, Layers,
+  MapPin, FileText, RotateCcw, Activity, Layers, Menu, LogOut,
 } from 'lucide-react';
 import { AdminOverview } from '@/components/admin/AdminOverview';
 import { AdminUsers } from '@/components/admin/AdminUsers';
@@ -78,6 +78,7 @@ export default function AdminDashboard() {
   const { signOut } = useAuthContext();
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
+  const [menuOpen, setMenuOpen] = useState(false);
   const [data, setData] = useState<AdminData>({
     packages: [], users: [], agents: [], tickets: [], promos: [], config: [],
     adminLevel: null,
@@ -149,38 +150,41 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-8">
-      <div className="gradient-hero px-4 py-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="font-display text-2xl font-bold text-primary-foreground">Admin Dashboard</h1>
-            <p className="text-primary-foreground/80 text-sm capitalize">
-              {data.adminLevel?.replace('_', ' ') || 'Administrator'}
-            </p>
+    <div className="min-h-screen bg-background lg:flex">
+      <Tabs value={activeTab} onValueChange={(value) => { setActiveTab(value); setMenuOpen(false); }} className="contents">
+        {menuOpen && <div className="fixed inset-0 z-40 bg-background/80 lg:hidden" onClick={() => setMenuOpen(false)} />}
+        <aside className={`${menuOpen ? 'flex' : 'hidden'} fixed inset-y-0 left-0 z-50 w-64 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground lg:sticky lg:top-0 lg:flex lg:h-screen lg:shrink-0`}>
+          <div className="flex h-20 items-center gap-3 border-b border-sidebar-border px-5">
+            <div className="flex h-10 w-10 items-center justify-center rounded-md bg-primary/15 text-primary"><Package className="h-6 w-6" /></div>
+            <div><p className="text-lg font-bold leading-tight">Swift<span className="text-primary">Drop</span></p><p className="text-[10px] text-muted-foreground">fast &amp; reliable delivery</p></div>
           </div>
-          <div className="flex gap-2">
-            <Button variant="ghost" size="icon" onClick={fetchAllData} className="text-primary-foreground hover:bg-primary-foreground/10">
-              <RefreshCw className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="sm" onClick={signOut} className="text-primary-foreground hover:bg-primary-foreground/10">
-              Logout
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      <div className="px-4 py-4">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <div className="overflow-x-auto -mx-4 px-4 pb-2">
-            <TabsList className="inline-flex w-auto min-w-full gap-1 bg-secondary/50">
-              {visibleTabs.map(tab => (
-                <TabsTrigger key={tab.value} value={tab.value} className="flex items-center gap-1.5 text-xs whitespace-nowrap">
-                  <tab.icon className="h-3.5 w-3.5" />
-                  {tab.label}
+          <TabsList className="h-auto w-full flex-1 flex-col items-stretch justify-start gap-0.5 overflow-y-auto rounded-none bg-transparent p-3 text-sidebar-foreground">
+            {visibleTabs.map((tab, index) => (
+              <div key={tab.value}>
+                {(index === 0 || index === 1 || index === 5 || index === 15) && <p className="px-3 pb-2 pt-4 text-[10px] font-semibold uppercase text-muted-foreground">{index === 0 ? 'Home' : index === 1 ? 'Operations' : index === 5 ? 'Finance & delivery' : 'Management'}</p>}
+                <TabsTrigger value={tab.value} className="w-full justify-start gap-3 rounded-md px-3 py-2.5 text-sm text-sidebar-foreground/80 data-[state=active]:bg-primary/25 data-[state=active]:text-foreground data-[state=active]:shadow-none">
+                  <tab.icon className="h-4 w-4" />{tab.label === 'Overview' ? 'Dashboard' : tab.label === 'Notify' ? 'Notifications' : tab.label}
                 </TabsTrigger>
-              ))}
-            </TabsList>
-          </div>
+              </div>
+            ))}
+          </TabsList>
+        </aside>
+
+        <div className="min-w-0 flex-1">
+          <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border bg-card/95 px-4 backdrop-blur-sm md:px-6">
+            <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setMenuOpen(true)} aria-label="Open menu"><Menu /></Button>
+            <div className="hidden items-center gap-2 text-sm text-muted-foreground sm:flex"><Search className="h-4 w-4" /><span>SwiftDrop operations</span></div>
+            <div className="ml-auto flex items-center gap-1">
+              <Button variant="ghost" size="icon" onClick={fetchAllData} aria-label="Refresh dashboard"><RefreshCw /></Button>
+              <span className="mx-2 hidden text-sm font-medium capitalize sm:inline">{data.adminLevel?.replace('_', ' ') || 'Administrator'}</span>
+              <Button variant="ghost" size="icon" onClick={signOut} aria-label="Log out"><LogOut /></Button>
+            </div>
+          </header>
+          <main className="mx-auto max-w-[1600px] space-y-5 px-4 py-5 md:px-6">
+            <div className="gradient-hero rounded-lg border border-primary/20 px-5 py-5 md:px-7">
+              <h1 className="text-xl font-semibold">{activeTab === 'overview' ? 'Good day, Admin 👋' : visibleTabs.find(t => t.value === activeTab)?.label || 'Admin Dashboard'}</h1>
+              {activeTab === 'overview' && <p className="mt-1 text-sm text-muted-foreground">Here’s what’s happening with your SwiftDrop delivery operations today.</p>}
+            </div>
 
           <TabsContent value="overview"><AdminOverview data={data} onRefresh={fetchAllData} /></TabsContent>
           <TabsContent value="search"><AdminGlobalSearch data={data} /></TabsContent>
@@ -201,9 +205,9 @@ export default function AdminDashboard() {
           <TabsContent value="audit"><AdminAuditLogs data={data} onRefresh={fetchAllData} /></TabsContent>
           <TabsContent value="config"><AdminConfig data={data} onRefresh={fetchAllData} /></TabsContent>
           <TabsContent value="security"><AdminSecurity data={data} onRefresh={fetchAllData} /></TabsContent>
-        </Tabs>
-      </div>
-
+          </main>
+        </div>
+      </Tabs>
     </div>
   );
 }

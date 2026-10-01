@@ -30,43 +30,37 @@ export function AdminOverview({ data }: Props) {
 
   // Status distribution
   const statusData = [
-    { name: 'Pending', value: stats.pendingPackages, color: 'hsl(38, 92%, 50%)' },
-    { name: 'In Transit', value: stats.inTransitPackages, color: 'hsl(199, 89%, 48%)' },
-    { name: 'Delivered', value: stats.deliveredPackages, color: 'hsl(145, 63%, 42%)' },
-    { name: 'Cancelled', value: stats.cancelledPackages, color: 'hsl(0, 84%, 60%)' },
+    { name: 'Pending', value: stats.pendingPackages, color: 'hsl(var(--warning))' },
+    { name: 'In Transit', value: stats.inTransitPackages, color: 'hsl(var(--info))' },
+    { name: 'Delivered', value: stats.deliveredPackages, color: 'hsl(var(--primary))' },
+    { name: 'Cancelled', value: stats.cancelledPackages, color: 'hsl(var(--destructive))' },
   ].filter(s => s.value > 0);
 
   return (
-    <div className="space-y-4 mt-4">
-      <div className="grid grid-cols-2 gap-3">
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         {statCards.map((s, i) => (
-          <Card key={i} className="border-0 shadow-card">
-            <CardContent className="p-3">
-              <div className="flex items-center gap-2">
-                <div className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center">
-                  <s.icon className={`w-4 h-4 ${s.color}`} />
-                </div>
-                <div>
-                  <p className="text-lg font-bold">{s.value}</p>
-                  <p className="text-[10px] text-muted-foreground">{s.label}</p>
-                </div>
-              </div>
+          <Card key={i} className="shadow-card">
+            <CardContent className="flex min-h-24 items-start gap-3 p-4">
+              <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-secondary ${s.color}`}><s.icon className="h-5 w-5" /></div>
+              <div className="min-w-0"><p className="text-xs text-muted-foreground">{s.label}</p><p className="mt-1 truncate text-xl font-bold">{s.value}</p></div>
             </CardContent>
           </Card>
         ))}
       </div>
 
+      <div className="grid gap-4 lg:grid-cols-2">
       {/* Weekly Orders Chart */}
-      <Card className="border-0 shadow-card">
+      <Card className="shadow-card">
         <CardContent className="p-4">
-          <p className="text-sm font-medium mb-3">Orders (Last 7 Days)</p>
-          <ResponsiveContainer width="100%" height={160}>
+          <p className="text-sm font-medium mb-3">Orders Overview · Last 7 Days</p>
+          <ResponsiveContainer width="100%" height={220}>
             <BarChart data={last7Days}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(150, 10%, 18%)" />
-              <XAxis dataKey="day" tick={{ fontSize: 11, fill: 'hsl(150, 5%, 55%)' }} />
-              <YAxis tick={{ fontSize: 11, fill: 'hsl(150, 5%, 55%)' }} />
-              <Tooltip contentStyle={{ background: 'hsl(150, 15%, 10%)', border: '1px solid hsl(150, 10%, 18%)', borderRadius: 8 }} />
-              <Bar dataKey="orders" fill="hsl(145, 63%, 42%)" radius={[4, 4, 0, 0]} />
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+              <XAxis dataKey="day" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
+              <YAxis tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
+              <Tooltip contentStyle={{ background: 'hsl(var(--popover))', border: '1px solid hsl(var(--border))', borderRadius: 8 }} />
+              <Bar dataKey="orders" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>
@@ -74,7 +68,7 @@ export function AdminOverview({ data }: Props) {
 
       {/* Status Distribution */}
       {statusData.length > 0 && (
-        <Card className="border-0 shadow-card">
+        <Card className="shadow-card">
           <CardContent className="p-4">
             <p className="text-sm font-medium mb-3">Order Status Distribution</p>
             <div className="flex items-center gap-4">
@@ -100,9 +94,11 @@ export function AdminOverview({ data }: Props) {
           </CardContent>
         </Card>
       )}
+      </div>
 
+      <div className="grid gap-4 lg:grid-cols-2">
       {/* Payment Summary */}
-      <Card className="border-0 shadow-card">
+      <Card className="shadow-card">
         <CardContent className="p-4">
           <p className="text-sm font-medium mb-3">Payment Summary</p>
           <div className="grid grid-cols-3 gap-3">
@@ -123,7 +119,7 @@ export function AdminOverview({ data }: Props) {
       </Card>
 
       {/* Open Support Tickets */}
-      <Card className="border-0 shadow-card">
+      <Card className="shadow-card">
         <CardContent className="p-4">
           <p className="text-sm font-medium mb-2">Support Tickets</p>
           <div className="flex gap-4 text-sm">
@@ -133,6 +129,7 @@ export function AdminOverview({ data }: Props) {
           </div>
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }
