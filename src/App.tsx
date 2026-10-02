@@ -6,6 +6,8 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { ThemeProvider } from "next-themes";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import Welcome from "./pages/Welcome";
 import NotFound from "./pages/NotFound";
 import SenderHome from "./pages/sender/SenderHome";
@@ -49,7 +51,9 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
+    <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} storageKey="swiftdrop-theme">
     <TooltipProvider>
+      <ThemeToggle />
       <Toaster />
       <Sonner />
       <BrowserRouter>
@@ -122,6 +126,7 @@ const App = () => (
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 

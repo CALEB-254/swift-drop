@@ -241,7 +241,7 @@ export default function RiderDashboard() {
     selectable?: boolean;
     children?: React.ReactNode;
   }) => (
-    <Card className="border-0 shadow-card overflow-hidden">
+    <Card className="overflow-hidden border-border shadow-card">
       <CardContent className="p-4 space-y-3">
         <div className="flex items-start gap-3">
           {selectable && (
@@ -252,16 +252,16 @@ export default function RiderDashboard() {
               aria-label={`Select ${pkg.trackingNumber}`}
             />
           )}
-          <button
+          <Button variant="ghost"
             type="button"
-            className="min-w-0 flex-1 text-left"
+            className="h-auto min-w-0 flex-1 flex-col items-start gap-0 whitespace-normal p-0 text-left hover:bg-transparent"
             onClick={() => setDetail(pkg)}
           >
             <p className="font-display font-semibold truncate">{pkg.trackingNumber}</p>
             <p className="text-xs text-muted-foreground truncate">
               {pkg.packageDescription || 'Package'} • {pkg.deliveryType.replace(/_/g, ' ')}
             </p>
-          </button>
+          </Button>
           <StatusBadge status={pkg.status} className="shrink-0" />
         </div>
 
@@ -299,11 +299,11 @@ export default function RiderDashboard() {
   return (
     <div className="min-h-screen bg-background pb-20">
       {/* Header */}
-      <div className="gradient-hero text-primary-foreground">
-        <div className="container py-6 px-4">
+      <div className="border-b border-border bg-card">
+        <div className="mx-auto max-w-6xl px-4 py-5">
           <div className="flex items-center justify-between gap-3 mb-5">
             <div className="flex items-center gap-3 min-w-0">
-              <div className="w-12 h-12 rounded-full bg-primary-foreground/20 flex items-center justify-center shrink-0 overflow-hidden">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-md bg-primary/10 text-primary">
                 {profile?.avatar_url ? (
                   <img src={profile.avatar_url} alt="Rider profile" className="w-full h-full object-cover" />
                 ) : (
@@ -314,13 +314,13 @@ export default function RiderDashboard() {
                 <h1 className="font-display font-bold text-lg truncate">
                   {rider?.full_name || profile?.full_name || 'Rider'}
                 </h1>
-                <p className="text-xs opacity-80 truncate">
+                <p className="truncate text-xs text-muted-foreground">
                   Rider ID: {rider?.id ? rider.id.slice(0, 8).toUpperCase() : '—'}
                 </p>
               </div>
             </div>
             <Link to="/">
-              <Button variant="ghost" size="sm" className="text-primary-foreground hover:bg-primary-foreground/10">
+               <Button variant="outline" size="sm">
                 Switch App
               </Button>
             </Link>
@@ -344,7 +344,7 @@ export default function RiderDashboard() {
             </Label>
           </div>
 
-          <div className="grid grid-cols-3 gap-2">
+           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
             {[
               { label: 'Assigned', value: stats.assigned },
               { label: 'Collected', value: stats.collected },
@@ -353,10 +353,10 @@ export default function RiderDashboard() {
               { label: 'Delivered Today', value: stats.deliveredToday },
               { label: "Today's Earnings", value: `KES ${stats.todaysEarnings.toLocaleString()}` },
             ].map((s) => (
-              <Card key={s.label} className="bg-primary-foreground/10 border-0 backdrop-blur-sm">
+               <Card key={s.label} className="border-border bg-background shadow-card">
                 <CardContent className="p-3">
-                  <p className="text-lg font-display font-bold text-primary-foreground truncate">{s.value}</p>
-                  <p className="text-[11px] text-primary-foreground/70 truncate">{s.label}</p>
+                   <p className="truncate font-display text-lg font-bold text-primary">{s.value}</p>
+                   <p className="truncate text-[11px] text-muted-foreground">{s.label}</p>
                 </CardContent>
               </Card>
             ))}
@@ -365,7 +365,7 @@ export default function RiderDashboard() {
       </div>
 
       {!rider && (
-        <div className="container px-4 pt-4">
+         <div className="mx-auto max-w-6xl px-4 pt-4">
           <Card className="border-dashed">
             <CardContent className="py-6 text-center text-sm text-muted-foreground">
               No rider profile is linked to this account yet. Ask an admin to add you as a rider.
@@ -374,17 +374,17 @@ export default function RiderDashboard() {
         </div>
       )}
 
-      <div className="container py-6 px-4">
+       <div className="mx-auto max-w-6xl px-4 py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-4 mb-6">
-            <TabsTrigger value="assigned">Assigned</TabsTrigger>
-            <TabsTrigger value="active">Active</TabsTrigger>
-            <TabsTrigger value="payment">Payment</TabsTrigger>
-            <TabsTrigger value="done">Done</TabsTrigger>
+           <TabsList className="mb-6 grid h-auto w-full grid-cols-4 gap-1">
+             <TabsTrigger className="min-w-0 px-1 py-2 text-xs sm:px-3 sm:text-sm" value="assigned">Assigned</TabsTrigger>
+             <TabsTrigger className="min-w-0 px-1 py-2 text-xs sm:px-3 sm:text-sm" value="active">Active</TabsTrigger>
+             <TabsTrigger className="min-w-0 px-1 py-2 text-xs sm:px-3 sm:text-sm" value="payment">Payment</TabsTrigger>
+             <TabsTrigger className="min-w-0 px-1 py-2 text-xs sm:px-3 sm:text-sm" value="done">Done</TabsTrigger>
           </TabsList>
 
           {/* Assigned */}
-          <TabsContent value="assigned" className="space-y-4">
+           <TabsContent value="assigned" className="space-y-4">
             {assigned.length > 0 && (
               <div className="flex items-center justify-between gap-2 rounded-lg border border-border p-3">
                 <label className="flex items-center gap-2 text-sm">
@@ -402,8 +402,8 @@ export default function RiderDashboard() {
               </div>
             )}
 
-            {assigned.length ? (
-              assigned.map((pkg) => (
+             {assigned.length ? (
+               <div className="grid gap-4 md:grid-cols-2">{assigned.map((pkg) => (
                 <PackageRow key={pkg.id} pkg={pkg} selectable>
                   <div className="grid grid-cols-2 gap-2">
                     <Button
@@ -419,7 +419,7 @@ export default function RiderDashboard() {
                     </Button>
                   </div>
                 </PackageRow>
-              ))
+               ))}</div>
             ) : (
               <EmptyState icon={<Package className="w-12 h-12 text-muted-foreground mb-4" />} text="No assigned packages" />
             )}
@@ -427,8 +427,8 @@ export default function RiderDashboard() {
 
           {/* Active */}
           <TabsContent value="active" className="space-y-4">
-            {activeList.length ? (
-              activeList.map((pkg) => (
+             {activeList.length ? (
+               <div className="grid gap-4 md:grid-cols-2">{activeList.map((pkg) => (
                 <PackageRow key={pkg.id} pkg={pkg}>
                   <div className="space-y-2">
                     {pkg.status === 'picked_up' && (
@@ -453,7 +453,7 @@ export default function RiderDashboard() {
                     )}
                   </div>
                 </PackageRow>
-              ))
+               ))}</div>
             ) : (
               <EmptyState icon={<Truck className="w-12 h-12 text-muted-foreground mb-4" />} text="No packages in progress" />
             )}
@@ -461,8 +461,8 @@ export default function RiderDashboard() {
 
           {/* Awaiting payment */}
           <TabsContent value="payment" className="space-y-4">
-            {awaitingPayment.length ? (
-              awaitingPayment.map((pkg) => {
+             {awaitingPayment.length ? (
+               <div className="grid gap-4 md:grid-cols-2">{awaitingPayment.map((pkg) => {
                 const goods = pkg.codCollected ? 0 : pkg.codAmount;
                 const fee = pkg.feeOnDelivery && !pkg.feeCollected ? pkg.cost : 0;
                 const total = goods + fee;
@@ -503,7 +503,7 @@ export default function RiderDashboard() {
                     </div>
                   </PackageRow>
                 );
-              })
+               })}</div>
             ) : (
               <EmptyState icon={<Wallet className="w-12 h-12 text-muted-foreground mb-4" />} text="No payments pending" />
             )}
@@ -511,8 +511,8 @@ export default function RiderDashboard() {
 
           {/* Delivered */}
           <TabsContent value="done" className="space-y-4">
-            {delivered.length ? (
-              delivered.map((pkg) => (
+             {delivered.length ? (
+               <div className="grid gap-4 md:grid-cols-2">{delivered.map((pkg) => (
                 <PackageRow key={pkg.id} pkg={pkg}>
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">Commission earned</span>
@@ -521,7 +521,7 @@ export default function RiderDashboard() {
                     </span>
                   </div>
                 </PackageRow>
-              ))
+               ))}</div>
             ) : (
               <EmptyState icon={<CheckCircle className="w-12 h-12 text-muted-foreground mb-4" />} text="No completed deliveries yet" />
             )}

@@ -79,20 +79,19 @@ interface ActionCardProps {
 
 function ActionCard({ icon, label, count, onClick }: ActionCardProps) {
   return (
-    <Card
-      className="border border-border shadow-card cursor-pointer hover:shadow-md transition-shadow"
+    <Button
+      variant="outline"
+      className="h-auto min-h-32 w-full flex-col items-start justify-start gap-3 whitespace-normal rounded-lg border-border bg-card p-4 text-left shadow-card hover:border-primary/50 hover:bg-secondary/50 sm:min-h-36"
       onClick={onClick}
     >
-      <CardContent className="p-4 flex flex-col items-center gap-3">
-        <div className="w-16 h-16 rounded-xl bg-secondary flex items-center justify-center">
+        <div className="flex h-10 w-10 items-center justify-center rounded-md bg-primary/10 [&_svg]:!h-5 [&_svg]:!w-5">
           {icon}
         </div>
-        <p className="font-display text-sm font-semibold text-center leading-tight">{label}</p>
+        <span className="font-display text-sm font-semibold leading-tight">{label}</span>
         {count !== undefined && (
           <span className="text-xs text-muted-foreground">{count} packages</span>
         )}
-      </CardContent>
-    </Card>
+    </Button>
   );
 }
 
@@ -294,7 +293,7 @@ export default function AgentPickupDashboard() {
 
     return (
       <div className="min-h-screen bg-background pb-20">
-        <div className="gradient-hero px-4 py-4">
+        <div className="gradient-hero border-b border-border px-4 py-4">
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="icon" className="text-primary-foreground" onClick={() => setActiveView(null)}>
               <ArrowDownToLine className="w-5 h-5 rotate-90" />
@@ -302,7 +301,7 @@ export default function AgentPickupDashboard() {
             <h1 className="font-display text-lg font-bold text-primary-foreground">{view.title}</h1>
           </div>
         </div>
-        <div className="px-4 py-4 space-y-3">
+        <div className="mx-auto max-w-6xl space-y-3 px-4 py-4 md:grid md:grid-cols-2 md:gap-4 md:space-y-0">
           {view.pkgs.length > 0 ? (
             view.pkgs.map(pkg => (
               <PackageCard key={pkg.id} pkg={pkg} showPrint>
@@ -326,6 +325,7 @@ export default function AgentPickupDashboard() {
 
   return (
     <div className="min-h-screen bg-background pb-20">
+      <div className="mx-auto max-w-6xl">
       {!agentRecord && <NoAgentBanner />}
       {/* Search Bar */}
       <div className="px-4 pt-4">
@@ -335,27 +335,27 @@ export default function AgentPickupDashboard() {
             placeholder="Find package"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 pr-10 h-12 rounded-xl bg-card border shadow-card"
+            className="h-12 rounded-md border bg-card pl-10 pr-10 shadow-card"
           />
           {searchQuery && (
-            <button
+            <Button variant="ghost" size="icon" aria-label="Clear search"
               onClick={() => setSearchQuery('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-            >✕</button>
+              className="absolute right-1 top-1/2 -translate-y-1/2 text-muted-foreground"
+            >✕</Button>
           )}
         </div>
       </div>
 
       {/* Welcome Section */}
       <div className="px-4 pt-6 pb-4">
-        <div className="flex items-end justify-between">
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
-              <User className="w-8 h-8 text-muted-foreground" />
+        <div className="gradient-hero flex items-end justify-between gap-3 rounded-lg border border-primary/20 p-4 sm:p-6">
+          <div className="flex min-w-0 items-center gap-3 sm:gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-primary/10 sm:h-14 sm:w-14">
+              <User className="h-6 w-6 text-primary" />
             </div>
-            <div>
+            <div className="min-w-0">
               <p className="text-muted-foreground text-sm">Welcome,</p>
-              <h1 className="font-display text-xl font-bold">{profile?.full_name || 'Agent'}</h1>
+              <h1 className="truncate font-display text-xl font-bold">{profile?.full_name || 'Agent'}</h1>
               {agentRecord && (
                 <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
                   <MapPin className="w-3 h-3" /> {agentRecord.business_name}
@@ -363,30 +363,30 @@ export default function AgentPickupDashboard() {
               )}
             </div>
           </div>
-          <button
+            <Button variant="outline" size="icon" aria-label="Scan package"
             onClick={() => navigate('/agent/scan')}
-            className="w-14 h-14 rounded-xl border-2 border-border flex items-center justify-center hover:bg-secondary transition-colors"
+              className="h-12 w-12 shrink-0 bg-card"
           >
-            <QrCode className="w-7 h-7 text-foreground" />
-          </button>
+              <QrCode className="text-primary" />
+            </Button>
         </div>
-        <p className="text-muted-foreground mt-3">Here are your packages today.</p>
+        <p className="mt-4 text-sm text-muted-foreground">Here are your packages today.</p>
         {/* Today summary */}
         <div className="grid grid-cols-3 gap-2 mt-4">
-          <Card className="border-0 shadow-card">
-            <CardContent className="p-3 text-center">
+          <Card className="shadow-card">
+            <CardContent className="p-3 sm:p-4">
               <p className="text-xs text-muted-foreground">Pending</p>
               <p className="font-display font-bold text-lg">{pendingPackages.length}</p>
             </CardContent>
           </Card>
-          <Card className="border-0 shadow-card">
-            <CardContent className="p-3 text-center">
+          <Card className="shadow-card">
+            <CardContent className="p-3 sm:p-4">
               <p className="text-xs text-muted-foreground">On shelf</p>
               <p className="font-display font-bold text-lg">{droppedPackages.length}</p>
             </CardContent>
           </Card>
-          <Card className="border-0 shadow-card">
-            <CardContent className="p-3 text-center">
+          <Card className="shadow-card">
+            <CardContent className="p-3 sm:p-4">
               <p className="text-xs text-muted-foreground">Delivered</p>
               <p className="font-display font-bold text-lg">{collectedPackages.length}</p>
             </CardContent>
@@ -404,7 +404,7 @@ export default function AgentPickupDashboard() {
 
           {/* Packages Tab - Action Cards Grid */}
           <TabsContent value="packages">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
               <ActionCard
                 icon={<ArrowDownToLine className="w-8 h-8 text-primary" />}
                 label="Pickup from sender"
@@ -450,7 +450,7 @@ export default function AgentPickupDashboard() {
           </TabsContent>
 
           {/* Shelf Tab - Dropped packages ready for pickup */}
-          <TabsContent value="shelf" className="space-y-3">
+          <TabsContent value="shelf" className="grid gap-3 md:grid-cols-2">
             {droppedPackages.length > 0 ? (
               droppedPackages.map(pkg => (
                 <PackageCard key={pkg.id} pkg={pkg} showPrint>
@@ -469,6 +469,7 @@ export default function AgentPickupDashboard() {
             )}
           </TabsContent>
         </Tabs>
+      </div>
       </div>
 
       <BottomNav />
