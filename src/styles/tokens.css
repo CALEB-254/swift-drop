@@ -1,31 +1,31 @@
 /* Design tokens — colours, gradients, shadows. All colours are HSL triplets. */
   :root {
-    --background: 209 56% 7%;
-    --foreground: 0 0% 95%;
+    --background: 200 23% 96%;
+    --foreground: 207 48% 12%;
 
-    --card: 207 46% 11%;
-    --card-foreground: 0 0% 95%;
+    --card: 0 0% 100%;
+    --card-foreground: 207 48% 12%;
 
-    --popover: 207 46% 11%;
-    --popover-foreground: 0 0% 95%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 207 48% 12%;
 
     --primary: 154 74% 43%;
-    --primary-foreground: 0 0% 100%;
+    --primary-foreground: 207 50% 8%;
 
-    --secondary: 209 39% 16%;
-    --secondary-foreground: 0 0% 85%;
+    --secondary: 200 20% 92%;
+    --secondary-foreground: 207 48% 12%;
 
-    --muted: 209 32% 19%;
-    --muted-foreground: 207 17% 67%;
+    --muted: 200 18% 91%;
+    --muted-foreground: 207 17% 36%;
 
     --accent: 154 74% 43%;
-    --accent-foreground: 0 0% 100%;
+    --accent-foreground: 207 50% 8%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
     --success: 145 63% 42%;
-    --success-foreground: 0 0% 100%;
+    --success-foreground: 207 50% 8%;
 
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
@@ -33,27 +33,27 @@
     --info: 199 89% 48%;
     --info-foreground: 0 0% 100%;
 
-    --border: 206 32% 22%;
-    --input: 206 32% 22%;
+    --border: 202 17% 80%;
+    --input: 202 17% 80%;
     --ring: 154 74% 43%;
 
     --radius: 0.5rem;
 
     /* Sidebar surface */
-    --sidebar-background: 211 51% 8%;
-    --sidebar-foreground: 0 0% 90%;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 207 48% 12%;
     --sidebar-primary: 154 74% 43%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 209 39% 16%;
-    --sidebar-accent-foreground: 0 0% 90%;
-    --sidebar-border: 206 32% 22%;
+    --sidebar-primary-foreground: 207 50% 8%;
+    --sidebar-accent: 200 18% 91%;
+    --sidebar-accent-foreground: 207 48% 12%;
+    --sidebar-border: 202 17% 80%;
     --sidebar-ring: 154 74% 43%;
 
     /* Gradients — used via the .gradient-* utilities */
     --gradient-primary: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(157 71% 37%) 100%);
     --gradient-accent: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(165 66% 35%) 100%);
     --gradient-card: linear-gradient(180deg, hsl(var(--card)) 0%, hsl(var(--background)) 100%);
-    --gradient-hero: linear-gradient(110deg, hsl(var(--card)) 0%, hsl(164 60% 19%) 100%);
+    --gradient-hero: linear-gradient(110deg, hsl(var(--card)) 0%, hsl(157 35% 89%) 100%);
 
     /* Elevation */
     --shadow-sm: 0 1px 2px 0 hsl(0 0% 0% / 0.2);
@@ -76,7 +76,7 @@
     --popover-foreground: 0 0% 95%;
 
     --primary: 154 74% 45%;
-    --primary-foreground: 0 0% 100%;
+    --primary-foreground: 207 50% 8%;
 
     --secondary: 209 39% 15%;
     --secondary-foreground: 0 0% 85%;
@@ -85,13 +85,13 @@
     --muted-foreground: 207 17% 67%;
 
     --accent: 154 74% 45%;
-    --accent-foreground: 0 0% 100%;
+    --accent-foreground: 207 50% 8%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
     --success: 145 63% 45%;
-    --success-foreground: 0 0% 100%;
+    --success-foreground: 207 50% 8%;
 
     --warning: 38 92% 55%;
     --warning-foreground: 0 0% 100%;
@@ -106,7 +106,7 @@
     --sidebar-background: 211 51% 7%;
     --sidebar-foreground: 0 0% 90%;
     --sidebar-primary: 154 74% 45%;
-    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-primary-foreground: 207 50% 8%;
     --sidebar-accent: 209 39% 15%;
     --sidebar-accent-foreground: 0 0% 90%;
     --sidebar-border: 206 32% 21%;
