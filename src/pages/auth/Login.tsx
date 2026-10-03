@@ -146,34 +146,34 @@ export default function Login() {
               }`}
             >
               <div className="flex-1 overflow-y-auto px-6 py-6">
-                <h3 className="text-xl font-bold text-primary-foreground mb-4 text-center">Login</h3>
-                <div className="mb-4 grid grid-cols-2 gap-2 rounded-full border border-primary-foreground/20 p-1">
+                <h3 className="text-xl font-bold text-foreground mb-4 text-center">Login</h3>
+                <div className="mb-4 grid grid-cols-2 gap-2 rounded-full border border-foreground/20 p-1">
                   {(['sender', 'staff'] as const).map((t) => (
                     <button key={t} type="button" onClick={() => setAccountType(t)}
-                      className={`h-9 rounded-full text-sm font-medium transition-colors ${accountType === t ? 'bg-primary text-primary-foreground' : 'text-primary-foreground/60'}`}>
+                      className={`h-9 rounded-full text-sm font-medium transition-colors ${accountType === t ? 'bg-primary text-primary-foreground' : 'text-foreground/60'}`}>
                       {t === 'sender' ? 'Sender' : 'Agent / Rider'}
                     </button>
                   ))}
                 </div>
                 <form onSubmit={handleLogin} className="space-y-4">{formError && (<p role="alert" className="text-sm text-destructive">{formError}</p>)}
                   <div className="space-y-2">
-                    <Label className="text-primary-foreground/70">Email</Label>
+                    <Label className="text-foreground/70">Email</Label>
                     <Input
                       type="email" placeholder="Enter your email" value={email}
                       onChange={(e) => setEmail(e.target.value)} required
-                      className="h-12 bg-transparent border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/30 focus:border-primary"
+                      className="h-12 bg-transparent border-foreground/20 text-foreground placeholder:text-foreground/30 focus:border-primary"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-primary-foreground/70">Password</Label>
+                    <Label className="text-foreground/70">Password</Label>
                     <div className="relative">
                       <Input
                         type={showPassword ? 'text' : 'password'} placeholder="Enter your password" value={password}
                         onChange={(e) => setPassword(e.target.value)} required
-                        className="h-12 pr-12 bg-transparent border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/30 focus:border-primary"
+                        className="h-12 pr-12 bg-transparent border-foreground/20 text-foreground placeholder:text-foreground/30 focus:border-primary"
                       />
                       <Button type="button" variant="ghost" size="icon"
-                        className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 text-primary-foreground/50"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 text-foreground/50"
                         onClick={() => setShowPassword(!showPassword)} aria-label={showPassword ? "Hide password" : "Show password"}>
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </Button>
@@ -195,7 +195,7 @@ export default function Login() {
                 )}
                 {accountType === 'sender' ? (
                   <div className="mt-4 text-center pb-4">
-                    <p className="text-primary-foreground/60">
+                    <p className="text-foreground/60">
                       Don't have an account?{' '}
                       <button onClick={() => setIsLogin(false)} className="text-primary font-semibold hover:underline">
                         Sign Up
@@ -203,7 +203,7 @@ export default function Login() {
                     </p>
                   </div>
                 ) : (
-                  <p className="mt-4 text-center text-sm text-primary-foreground/50 pb-4">
+                  <p className="mt-4 text-center text-sm text-foreground/50 pb-4">
                     Agent and rider accounts are created by the admin.
                   </p>
                 )}
@@ -217,44 +217,44 @@ export default function Login() {
               }`}
             >
               <div className="flex-1 overflow-y-auto px-6 py-6">
-                <h3 className="text-xl font-bold text-primary-foreground mb-5 text-center">Register</h3>
+                <h3 className="text-xl font-bold text-foreground mb-5 text-center">Register</h3>
                 <form onSubmit={handleSignup} className="space-y-3">{formError && (<p role="alert" className="text-sm text-destructive">{formError}</p>)}
                   <div className="space-y-1">
-                    <Label className="text-primary-foreground/70">Full Name</Label>
+                    <Label className="text-foreground/70">Full Name</Label>
                     <Input type="text" placeholder="Enter your full name" value={fullName}
                       onChange={(e) => setFullName(e.target.value)} required
-                      className="h-11 bg-transparent border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/30 focus:border-primary" />
+                      className="h-11 bg-transparent border-foreground/20 text-foreground placeholder:text-foreground/30 focus:border-primary" />
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-primary-foreground/70">Email</Label>
+                    <Label className="text-foreground/70">Email</Label>
                     <Input type="email" placeholder="Enter your email" value={email}
                       onChange={(e) => setEmail(e.target.value)} required
-                      className="h-11 bg-transparent border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/30 focus:border-primary" />
+                      className="h-11 bg-transparent border-foreground/20 text-foreground placeholder:text-foreground/30 focus:border-primary" />
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-primary-foreground/70">Phone</Label>
+                    <Label className="text-foreground/70">Phone</Label>
                     <Input type="tel" placeholder="+254 7XX XXX XXX" value={phone}
                       onChange={(e) => setPhone(e.target.value)} required
-                      className="h-11 bg-transparent border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/30 focus:border-primary" />
+                      className="h-11 bg-transparent border-foreground/20 text-foreground placeholder:text-foreground/30 focus:border-primary" />
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-primary-foreground/70">Password</Label>
+                    <Label className="text-foreground/70">Password</Label>
                     <div className="relative">
                       <Input type={showPassword ? 'text' : 'password'} placeholder="Create a password" value={password}
                         onChange={(e) => setPassword(e.target.value)} required
-                        className="h-11 pr-12 bg-transparent border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/30 focus:border-primary" />
+                        className="h-11 pr-12 bg-transparent border-foreground/20 text-foreground placeholder:text-foreground/30 focus:border-primary" />
                       <Button type="button" variant="ghost" size="icon"
-                        className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 text-primary-foreground/50"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 text-foreground/50"
                         onClick={() => setShowPassword(!showPassword)} aria-label={showPassword ? "Hide password" : "Show password"}>
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </Button>
                     </div>
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-primary-foreground/70">Confirm Password</Label>
+                    <Label className="text-foreground/70">Confirm Password</Label>
                     <Input type={showPassword ? 'text' : 'password'} placeholder="Confirm password" value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)} required
-                      className="h-11 bg-transparent border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/30 focus:border-primary" />
+                      className="h-11 bg-transparent border-foreground/20 text-foreground placeholder:text-foreground/30 focus:border-primary" />
                   </div>
                   <Button type="submit" className="w-full h-12 text-base font-semibold rounded-full" disabled={submitting}>
                     {submitting ? 'Creating Account...' : 'Register'}
@@ -264,7 +264,7 @@ export default function Login() {
                   <SocialLoginButtons mode="signup" />
                 </div>
                 <div className="mt-4 text-center pb-4">
-                  <p className="text-primary-foreground/60">
+                  <p className="text-foreground/60">
                     Already have an account?{' '}
                     <button onClick={() => setIsLogin(true)} className="text-primary font-semibold hover:underline">
                       Sign In
@@ -283,30 +283,30 @@ export default function Login() {
             isLogin ? 'opacity-100 translate-x-0 z-[1]' : 'opacity-0 -translate-x-8 z-0'
           }`}>
             <div className="w-full max-w-sm">
-              <h3 className="text-2xl font-bold text-primary-foreground mb-4">Login</h3>
-              <div className="mb-5 grid grid-cols-2 gap-2 rounded-full border border-primary-foreground/20 p-1">
+              <h3 className="text-2xl font-bold text-foreground mb-4">Login</h3>
+              <div className="mb-5 grid grid-cols-2 gap-2 rounded-full border border-foreground/20 p-1">
                 {(['sender', 'staff'] as const).map((t) => (
                   <button key={t} type="button" onClick={() => setAccountType(t)}
-                    className={`h-9 rounded-full text-sm font-medium transition-colors ${accountType === t ? 'bg-primary text-primary-foreground' : 'text-primary-foreground/60'}`}>
+                    className={`h-9 rounded-full text-sm font-medium transition-colors ${accountType === t ? 'bg-primary text-primary-foreground' : 'text-foreground/60'}`}>
                     {t === 'sender' ? 'Sender' : 'Agent / Rider'}
                   </button>
                 ))}
               </div>
               <form onSubmit={handleLogin} className="space-y-4">{formError && (<p role="alert" className="text-sm text-destructive">{formError}</p>)}
                 <div className="space-y-2">
-                  <Label className="text-primary-foreground/70">Email</Label>
+                  <Label className="text-foreground/70">Email</Label>
                   <Input type="email" placeholder="Enter your email" value={email}
                     onChange={(e) => setEmail(e.target.value)} required
-                    className="h-12 bg-transparent border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/30 focus:border-primary" />
+                    className="h-12 bg-transparent border-foreground/20 text-foreground placeholder:text-foreground/30 focus:border-primary" />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-primary-foreground/70">Password</Label>
+                  <Label className="text-foreground/70">Password</Label>
                   <div className="relative">
                     <Input type={showPassword ? 'text' : 'password'} placeholder="Enter your password" value={password}
                       onChange={(e) => setPassword(e.target.value)} required
-                      className="h-12 pr-12 bg-transparent border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/30 focus:border-primary" />
+                      className="h-12 pr-12 bg-transparent border-foreground/20 text-foreground placeholder:text-foreground/30 focus:border-primary" />
                     <Button type="button" variant="ghost" size="icon"
-                      className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 text-primary-foreground/50"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 text-foreground/50"
                       onClick={() => setShowPassword(!showPassword)} aria-label={showPassword ? "Hide password" : "Show password"}>
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </Button>
@@ -324,13 +324,13 @@ export default function Login() {
               {accountType === 'sender' && <div className="mt-4"><SocialLoginButtons mode="login" /></div>}
               {accountType === 'sender' ? (
                 <div className="mt-4 text-center">
-                  <p className="text-primary-foreground/60">
+                  <p className="text-foreground/60">
                     Don't have an account?{' '}
                     <button onClick={() => setIsLogin(false)} className="text-primary font-semibold hover:underline">Sign Up</button>
                   </p>
                 </div>
               ) : (
-                <p className="mt-4 text-center text-sm text-primary-foreground/50">
+                <p className="mt-4 text-center text-sm text-foreground/50">
                   Agent and rider accounts are created by the admin.
                 </p>
               )}
@@ -342,25 +342,25 @@ export default function Login() {
             !isLogin ? 'opacity-100 translate-x-0 z-[1]' : 'opacity-0 translate-x-8 z-0'
           }`}>
             <div className="w-full max-w-sm">
-              <h3 className="text-2xl font-bold text-primary-foreground mb-6">Register</h3>
+              <h3 className="text-2xl font-bold text-foreground mb-6">Register</h3>
               <form onSubmit={handleSignup} className="space-y-3">{formError && (<p role="alert" className="text-sm text-destructive">{formError}</p>)}
                 <Input type="text" placeholder="Full Name" value={fullName} onChange={(e) => setFullName(e.target.value)} required
-                  className="h-11 bg-transparent border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/30 focus:border-primary" />
+                  className="h-11 bg-transparent border-foreground/20 text-foreground placeholder:text-foreground/30 focus:border-primary" />
                 <Input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required
-                  className="h-11 bg-transparent border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/30 focus:border-primary" />
+                  className="h-11 bg-transparent border-foreground/20 text-foreground placeholder:text-foreground/30 focus:border-primary" />
                 <Input type="tel" placeholder="+254 7XX XXX XXX" value={phone} onChange={(e) => setPhone(e.target.value)} required
-                  className="h-11 bg-transparent border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/30 focus:border-primary" />
+                  className="h-11 bg-transparent border-foreground/20 text-foreground placeholder:text-foreground/30 focus:border-primary" />
                 <Input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required
-                  className="h-11 bg-transparent border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/30 focus:border-primary" />
+                  className="h-11 bg-transparent border-foreground/20 text-foreground placeholder:text-foreground/30 focus:border-primary" />
                 <Input type="password" placeholder="Confirm Password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required
-                  className="h-11 bg-transparent border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/30 focus:border-primary" />
+                  className="h-11 bg-transparent border-foreground/20 text-foreground placeholder:text-foreground/30 focus:border-primary" />
                 <Button type="submit" className="w-full h-12 text-base font-semibold rounded-full" disabled={submitting}>
                   {submitting ? 'Creating...' : 'Register'}
                 </Button>
               </form>
               <div className="mt-3"><SocialLoginButtons mode="signup" /></div>
               <div className="mt-3 text-center">
-                <p className="text-primary-foreground/60">
+                <p className="text-foreground/60">
                   Already have an account?{' '}
                   <button onClick={() => setIsLogin(true)} className="text-primary font-semibold hover:underline">Sign In</button>
                 </p>
