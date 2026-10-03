@@ -295,10 +295,10 @@ export default function AgentPickupDashboard() {
       <div className="min-h-screen bg-background pb-20">
         <div className="gradient-hero border-b border-border px-4 py-4">
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" className="text-primary-foreground" onClick={() => setActiveView(null)}>
+            <Button variant="ghost" size="icon" className="text-foreground" onClick={() => setActiveView(null)}>
               <ArrowDownToLine className="w-5 h-5 rotate-90" />
             </Button>
-            <h1 className="font-display text-lg font-bold text-primary-foreground">{view.title}</h1>
+            <h1 className="font-display text-lg font-bold text-foreground">{view.title}</h1>
           </div>
         </div>
         <div className="mx-auto max-w-6xl space-y-3 px-4 py-4 md:grid md:grid-cols-2 md:gap-4 md:space-y-0">

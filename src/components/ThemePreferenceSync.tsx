@@ -12,10 +12,7 @@ export function ThemePreferenceSync() {
 
   useEffect(() => {
     if (loading) return;
-    if (!user) {
-      setTheme('dark');
-      return;
-    }
+    if (!user) return;
 
     let active = true;
     const userId = user.id;

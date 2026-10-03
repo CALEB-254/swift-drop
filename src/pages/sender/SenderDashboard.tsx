@@ -319,10 +319,10 @@ export default function SenderDashboard() {
         </div>
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="font-display text-xl font-bold text-primary-foreground">
+            <h1 className="font-display text-xl font-bold text-foreground">
               My Dashboard
             </h1>
-            <p className="text-primary-foreground/80">
+            <p className="text-muted-foreground">
               Welcome back, {profile?.full_name || 'Sender'}
             </p>
           </div>
@@ -330,7 +330,7 @@ export default function SenderDashboard() {
             variant="ghost"
             size="sm"
             onClick={signOut}
-            className="text-primary-foreground hover:bg-primary-foreground/10"
+            className="text-foreground hover:bg-primary/10"
           >
             Logout
           </Button>
