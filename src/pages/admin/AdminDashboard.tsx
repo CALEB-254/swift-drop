@@ -28,6 +28,7 @@ import { AdminSLA } from '@/components/admin/AdminSLA';
 import { AdminBulkActions } from '@/components/admin/AdminBulkActions';
 import { AdminCouriers } from '@/components/admin/AdminCouriers';
 import { AdminCashCollections } from '@/components/admin/AdminCashCollections';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 export interface AdminData {
   packages: any[];
@@ -175,6 +176,7 @@ export default function AdminDashboard() {
             <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setMenuOpen(true)} aria-label="Open menu"><Menu /></Button>
             <div className="hidden items-center gap-2 text-sm text-muted-foreground sm:flex"><Search className="h-4 w-4" /><span>SwiftDrop operations</span></div>
             <div className="ml-auto flex items-center gap-1">
+              <ThemeToggle />
               <Button variant="ghost" size="icon" onClick={fetchAllData} aria-label="Refresh dashboard"><RefreshCw /></Button>
               <span className="mx-2 hidden text-sm font-medium capitalize sm:inline">{data.adminLevel?.replace('_', ' ') || 'Administrator'}</span>
               <Button variant="ghost" size="icon" onClick={signOut} aria-label="Log out"><LogOut /></Button>

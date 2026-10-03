@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { ProfileDropdown } from './ProfileDropdown';
+import { ThemeToggle } from './ThemeToggle';
 
 export function TopHeader() {
   const { user } = useAuthContext();
@@ -51,12 +52,13 @@ export function TopHeader() {
 
   return (
     <div className="flex items-center justify-between">
-      <span className="font-display text-lg font-bold text-primary-foreground">
+      <span className="font-display text-lg font-bold text-foreground">
         SwiftDrop
       </span>
       <div className="flex items-center gap-2">
+        <ThemeToggle />
         <Link to="/notifications" className="p-2 relative" aria-label="Notifications">
-          <Bell className="w-6 h-6 text-primary-foreground" />
+          <Bell className="w-6 h-6 text-foreground" />
           {notificationCount > 0 && (
             <span className="absolute -top-0.5 -right-0.5 bg-destructive text-destructive-foreground text-xs rounded-full min-w-[18px] h-[18px] flex items-center justify-center font-medium px-1">
               {notificationCount > 99 ? '99+' : notificationCount}
@@ -64,7 +66,7 @@ export function TopHeader() {
           )}
         </Link>
         <Link to="/sender/cart" className="p-2 relative" aria-label="Cart">
-          <ShoppingCart className="w-6 h-6 text-primary-foreground" />
+          <ShoppingCart className="w-6 h-6 text-foreground" />
           {cartCount > 0 && (
             <span className="absolute -top-0.5 -right-0.5 bg-destructive text-destructive-foreground text-xs rounded-full min-w-[18px] h-[18px] flex items-center justify-center font-medium px-1">
               {cartCount > 99 ? '99+' : cartCount}

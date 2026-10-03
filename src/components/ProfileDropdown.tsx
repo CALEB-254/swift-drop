@@ -21,6 +21,7 @@
    ChevronDown,
  } from 'lucide-react';
  import { toast } from 'sonner';
+  import { Button } from '@/components/ui/button';
  
  export function ProfileDropdown() {
    const navigate = useNavigate();
@@ -49,15 +50,15 @@
    return (
      <DropdownMenu open={open} onOpenChange={setOpen}>
        <DropdownMenuTrigger asChild>
-         <button className="flex items-center gap-1 p-1 rounded-full hover:bg-primary-foreground/10 transition-colors">
-           <Avatar className="w-8 h-8 border-2 border-primary-foreground/30">
+          <Button variant="ghost" size="sm" className="flex items-center gap-1 rounded-full px-1">
+            <Avatar className="w-8 h-8 border-2 border-border">
              <AvatarImage src={profile?.avatar_url || undefined} alt={profile?.full_name} />
-             <AvatarFallback className="bg-primary-foreground/20 text-primary-foreground text-xs">
+              <AvatarFallback className="bg-primary/10 text-primary text-xs">
                {profile?.full_name ? getInitials(profile.full_name) : <User className="w-4 h-4" />}
              </AvatarFallback>
            </Avatar>
-           <ChevronDown className="w-4 h-4 text-primary-foreground" />
-         </button>
+            <ChevronDown className="w-4 h-4 text-foreground" />
+          </Button>
        </DropdownMenuTrigger>
        <DropdownMenuContent align="end" className="w-56 z-50 bg-popover">
          <DropdownMenuLabel>
