@@ -1,2 +1,2 @@
-- Keep the app-wide theme in `next-themes` with semantic CSS tokens and persisted dark default; this lets every screen switch modes without duplicating theme state.
+- Keep the app-wide theme in `next-themes` with semantic CSS tokens, a dark default, and per-user preferences cached locally and synced to `user_preferences`; this keeps appearance consistent across screens and sessions.
 - Keep staff dashboard workflows in their existing page components and restyle with shared semantic tokens; this protects package and payment behavior from visual redesigns.

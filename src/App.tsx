@@ -7,7 +7,8 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ThemeProvider } from "next-themes";
-import { ThemeToggle } from "@/components/ThemeToggle";
+import { ThemeNav } from "@/components/ThemeNav";
+import { ThemePreferenceSync } from "@/components/ThemePreferenceSync";
 import Welcome from "./pages/Welcome";
 import NotFound from "./pages/NotFound";
 import SenderHome from "./pages/sender/SenderHome";
@@ -53,11 +54,12 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} storageKey="swiftdrop-theme">
     <TooltipProvider>
-      <ThemeToggle />
       <Toaster />
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
+          <ThemePreferenceSync />
+          <ThemeNav />
           <ErrorBoundary>
           <Routes>
             {/* Login page as landing */}
