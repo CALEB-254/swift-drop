@@ -17,7 +17,7 @@ export function ThemePreferenceSync() {
     let active = true;
     const userId = user.id;
     const cached = localStorage.getItem(themeKeyForUser(userId));
-    if (cached === 'light' || cached === 'dark') setTheme(cached);
+    if (cached === 'light' || cached === 'dark' || cached === 'system') setTheme(cached);
     else setTheme('dark');
 
     supabase.from('user_preferences').select('theme').eq('user_id', userId).maybeSingle()
@@ -26,7 +26,7 @@ export function ThemePreferenceSync() {
         // Do not overwrite a choice made while the account preference was loading.
         if (localStorage.getItem(themeKeyForUser(userId)) !== cached) return;
         const preference = data?.theme;
-        if (preference === 'light' || preference === 'dark') {
+        if (preference === 'light' || preference === 'dark' || preference === 'system') {
           localStorage.setItem(themeKeyForUser(userId), preference);
           setTheme(preference);
         }

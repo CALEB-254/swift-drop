@@ -1,17 +1,16 @@
-import { Moon, Sun } from 'lucide-react';
+import { Monitor, Moon, Sun } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { themeKeyForUser } from '@/components/ThemePreferenceSync';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 export function ThemeToggle() {
-  const { resolvedTheme, setTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
   const { user } = useAuthContext();
-  const dark = resolvedTheme !== 'light';
-  const toggle = async () => {
-    const nextTheme = dark ? 'light' : 'dark';
+  const choose = async (nextTheme: 'light' | 'dark' | 'system') => {
     setTheme(nextTheme);
     if (!user) return;
     localStorage.setItem(themeKeyForUser(user.id), nextTheme);
@@ -22,19 +21,22 @@ export function ThemeToggle() {
     if (error) console.warn('Could not sync appearance preference across devices');
   };
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Button
-          variant="outline"
-          size="icon"
-          className="h-9 w-9 shrink-0 border-border bg-card text-primary hover:bg-primary/10"
-          aria-label={`Switch to ${dark ? 'light' : 'dark'} mode`}
-          onClick={toggle}
-        >
-          {dark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-        </Button>
-      </TooltipTrigger>
-      <TooltipContent side="left">{dark ? 'Light mode' : 'Dark mode'}</TooltipContent>
-    </Tooltip>
+    <DropdownMenu>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="icon" className="h-9 w-9 shrink-0 bg-card text-primary" aria-label={`Appearance: ${theme || 'dark'}`}>
+              {theme === 'system' ? <Monitor /> : theme === 'light' ? <Sun /> : <Moon />}
+            </Button>
+          </DropdownMenuTrigger>
+        </TooltipTrigger>
+        <TooltipContent side="left">Appearance</TooltipContent>
+      </Tooltip>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onSelect={() => choose('light')}><Sun className="mr-2 h-4 w-4" /> Light {theme === 'light' ? '✓' : ''}</DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => choose('dark')}><Moon className="mr-2 h-4 w-4" /> Dark {theme === 'dark' ? '✓' : ''}</DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => choose('system')}><Monitor className="mr-2 h-4 w-4" /> Device {theme === 'system' ? '✓' : ''}</DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
