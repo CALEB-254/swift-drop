@@ -16,3 +16,8 @@ h1, h2, h3, h4, h5, h6 {
   font-family: 'Poppins', system-ui, sans-serif;
   font-weight: 600;
 }
+
+/* Older screens remove card borders locally. Retain a visible edge in both modes. */
+[class*="bg-card"][class*="border-0"] {
+  border: 1px solid hsl(var(--border));
+}

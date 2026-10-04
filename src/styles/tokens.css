@@ -9,8 +9,8 @@
     --popover: 0 0% 100%;
     --popover-foreground: 207 48% 12%;
 
-    --primary: 154 74% 43%;
-    --primary-foreground: 207 50% 8%;
+    --primary: 153 82% 28%;
+    --primary-foreground: 0 0% 100%;
 
     --secondary: 200 20% 92%;
     --secondary-foreground: 207 48% 12%;
@@ -18,22 +18,22 @@
     --muted: 200 18% 91%;
     --muted-foreground: 207 17% 36%;
 
-    --accent: 154 74% 43%;
-    --accent-foreground: 207 50% 8%;
+    --accent: 153 82% 28%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --success: 145 63% 42%;
-    --success-foreground: 207 50% 8%;
+    --success: 145 72% 27%;
+    --success-foreground: 0 0% 100%;
 
-    --warning: 38 92% 50%;
+    --warning: 32 85% 32%;
     --warning-foreground: 0 0% 100%;
 
-    --info: 199 89% 48%;
+    --info: 199 85% 33%;
     --info-foreground: 0 0% 100%;
 
-    --border: 202 17% 80%;
+    --border: 202 19% 74%;
     --input: 202 17% 80%;
     --ring: 154 74% 43%;
 
@@ -42,25 +42,25 @@
     /* Sidebar surface */
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 207 48% 12%;
-    --sidebar-primary: 154 74% 43%;
-    --sidebar-primary-foreground: 207 50% 8%;
+    --sidebar-primary: 153 82% 28%;
+    --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 200 18% 91%;
     --sidebar-accent-foreground: 207 48% 12%;
     --sidebar-border: 202 17% 80%;
     --sidebar-ring: 154 74% 43%;
 
     /* Gradients — used via the .gradient-* utilities */
-    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(157 71% 37%) 100%);
-    --gradient-accent: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(165 66% 35%) 100%);
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--success)) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--success)) 100%);
     --gradient-card: linear-gradient(180deg, hsl(var(--card)) 0%, hsl(var(--background)) 100%);
-    --gradient-hero: linear-gradient(110deg, hsl(var(--card)) 0%, hsl(157 35% 89%) 100%);
+    --gradient-hero: linear-gradient(110deg, hsl(var(--card)) 0%, hsl(var(--secondary)) 100%);
 
     /* Elevation */
     --shadow-sm: 0 1px 2px 0 hsl(0 0% 0% / 0.2);
     --shadow-md: 0 4px 6px -1px hsl(0 0% 0% / 0.3), 0 2px 4px -2px hsl(0 0% 0% / 0.2);
     --shadow-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.3), 0 4px 6px -4px hsl(0 0% 0% / 0.2);
     --shadow-xl: 0 20px 25px -5px hsl(0 0% 0% / 0.3), 0 8px 10px -6px hsl(0 0% 0% / 0.2);
-    --shadow-card: 0 2px 12px -4px hsl(211 80% 2% / 0.3);
+    --shadow-card: 0 2px 12px -4px hsl(211 80% 2% / 0.18);
     --shadow-glow: 0 0 40px hsl(var(--primary) / 0.2);
   }
 
@@ -99,7 +99,7 @@
     --info: 199 89% 55%;
     --info-foreground: 0 0% 100%;
 
-    --border: 206 32% 21%;
+    --border: 206 29% 29%;
     --input: 206 32% 21%;
     --ring: 154 74% 45%;
 
@@ -112,6 +112,6 @@
     --sidebar-border: 206 32% 21%;
     --sidebar-ring: 154 74% 45%;
 
-    --gradient-hero: linear-gradient(110deg, hsl(var(--card)) 0%, hsl(164 60% 19%) 100%);
+    --gradient-hero: linear-gradient(110deg, hsl(var(--card)) 0%, hsl(var(--secondary)) 100%);
   }
 
