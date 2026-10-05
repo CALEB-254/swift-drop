@@ -138,6 +138,7 @@ export default function Notifications() {
   );
 
   const unreadCount = notifications.filter(n => !n.is_read).length;
+  const [mediaPreview, setMediaPreview] = useState<string | null>(null);
 
   if (authLoading || loading) {
     return (
@@ -146,8 +147,6 @@ export default function Notifications() {
       </div>
     );
   }
-
-  const [mediaPreview, setMediaPreview] = useState<string | null>(null);
 
   return (
     <div className="min-h-screen bg-background pb-24">
