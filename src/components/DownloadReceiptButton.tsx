@@ -36,12 +36,15 @@ export function DownloadReceiptButton({ pkg, variant = 'outline', size = 'sm' }:
     if (!receiptRef.current) return;
     setIsDownloading(true);
     try {
-      const dataUrl = await toPng(receiptRef.current, { quality: 1, pixelRatio: 2 });
-      const link = document.createElement('a');
-      link.download = `receipt-${pkg.trackingNumber}.png`;
-      link.href = dataUrl;
-      link.click();
-      toast.success('Receipt downloaded!');
+      const node = receiptRef.current;
+      const dataUrl = await toPng(node, { quality: 1, pixelRatio: 2, backgroundColor: '#ffffff' });
+      const { jsPDF } = await import('jspdf');
+      const w = node.offsetWidth || 380;
+      const h = node.offsetHeight || 800;
+      const pdf = new jsPDF({ unit: 'px', format: [w, h], orientation: h >= w ? 'portrait' : 'landscape', hotfixes: ['px_scaling'] });
+      pdf.addImage(dataUrl, 'PNG', 0, 0, w, h);
+      pdf.save(`receipt-${pkg.trackingNumber}.pdf`);
+      toast.success('Receipt downloaded as PDF');
     } catch {
       toast.error('Failed to download receipt');
     } finally {

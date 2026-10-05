@@ -12,6 +12,7 @@ import { toast } from 'sonner';
 import { BottomNav } from '@/components/BottomNav';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 
 interface Notification {
   id: string;
@@ -137,6 +138,7 @@ export default function Notifications() {
   );
 
   const unreadCount = notifications.filter(n => !n.is_read).length;
+  const [mediaPreview, setMediaPreview] = useState<string | null>(null);
 
   if (authLoading || loading) {
     return (
@@ -243,15 +245,25 @@ export default function Notifications() {
                       <video
                         src={n.media_url}
                         controls
-                        className="mt-3 w-full rounded-xl max-h-64 bg-black"
+                        playsInline
+                        preload="metadata"
+                        onClick={(e) => e.stopPropagation()}
+                        className="mt-3 w-full rounded-xl max-h-64 bg-muted"
                       />
                     ) : (
-                      <img
-                        src={n.media_url}
-                        alt={n.title}
-                        loading="lazy"
-                        className="mt-3 w-full rounded-xl object-cover max-h-64"
-                      />
+                      <button
+                        type="button"
+                        aria-label="Open image"
+                        onClick={(e) => { e.stopPropagation(); setMediaPreview(n.media_url); }}
+                        className="mt-3 block w-full"
+                      >
+                        <img
+                          src={n.media_url}
+                          alt={n.title}
+                          loading="lazy"
+                          className="w-full rounded-xl object-cover max-h-64"
+                        />
+                      </button>
                     )
                   )}
 
@@ -284,6 +296,13 @@ export default function Notifications() {
           })
         )}
       </div>
+
+      <Dialog open={!!mediaPreview} onOpenChange={(o) => !o && setMediaPreview(null)}>
+        <DialogContent className="max-w-3xl p-2">
+          <DialogTitle className="sr-only">Notification image</DialogTitle>
+          {mediaPreview && <img src={mediaPreview} alt="Notification media" className="w-full max-h-[80vh] object-contain rounded-lg" />}
+        </DialogContent>
+      </Dialog>
 
       <BottomNav />
     </div>

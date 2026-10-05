@@ -12,6 +12,7 @@ import { BottomNav } from '@/components/BottomNav';
 import { toast } from 'sonner';
 import { ArrowLeft, Camera, Loader2, User, Lock } from 'lucide-react';
 import { logger } from "@/lib/logger";
+import { isValidLocalPhone, sanitizePhoneInput, toIntlPhone, toLocalPhone, PHONE_ERROR } from '@/lib/phone';
 
 export default function EditProfile() {
   const navigate = useNavigate();
@@ -19,7 +20,7 @@ export default function EditProfile() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [fullName, setFullName] = useState(profile?.full_name || '');
-  const [phone, setPhone] = useState(profile?.phone || '');
+  const [phone, setPhone] = useState(toLocalPhone(profile?.phone));
   const [address, setAddress] = useState(profile?.address || '');
   const [avatarUrl, setAvatarUrl] = useState(profile?.avatar_url || '');
   const [loading, setLoading] = useState(false);
@@ -104,6 +105,11 @@ export default function EditProfile() {
       return;
     }
 
+    if (!isValidLocalPhone(phone)) {
+      toast.error(PHONE_ERROR);
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -111,7 +117,7 @@ export default function EditProfile() {
         .from('profiles')
         .update({
           full_name: fullName.trim(),
-          phone: phone.trim(),
+          phone: toIntlPhone(phone),
           address: address.trim() || null,
           avatar_url: avatarUrl || null,
           updated_at: new Date().toISOString(),
@@ -223,9 +229,11 @@ export default function EditProfile() {
                 <Input
                   id="phone"
                   type="tel"
-                  placeholder="Enter your phone number"
+                  placeholder="07XXXXXXXX or 01XXXXXXXX"
+                  inputMode="numeric"
+                  maxLength={10}
                   value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
+                  onChange={(e) => setPhone(sanitizePhoneInput(e.target.value))}
                   required
                   disabled={locked}
                   className="h-12"
