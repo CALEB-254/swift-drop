@@ -243,15 +243,25 @@ export default function Notifications() {
                       <video
                         src={n.media_url}
                         controls
-                        className="mt-3 w-full rounded-xl max-h-64 bg-black"
+                        playsInline
+                        preload="metadata"
+                        onClick={(e) => e.stopPropagation()}
+                        className="mt-3 w-full rounded-xl max-h-64 bg-muted"
                       />
                     ) : (
-                      <img
-                        src={n.media_url}
-                        alt={n.title}
-                        loading="lazy"
-                        className="mt-3 w-full rounded-xl object-cover max-h-64"
-                      />
+                      <button
+                        type="button"
+                        aria-label="Open image"
+                        onClick={(e) => { e.stopPropagation(); setMediaPreview(n.media_url); }}
+                        className="mt-3 block w-full"
+                      >
+                        <img
+                          src={n.media_url}
+                          alt={n.title}
+                          loading="lazy"
+                          className="w-full rounded-xl object-cover max-h-64"
+                        />
+                      </button>
                     )
                   )}
 

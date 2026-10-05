@@ -103,7 +103,7 @@ export default function Signup() {
     else if (!/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(formData.email.trim())) next.email = 'Enter a valid email address, e.g. you@example.com.';
 
     if (!formData.phone.trim()) next.phone = 'Phone number is required.';
-    else if (!normalizePhone(formData.phone)) next.phone = 'Enter a valid Kenyan number, e.g. 0712 345 678 or +254712345678.';
+    else if (!normalizePhone(formData.phone)) next.phone = 'Incorrect phone number. Use 10 digits starting with 07 or 01.';
 
     if (!formData.password) next.password = 'Password is required.';
     else if (formData.password.length < 6) next.password = 'Password must be at least 6 characters.';
@@ -202,10 +202,10 @@ export default function Signup() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="phone">Phone Number</Label>
-                <Input id="phone" type="tel" inputMode="tel" autoComplete="tel" placeholder="0712 345 678" value={formData.phone} onChange={(e) => handleChange('phone', e.target.value)} aria-invalid={!!errors.phone} aria-describedby={errors.phone ? 'phone-error' : 'phone-hint'} aria-required="true" className="h-12" />
+                <Input id="phone" type="tel" inputMode="numeric" maxLength={10} autoComplete="tel" placeholder="0712345678" value={formData.phone} onChange={(e) => handleChange('phone', e.target.value.replace(/\D/g, '').slice(0, 10))} aria-invalid={!!errors.phone} aria-describedby={errors.phone ? 'phone-error' : 'phone-hint'} aria-required="true" className="h-12" />
                 {errors.phone
                   ? <p id="phone-error" role="alert" className="text-sm text-destructive">{errors.phone}</p>
-                  : <p id="phone-hint" className="text-xs text-muted-foreground">Kenyan number — saved as +254…</p>}
+                  : <p id="phone-hint" className="text-xs text-muted-foreground">10 digits starting with 07 or 01</p>}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="address">Address (Optional)</Label>
