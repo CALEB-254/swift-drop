@@ -1,9 +1,9 @@
 # Redesign tasks
 - [ ] Make cards, green accents, controls and statuses readable in light, dark and device themes.
-- [ ] Open notification images and play videos.
-- [ ] Repair PIN-protected Pochi checkout and enforce local 07/01 ten-digit phone entry.
-- [ ] Send release code when a pending package is picked up, not at creation.
-- [ ] Download receipts as PDF.
+- [x] Open notification images and play videos.
+- [x] Repair PIN-protected Pochi checkout and enforce local 07/01 ten-digit phone entry.
+- [x] Send release code when a pending package is picked up, not at creation.
+- [x] Download receipts as PDF.
 - [x] Save each signed-in person's light/dark choice locally and in their account preferences for later sessions.
 - [x] Move the appearance switch from the floating corner into top navigation on every screen.
 - [x] Keep the green accent palette and make the sign-in screen readable in both themes.
