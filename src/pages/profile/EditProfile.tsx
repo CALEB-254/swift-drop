@@ -104,6 +104,11 @@ export default function EditProfile() {
       return;
     }
 
+    if (!isValidLocalPhone(phone)) {
+      toast.error(PHONE_ERROR);
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -111,7 +116,7 @@ export default function EditProfile() {
         .from('profiles')
         .update({
           full_name: fullName.trim(),
-          phone: phone.trim(),
+          phone: toIntlPhone(phone),
           address: address.trim() || null,
           avatar_url: avatarUrl || null,
           updated_at: new Date().toISOString(),
@@ -223,9 +228,11 @@ export default function EditProfile() {
                 <Input
                   id="phone"
                   type="tel"
-                  placeholder="Enter your phone number"
+                  placeholder="07XXXXXXXX or 01XXXXXXXX"
+                  inputMode="numeric"
+                  maxLength={10}
                   value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
+                  onChange={(e) => setPhone(sanitizePhoneInput(e.target.value))}
                   required
                   disabled={locked}
                   className="h-12"

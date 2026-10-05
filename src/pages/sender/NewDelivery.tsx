@@ -125,6 +125,10 @@ export default function NewDelivery() {
       toast.error('Please choose a sender agent and fill all required fields');
       return;
     }
+    if (!/^0[17]\d{8}$/.test(formData.customerPhone)) {
+      toast.error('Incorrect phone number. Use 10 digits starting with 07 or 01.');
+      return;
+    }
     if (deliveryType === 'errand' && (!errandLocationId || !courierId)) {
       toast.error('Please choose the location and courier for your errand');
       return;
@@ -208,10 +212,12 @@ export default function NewDelivery() {
           <div className="space-y-2">
             <Label>Phone number</Label>
             <Input
-              placeholder="customer's Phone number"
+              placeholder="07XXXXXXXX or 01XXXXXXXX"
               type="tel"
+              inputMode="numeric"
+              maxLength={10}
               value={formData.customerPhone}
-              onChange={(e) => setFormData({ ...formData, customerPhone: e.target.value })}
+              onChange={(e) => setFormData({ ...formData, customerPhone: e.target.value.replace(/\D/g, '').slice(0, 10) })}
               className="input-accent"
             />
           </div>

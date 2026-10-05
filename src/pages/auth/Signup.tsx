@@ -13,12 +13,9 @@ import { Package, ArrowLeft, Eye, EyeOff, User, Truck } from 'lucide-react';
 
 const NAME_RE = /^[a-zA-Z][a-zA-Z'’.\- ]{1,}$/;
 
-/** Normalises Kenyan numbers to +2547XXXXXXXX / +2541XXXXXXXX. Returns null if invalid. */
+/** Accepts only 10 digits starting with 07/01; returns +254 form or null. */
 function normalizePhone(raw: string): string | null {
-  const digits = raw.replace(/[^\d+]/g, '');
-  let local = digits;
-  if (local.startsWith('+254')) local = '0' + local.slice(4);
-  else if (local.startsWith('254')) local = '0' + local.slice(3);
+  const local = (raw || '').trim();
   if (!/^0[17]\d{8}$/.test(local)) return null;
   return '+254' + local.slice(1);
 }
