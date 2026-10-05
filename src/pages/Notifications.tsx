@@ -12,6 +12,7 @@ import { toast } from 'sonner';
 import { BottomNav } from '@/components/BottomNav';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 
 interface Notification {
   id: string;
@@ -145,6 +146,8 @@ export default function Notifications() {
       </div>
     );
   }
+
+  const [mediaPreview, setMediaPreview] = useState<string | null>(null);
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -294,6 +297,13 @@ export default function Notifications() {
           })
         )}
       </div>
+
+      <Dialog open={!!mediaPreview} onOpenChange={(o) => !o && setMediaPreview(null)}>
+        <DialogContent className="max-w-3xl p-2">
+          <DialogTitle className="sr-only">Notification image</DialogTitle>
+          {mediaPreview && <img src={mediaPreview} alt="Notification media" className="w-full max-h-[80vh] object-contain rounded-lg" />}
+        </DialogContent>
+      </Dialog>
 
       <BottomNav />
     </div>
