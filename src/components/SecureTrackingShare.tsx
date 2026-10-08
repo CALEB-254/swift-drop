@@ -52,7 +52,6 @@ export function SecureTrackingShare({ packageId, trackingNumber }: { packageId: 
   };
 
   return (
-          {(
             <div className="pt-3 border-t border-border space-y-3">
               <div className="flex items-center gap-2">
                 <Lock className="w-4 h-4 text-primary" />
@@ -100,6 +99,5 @@ export function SecureTrackingShare({ packageId, trackingNumber }: { packageId: 
                 </div>
               )}
             </div>
-          )}
   );
 }
