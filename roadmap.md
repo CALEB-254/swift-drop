@@ -1,4 +1,6 @@
 # Redesign tasks
+- [x] Keep package action buttons within cards across screen sizes.
+- [x] Offer only secured tracking links in package tracking.
 - [ ] Make cards, green accents, controls and statuses readable in light, dark and device themes.
 - [x] Open notification images and play videos.
 - [x] Repair PIN-protected Pochi checkout and enforce local 07/01 ten-digit phone entry.

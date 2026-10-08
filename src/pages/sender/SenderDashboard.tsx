@@ -426,7 +426,7 @@ export default function SenderDashboard() {
 
       {/* Packages Section */}
       <div className="px-4">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
           <h2 className="font-display text-lg font-semibold">My Packages</h2>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={() => refetch()}>
@@ -461,7 +461,7 @@ export default function SenderDashboard() {
         {/* Search and Filter */}
         <div className="space-y-3 mb-4">
           <div className="flex gap-2">
-            <div className="relative flex-1">
+            <div className="relative min-w-0 flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search by tracking number, receiver..."
@@ -575,12 +575,12 @@ export default function SenderDashboard() {
           <>
             <div className="space-y-3">
               {paginatedPackages.map((pkg) => (
-                <Card key={pkg.id} className="shadow-card hover:shadow-md transition-shadow">
+                <Card key={pkg.id} className="min-w-0 shadow-card hover:shadow-md transition-shadow">
                   <Link to={`/sender/track?q=${pkg.trackingNumber}`}>
                     <CardContent className="p-4">
-                      <div className="flex items-start justify-between mb-2">
-                        <div>
-                          <p className="font-mono text-sm font-semibold text-primary">
+                      <div className="flex flex-wrap items-start justify-between gap-2 mb-2">
+                        <div className="min-w-0">
+                          <p className="break-all font-mono text-sm font-semibold text-primary">
                             {pkg.trackingNumber}
                           </p>
                           <p className="text-sm text-muted-foreground">
@@ -589,8 +589,8 @@ export default function SenderDashboard() {
                         </div>
                         <StatusBadge status={pkg.status} />
                       </div>
-                      <div className="flex items-center justify-between">
-                        <div>
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="min-w-0 break-words">
                           <p className="text-sm font-medium">{pkg.receiverName}</p>
                           <p className="text-xs text-muted-foreground">
                             {getDeliveryTypeName(pkg.deliveryType)}
@@ -608,11 +608,11 @@ export default function SenderDashboard() {
                         <p className="text-xs text-muted-foreground mt-0.5">{pkg.rejectionReason}</p>
                       </div>
                     )}
-                    <div className="flex items-center justify-between gap-2">
+                    <div className="flex min-w-0 flex-col items-start gap-2">
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="gap-2 text-xs"
+                        className="max-w-full min-w-0 gap-2 text-xs"
                         onClick={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
@@ -620,9 +620,9 @@ export default function SenderDashboard() {
                         }}
                       >
                         <QrCode className="w-3.5 h-3.5" />
-                        <span className="font-mono">{pkg.trackingNumber}</span>
+                        <span className="truncate font-mono">{pkg.trackingNumber}</span>
                       </Button>
-                      <div className="flex gap-2 items-center">
+                      <div className="flex w-full min-w-0 flex-wrap gap-2 items-center">
                         <TrackJourneyButton trackingNumber={pkg.trackingNumber} packageId={pkg.id} status={pkg.status} />
                         {pkg.status === 'refunded' ? (
                           <span className="text-xs text-muted-foreground italic">Refunded</span>
@@ -636,7 +636,7 @@ export default function SenderDashboard() {
                                 userId={profile.user_id}
                               />
                             )}
-                            <span className="text-xs text-muted-foreground italic">Locked — package in progress</span>
+                            <span className="w-full text-xs text-muted-foreground italic">Locked — package in progress</span>
                           </>
                         ) : pkg.paymentStatus === 'paid' ? (
                           <>

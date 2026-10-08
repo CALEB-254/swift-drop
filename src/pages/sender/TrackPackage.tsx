@@ -7,6 +7,7 @@ import { ArrowLeft, Search, Package, User, Phone, MapPin, Clock, Copy, Check, Lo
 import { usePackages, Package as PackageType } from '@/hooks/usePackages';
 import { TrackingTimeline } from '@/components/TrackingTimeline';
 import { PackageJourney } from '@/components/PackageJourney';
+import { SecureTrackingShare } from '@/components/SecureTrackingShare';
 import { StatusBadge } from '@/components/StatusBadge';
 import { QRScanner } from '@/components/QRScanner';
 import { BottomNav } from '@/components/BottomNav';
@@ -123,18 +124,18 @@ const TrackPackage = forwardRef<HTMLDivElement>(function TrackPackage(_, ref) {
             {/* Tracking Number Card */}
             <Card className="border-0 shadow-card overflow-hidden">
               <div className="gradient-primary p-4 text-primary-foreground">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex min-w-0 items-center gap-3">
                     <Package className="w-6 h-6" />
-                    <div>
+                    <div className="min-w-0">
                       <p className="text-xs opacity-80">Tracking Number</p>
-                      <p className="font-display font-bold text-lg">{pkg.trackingNumber}</p>
+                      <p className="break-all font-display font-bold text-lg">{pkg.trackingNumber}</p>
                     </div>
                   </div>
                   <Button 
                     variant="ghost" 
                     size="icon"
-                    className="text-primary-foreground hover:bg-primary-foreground/10"
+                    className="shrink-0 text-primary-foreground hover:bg-primary-foreground/10"
                     onClick={copyTrackingNumber}
                   >
                     {copied ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
@@ -142,7 +143,7 @@ const TrackPackage = forwardRef<HTMLDivElement>(function TrackPackage(_, ref) {
                 </div>
               </div>
               <CardContent className="p-4">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
                     <p className="text-sm text-muted-foreground">Status</p>
                     <StatusBadge status={pkg.status} className="mt-1" />
@@ -174,6 +175,7 @@ const TrackPackage = forwardRef<HTMLDivElement>(function TrackPackage(_, ref) {
               </CardHeader>
               <CardContent>
                 <PackageJourney trackingNumber={pkg.trackingNumber} />
+                 <SecureTrackingShare key={pkg.id} packageId={pkg.id} trackingNumber={pkg.trackingNumber} />
               </CardContent>
             </Card>
 
