@@ -44,7 +44,7 @@ export function PackageCard({ pkg, onClick, showQRCode = false, showPrint = fals
     >
       <CardContent className="p-0">
         <div className="gradient-primary p-4 text-primary-foreground">
-          <div className="flex items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-3 min-w-0 flex-1">
               <div className="p-2 bg-primary-foreground/10 rounded-lg backdrop-blur-sm shrink-0">
                 <PackageIcon className="w-5 h-5" />
@@ -94,7 +94,7 @@ export function PackageCard({ pkg, onClick, showQRCode = false, showPrint = fals
             </span>
           </div>
           
-          <div className="flex items-center justify-between gap-2 pt-3 border-t border-border">
+          <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-border">
             <div className="flex items-center gap-2 text-xs text-muted-foreground min-w-0">
               <Clock className="w-3.5 h-3.5 shrink-0" />
               <span className="truncate">{format(pkg.createdAt, 'MMM d, yyyy • h:mm a')}</span>
@@ -127,7 +127,7 @@ export function PackageCard({ pkg, onClick, showQRCode = false, showPrint = fals
           
           {/* Print & Download Buttons */}
           {showPrint && (
-            <div className="pt-3 border-t border-border flex justify-end gap-2" onClick={(e) => e.stopPropagation()}>
+            <div className="pt-3 border-t border-border flex flex-wrap justify-end gap-2" onClick={(e) => e.stopPropagation()}>
               <DownloadReceiptButton pkg={pkg} />
               <PrintReceiptButton pkg={pkg} />
             </div>
