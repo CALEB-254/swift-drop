@@ -14,7 +14,8 @@ import { Search, Edit, QrCode, Save, RefreshCw, Truck, Plus, ArrowRightLeft } fr
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
-import { STATUS_LABELS, type PackageStatus } from '@/types/delivery';
+import { STATUS_LABELS, PACKAGING_COLORS, type PackageStatus } from '@/types/delivery';
+import { Textarea } from '@/components/ui/textarea';
 import { StkWaitingAnimation } from '@/components/StkWaitingAnimation';
 import type { AdminData } from '@/pages/admin/AdminDashboard';
 import { generateTrackingNumber } from '@/lib/packageUtils';
@@ -27,7 +28,10 @@ export function AdminOrders({ data, onRefresh }: Props) {
   const [statusFilter, setStatusFilter] = useState('all');
   const [expandedQR, setExpandedQR] = useState<string | null>(null);
   const [editPkg, setEditPkg] = useState<any>(null);
-  const [editForm, setEditForm] = useState({ status: '', receiver_name: '', receiver_address: '', cost: '', assigned_rider_id: '' });
+  const [editForm, setEditForm] = useState({
+    status: '', receiver_name: '', receiver_phone: '', receiver_address: '', cost: '', assigned_rider_id: '',
+    is_product: false, package_description: '', package_value: '', packaging_color: '', cod_amount: '',
+  });
   const [riders, setRiders] = useState<any[]>([]);
   const [assignPkg, setAssignPkg] = useState<any>(null);
   const [selectedRider, setSelectedRider] = useState('');
@@ -64,24 +68,39 @@ export function AdminOrders({ data, onRefresh }: Props) {
 
   const openEdit = (pkg: any) => {
     setEditPkg(pkg);
+    const ph = (pkg.receiver_phone || '').replace(/\D/g, '');
     setEditForm({
       status: pkg.status,
-      receiver_name: pkg.receiver_name,
-      receiver_address: pkg.receiver_address,
-      cost: pkg.cost.toString(),
+      receiver_name: pkg.receiver_name || '',
+      receiver_phone: ph.startsWith('254') ? '0' + ph.slice(3) : ph,
+      receiver_address: pkg.receiver_address || '',
+      cost: String(pkg.cost ?? ''),
       assigned_rider_id: pkg.assigned_rider_id || '',
+      is_product: !!pkg.is_product,
+      package_description: pkg.package_description || '',
+      package_value: pkg.package_value != null ? String(pkg.package_value) : '',
+      packaging_color: pkg.packaging_color || '',
+      cod_amount: pkg.cod_amount != null ? String(pkg.cod_amount) : '',
     });
   };
 
   const saveEdit = async () => {
     if (!editPkg) return;
+    if (editForm.receiver_name.trim().length < 3) { toast.error('Please enter the customer name'); return; }
+    if (!/^0[17]\d{8}$/.test(editForm.receiver_phone)) { toast.error('Incorrect phone number'); return; }
     const updates: any = {
       status: editForm.status as any,
-      receiver_name: editForm.receiver_name,
+      receiver_name: editForm.receiver_name.trim(),
+      receiver_phone: editForm.receiver_phone,
       receiver_address: editForm.receiver_address,
       cost: Number(editForm.cost),
+      is_product: editForm.is_product,
+      package_description: editForm.package_description,
+      package_value: editForm.package_value ? Number(editForm.package_value) : null,
+      packaging_color: editForm.packaging_color || null,
     };
-    if (editForm.assigned_rider_id) updates.assigned_rider_id = editForm.assigned_rider_id;
+    if (Number(editPkg.cod_amount || 0) > 0 && editForm.cod_amount) updates.cod_amount = Number(editForm.cod_amount);
+    if (editForm.assigned_rider_id) updates.assigned_rider_id = editForm.assigned_rider_id === 'none' ? null : editForm.assigned_rider_id;
     
     const { error } = await supabase.from('packages').update(updates).eq('id', editPkg.id);
     if (error) { toast.error(error.message); return; }
@@ -311,18 +330,58 @@ export function AdminOrders({ data, onRefresh }: Props) {
                 </SelectContent>
               </Select>
             </div>
+            <p className="text-sm font-semibold text-primary">Customer Information</p>
             <div className="space-y-2">
-              <Label>Receiver Name</Label>
-              <Input value={editForm.receiver_name} onChange={e => setEditForm(p => ({ ...p, receiver_name: e.target.value }))} />
+              <Label>Customer name</Label>
+              <Input value={editForm.receiver_name} placeholder="Enter customer name" onChange={e => setEditForm(p => ({ ...p, receiver_name: e.target.value }))} />
             </div>
             <div className="space-y-2">
-              <Label>Receiver Address</Label>
-              <Input value={editForm.receiver_address} onChange={e => setEditForm(p => ({ ...p, receiver_address: e.target.value }))} />
+              <Label>Phone number</Label>
+              <Input type="tel" inputMode="numeric" maxLength={10} placeholder="07XXXXXXXX or 01XXXXXXXX" value={editForm.receiver_phone}
+                onChange={e => setEditForm(p => ({ ...p, receiver_phone: e.target.value.replace(/\D/g, '').slice(0, 10) }))} />
+              {editForm.receiver_phone && !/^0[17]\d{8}$/.test(editForm.receiver_phone) && (
+                <p className="text-xs text-destructive">Incorrect phone number</p>
+              )}
+            </div>
+            <p className="text-sm font-semibold text-primary">Package</p>
+            <div className="grid grid-cols-2 gap-2">
+              <Button type="button" variant={!editForm.is_product ? 'default' : 'outline'} onClick={() => setEditForm(p => ({ ...p, is_product: false }))}>Package</Button>
+              <Button type="button" variant={editForm.is_product ? 'default' : 'outline'} onClick={() => setEditForm(p => ({ ...p, is_product: true }))}>Product</Button>
             </div>
             <div className="space-y-2">
-              <Label>Cost (KES)</Label>
+              <Label>What are you selling?</Label>
+              <Input value={editForm.package_description} placeholder="e.g. Shoes, phone case" onChange={e => setEditForm(p => ({ ...p, package_description: e.target.value }))} />
+            </div>
+            <div className="space-y-2">
+              <Label>Price</Label>
+              <Input type="number" min="0" placeholder="KES" value={editForm.package_value} onChange={e => setEditForm(p => ({ ...p, package_value: e.target.value }))} />
+            </div>
+            {editPkg?.delivery_type !== 'errand' && (
+              <div className="space-y-2">
+                <Label>Packaging color</Label>
+                <Select value={editForm.packaging_color} onValueChange={v => setEditForm(p => ({ ...p, packaging_color: v }))}>
+                  <SelectTrigger><SelectValue placeholder="Select color" /></SelectTrigger>
+                  <SelectContent>
+                    {PACKAGING_COLORS.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            <p className="text-sm font-semibold text-primary">Where Are You Sending To</p>
+            <div className="space-y-2">
+              <Label>{editPkg?.delivery_type === 'doorstep' ? 'Delivery Address' : 'Pickup Point / Location'}</Label>
+              <Textarea value={editForm.receiver_address} placeholder="Enter delivery address" onChange={e => setEditForm(p => ({ ...p, receiver_address: e.target.value }))} />
+            </div>
+            <div className="space-y-2">
+              <Label>Delivery fee (KES)</Label>
               <Input type="number" value={editForm.cost} onChange={e => setEditForm(p => ({ ...p, cost: e.target.value }))} />
             </div>
+            {editPkg?.delivery_type !== 'errand' && Number(editPkg?.cod_amount || 0) > 0 && (
+              <div className="space-y-2">
+                <Label>Goods amount to collect (editable)</Label>
+                <Input type="number" min="0" value={editForm.cod_amount} onChange={e => setEditForm(p => ({ ...p, cod_amount: e.target.value }))} />
+              </div>
+            )}
             <Button className="w-full gap-2" onClick={saveEdit}>
               <Save className="w-4 h-4" /> Save Changes
             </Button>
