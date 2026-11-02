@@ -15,6 +15,7 @@ import {
   Loader2,
   CheckCircle
 } from 'lucide-react';
+import { trackAdConversion } from '@/lib/googleAds';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -470,6 +471,7 @@ export default function Cart() {
                             return;
                           }
                           toast.success('Paid from Pochi wallet');
+                          trackAdConversion('purchase');
                           setPochiPinOpen(false);
                           setPochiPin('');
                           fetchCartPackages();
