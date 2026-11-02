@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { ArrowLeft, ShoppingCart, Search, Package, MapPin, CreditCard, ShieldCheck } from 'lucide-react';
+import { trackAdConversion } from '@/lib/googleAds';
 import { usePackages } from '@/hooks/usePackages';
 import { useAuth } from '@/hooks/useAuth';
 import { PACKAGING_COLORS, DeliveryType, DELIVERY_TYPES } from '@/types/delivery';
@@ -167,6 +168,7 @@ export default function NewDelivery() {
       toast.success('Delivery added to cart!', {
         description: `Tracking: ${newPackage.trackingNumber}. Pay to process.`,
       });
+      trackAdConversion('create_delivery');
 
       navigate('/sender/cart');
     } catch (error) {

@@ -10,6 +10,7 @@ import { useAuthContext } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Package, ArrowLeft, Eye, EyeOff, User, Truck } from 'lucide-react';
+import { trackAdConversion } from '@/lib/googleAds';
 
 const NAME_RE = /^[a-zA-Z][a-zA-Z'’.\- ]{1,}$/;
 
@@ -138,6 +139,7 @@ export default function Signup() {
         return;
       }
       await signUp(formData.email.trim(), formData.password, fullName, phone, 'sender', formData.address.trim() || undefined);
+      trackAdConversion('sign_up');
       toast.success('Account created! Check your email for the 6-digit verification code.');
       navigate(`/auth/verify?email=${encodeURIComponent(formData.email.trim())}&type=signup`);
     } catch (error: any) {
