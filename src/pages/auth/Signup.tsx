@@ -138,6 +138,7 @@ export default function Signup() {
         return;
       }
       await signUp(formData.email.trim(), formData.password, fullName, phone, 'sender', formData.address.trim() || undefined);
+      trackAdConversion('sign_up');
       toast.success('Account created! Check your email for the 6-digit verification code.');
       navigate(`/auth/verify?email=${encodeURIComponent(formData.email.trim())}&type=signup`);
     } catch (error: any) {

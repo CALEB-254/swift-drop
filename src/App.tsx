@@ -48,7 +48,12 @@ import Customers from "./pages/Customers";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import SharedTracking from "./pages/SharedTracking";
 
+import { initGoogleAdsTag } from "@/lib/googleAds";
+
 const queryClient = new QueryClient();
+
+// Google Ads conversion tag (no-op until a conversion ID is configured).
+initGoogleAdsTag();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
