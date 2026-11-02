@@ -12,5 +12,5 @@
 - [ ] Match the reference palette and shared surfaces.
 - [ ] Match the admin overview layout and navigation.
 - [ ] Match the create-delivery desktop/mobile layout without changing its fields or submission.
-- [ ] Verify both screens and clear preview errors.- [ ] Google Ads promotion setup: conversion tracking (sign-up, delivery, payment) + campaign kit.
+- [ ] Verify both screens and clear preview errors.- [ ] Google Ads goes live once the conversion ID and labels from Google Ads are provided; in-app tracking is wired.
 - [x] Admin package edit form matches the sender's Create Delivery fields.
