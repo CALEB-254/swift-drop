@@ -12,4 +12,5 @@
 - [ ] Match the reference palette and shared surfaces.
 - [ ] Match the admin overview layout and navigation.
 - [ ] Match the create-delivery desktop/mobile layout without changing its fields or submission.
-- [ ] Verify both screens and clear preview errors.
+- [ ] Verify both screens and clear preview errors.- [ ] Google Ads promotion setup: conversion tracking (sign-up, delivery, payment) + campaign kit.
+- [x] Admin package edit form matches the sender's Create Delivery fields.
