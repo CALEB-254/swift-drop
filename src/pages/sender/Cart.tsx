@@ -256,6 +256,7 @@ export default function Cart() {
         if (data.status === 'completed') {
           setPaymentStatus('success');
           toast.success('Payment successful!');
+          trackAdConversion('purchase');
           await fetchCartPackages();
           return;
         } else if (data.status === 'failed') {
