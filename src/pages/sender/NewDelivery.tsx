@@ -167,6 +167,7 @@ export default function NewDelivery() {
       toast.success('Delivery added to cart!', {
         description: `Tracking: ${newPackage.trackingNumber}. Pay to process.`,
       });
+      trackAdConversion('create_delivery');
 
       navigate('/sender/cart');
     } catch (error) {

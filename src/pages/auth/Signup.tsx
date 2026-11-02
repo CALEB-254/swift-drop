@@ -10,6 +10,7 @@ import { useAuthContext } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Package, ArrowLeft, Eye, EyeOff, User, Truck } from 'lucide-react';
+import { trackAdConversion } from '@/lib/googleAds';
 
 const NAME_RE = /^[a-zA-Z][a-zA-Z'’.\- ]{1,}$/;
 
