@@ -715,6 +715,36 @@ export type Database = {
         }
         Relationships: []
       }
+      rate_limit_hits: {
+        Row: {
+          blocked: boolean
+          bucket_key: string
+          endpoint: string
+          hit_at: string
+          id: string
+          ip_address: string | null
+          user_id: string | null
+        }
+        Insert: {
+          blocked?: boolean
+          bucket_key: string
+          endpoint: string
+          hit_at?: string
+          id?: string
+          ip_address?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          blocked?: boolean
+          bucket_key?: string
+          endpoint?: string
+          hit_at?: string
+          id?: string
+          ip_address?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       refund_requests: {
         Row: {
           admin_notes: string | null
@@ -1254,6 +1284,18 @@ export type Database = {
         Args: {
           _role: Database["public"]["Enums"]["user_role"]
           _user_id: string
+        }
+        Returns: Json
+      }
+      check_rate_limit: {
+        Args: {
+          _bucket_key: string
+          _endpoint: string
+          _ip?: string
+          _lockout_seconds?: number
+          _max_hits: number
+          _user_id?: string
+          _window_seconds: number
         }
         Returns: Json
       }
