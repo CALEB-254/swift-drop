@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { enforceRateLimit } from "../_shared/rate-limit.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -44,6 +45,17 @@ serve(async (req) => {
     if (!isAdmin) {
       return new Response(JSON.stringify({ error: "Forbidden — admin only" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
+
+    // ── Rate limiting ──
+    const blocked = await enforceRateLimit({
+      req,
+      endpoint: "admin_create_user",
+      bucketKey: `admin-create:${userData.user.id}`,
+      maxHits: 20,
+      windowSeconds: 3600,
+      userId: userData.user.id,
+    });
+    if (blocked) return blocked;
 
     const body: Body = await req.json();
     if (!body.email || !body.password || !body.full_name || !body.phone || !body.role) {
