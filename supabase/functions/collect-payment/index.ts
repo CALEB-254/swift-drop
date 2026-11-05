@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { enforceRateLimit } from "../_shared/rate-limit.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -71,6 +72,18 @@ serve(async (req) => {
     const body = await req.json();
     const packageId: string = body.packageId;
     if (!packageId) return json({ success: false, error: "packageId is required" }, 400);
+
+    // ── Rate limiting (financial endpoint) ──
+    const isStatus = body.action === "status";
+    const blocked = await enforceRateLimit({
+      req,
+      endpoint: isStatus ? "collect_status" : "collect_stk",
+      bucketKey: `${isStatus ? "collect-status" : "collect-stk"}:${userId}`,
+      maxHits: isStatus ? 60 : 10,
+      windowSeconds: 3600,
+      userId,
+    });
+    if (blocked) return blocked;
 
     const { data: pkg, error: pkgErr } = await supabase
       .from("packages")

@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { enforceRateLimit } from "../_shared/rate-limit.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -20,6 +21,17 @@ serve(async (req) => {
     if (userErr || !userData.user) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
+
+    // ── Rate limiting (one withdrawal code request every so often) ──
+    const blocked = await enforceRateLimit({
+      req,
+      endpoint: "pochi_code",
+      bucketKey: `pochi-code:${userData.user.id}`,
+      maxHits: 5,
+      windowSeconds: 3600,
+      userId: userData.user.id,
+    });
+    if (blocked) return blocked;
     const { amount, phone } = await req.json();
     if (!amount || !phone) {
       return new Response(JSON.stringify({ error: "amount and phone required" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });

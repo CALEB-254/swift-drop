@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { enforceRateLimit } from "../_shared/rate-limit.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -144,6 +145,19 @@ serve(async (req) => {
     // Service role client for DB operations
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
     const body: PaymentRequest = await req.json();
+
+    // ── Rate limiting ──
+    if (body.action === "verify_till") {
+      const blocked = await enforceRateLimit({ req, endpoint: "till_verify", bucketKey: `till:${userId}`, maxHits: 10, windowSeconds: 3600, userId });
+      if (blocked) return blocked;
+    } else if (body.action === "check_status") {
+      const blocked = await enforceRateLimit({ req, endpoint: "pay_status", bucketKey: `pay-status:${userId}`, maxHits: 30, windowSeconds: 1800, userId });
+      if (blocked) return blocked;
+    } else {
+      // STK push initiation is strictly limited (financial endpoint)
+      const blocked = await enforceRateLimit({ req, endpoint: "stk_push", bucketKey: `stk:${userId}`, maxHits: 5, windowSeconds: 300, lockoutSeconds: 300, userId });
+      if (blocked) return blocked;
+    }
 
     // Verify a manual Till payment using an M-Pesa transaction code
     if (body.action === "verify_till") {
