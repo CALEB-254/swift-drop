@@ -27,6 +27,25 @@ serve(async (req) => {
       throw new Error("Supabase credentials not configured");
     }
 
+    // ── Caller verification ──
+    // Safaricom does not sign callbacks, so a shared secret carried in the
+    // callback URL is the practical verification. Set MPESA_CALLBACK_SECRET
+    // and append ?secret=<value> to the URL registered in the M-Pesa portal.
+    const CALLBACK_SECRET = Deno.env.get("MPESA_CALLBACK_SECRET");
+    if (CALLBACK_SECRET) {
+      const url = new URL(req.url);
+      const provided = url.searchParams.get("secret") ?? req.headers.get("x-callback-secret");
+      if (provided !== CALLBACK_SECRET) {
+        console.warn("Callback rejected: invalid or missing callback secret");
+        return new Response(
+          JSON.stringify({ ResultCode: 1, ResultDesc: "Unauthorized callback" }),
+          { status: 401, headers: { "Content-Type": "application/json" } },
+        );
+      }
+    } else {
+      console.warn("MPESA_CALLBACK_SECRET is not configured; callback accepts any caller. Configure it and add ?secret=<value> to the registered callback URL.");
+    }
+
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
     const callback: STKCallback = await req.json();
 
