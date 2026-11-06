@@ -1,16 +1,24 @@
-User-agent: Googlebot
-Allow: /
-
-User-agent: Bingbot
-Allow: /
-
-User-agent: Twitterbot
-Allow: /
-
-User-agent: facebookexternalhit
-Allow: /
+# SwiftDrop Delivery — robots.txt
+# Public pages are the only pages meant for search engines.
+# Everything else requires sign-in; robots.txt is a courtesy signal, not a
+# security control — authentication enforces privacy.
 
 User-agent: *
+Disallow: /sender
+Disallow: /rider
+Disallow: /agent
+Disallow: /admin
+Disallow: /profile/
+Disallow: /notifications
+Disallow: /preferences
+Disallow: /customers
+Disallow: /agents
+Disallow: /feedback
+Disallow: /t/
+Disallow: /s/
+Disallow: /auth/verify
+Disallow: /auth/reset-password
+Disallow: /auth/forgot-password
 Allow: /
 
 Sitemap: https://swiftdropdelivery.lovable.app/sitemap.xml
