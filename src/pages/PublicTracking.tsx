@@ -10,6 +10,7 @@ import { StatusBadge } from '@/components/StatusBadge';
 import { PackageStatus, STATUS_LABELS } from '@/types/delivery';
 import { format } from 'date-fns';
 import { logger } from '@/lib/logger';
+import { useNoIndex } from '@/hooks/useNoIndex';
 
 interface PublicPackage {
   found: boolean;
@@ -25,6 +26,7 @@ interface PublicPackage {
 
 /** Public, login-free tracking page reachable at /t/:trackingNumber */
 export default function PublicTracking() {
+  useNoIndex();
   const { trackingNumber = '' } = useParams();
   const [data, setData] = useState<PublicPackage | null>(null);
   const [loading, setLoading] = useState(true);

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { useNoIndex } from '@/hooks/useNoIndex';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -34,6 +35,7 @@ const REASONS: Record<string, string> = {
 
 /** Secure shareable tracking page at /s/:token — supports optional PIN and expiry. */
 export default function SharedTracking() {
+  useNoIndex();
   const { token = '' } = useParams();
   const [data, setData] = useState<SharedResult | null>(null);
   const [loading, setLoading] = useState(true);

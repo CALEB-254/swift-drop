@@ -2,7 +2,7 @@
  * Role → landing route mapping used by ProtectedRoute.
  * Kept pure so the redirect logic is unit testable.
  */
-export type AppRole = "sender" | "agent" | "admin";
+export type AppRole = "sender" | "agent" | "admin" | "rider";
 
 export const roleHome = (role: AppRole | string | null | undefined): string => {
   switch (role) {
