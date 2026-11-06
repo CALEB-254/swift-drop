@@ -79,15 +79,15 @@ const App = () => (
             <Route path="/auth/callback" element={<AuthCallback />} />
             
             {/* Sender Routes */}
-            <Route path="/sender" element={<ProtectedRoute><SenderHome /></ProtectedRoute>} />
-            <Route path="/sender/dashboard" element={<ProtectedRoute><SenderDashboard /></ProtectedRoute>} />
-            <Route path="/sender/new" element={<ProtectedRoute><NewDelivery /></ProtectedRoute>} />
-            <Route path="/sender/track" element={<ProtectedRoute><TrackPackage /></ProtectedRoute>} />
-            <Route path="/sender/cart" element={<ProtectedRoute><Cart /></ProtectedRoute>} />
-            <Route path="/sender/pochi" element={<ProtectedRoute><Pochi /></ProtectedRoute>} />
+            <Route path="/sender" element={<ProtectedRoute requiredRole="sender"><SenderHome /></ProtectedRoute>} />
+            <Route path="/sender/dashboard" element={<ProtectedRoute requiredRole="sender"><SenderDashboard /></ProtectedRoute>} />
+            <Route path="/sender/new" element={<ProtectedRoute requiredRole="sender"><NewDelivery /></ProtectedRoute>} />
+            <Route path="/sender/track" element={<ProtectedRoute requiredRole="sender"><TrackPackage /></ProtectedRoute>} />
+            <Route path="/sender/cart" element={<ProtectedRoute requiredRole="sender"><Cart /></ProtectedRoute>} />
+            <Route path="/sender/pochi" element={<ProtectedRoute requiredRole="sender"><Pochi /></ProtectedRoute>} />
             
             {/* Rider Routes */}
-            <Route path="/rider" element={<ProtectedRoute><RiderDashboard /></ProtectedRoute>} />
+            <Route path="/rider" element={<ProtectedRoute requiredRole="rider"><RiderDashboard /></ProtectedRoute>} />
 
             {/* Agent Pickup Point Routes */}
             <Route path="/agent" element={<ProtectedRoute requiredRole="agent"><AgentPickupDashboard /></ProtectedRoute>} />

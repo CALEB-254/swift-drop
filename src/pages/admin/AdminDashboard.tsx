@@ -117,7 +117,9 @@ export default function AdminDashboard() {
       tickets: ticketRes.data || [],
       promos: promoRes.data || [],
       config: configRes.data || [],
-      adminLevel: levelRes.data?.admin_role || 'super_admin',
+      // Default to the least-privileged level: an admin whose level cannot be
+      // verified server-side must not gain super-admin visibility.
+      adminLevel: levelRes.data?.admin_role || 'operations_admin',
       stats: {
         totalPackages: pkgs.length,
         totalUsers: profiles.filter((p: any) => p.role === 'sender').length,
@@ -136,11 +138,12 @@ export default function AdminDashboard() {
   };
 
   const canAccess = (roles: string[]) => {
-    if (!data.adminLevel) return true;
+    if (!data.adminLevel) return false;
     return roles.includes(data.adminLevel);
   };
 
   const visibleTabs = TABS.filter(t => canAccess(t.roles));
+  const allowedTab = (value: string) => visibleTabs.some(t => t.value === value);
 
   if (loading) {
     return (
@@ -188,25 +191,25 @@ export default function AdminDashboard() {
               {activeTab === 'overview' && <p className="mt-1 text-sm text-muted-foreground">Here’s what’s happening with your SwiftDrop delivery operations today.</p>}
             </div>
 
-          <TabsContent value="overview"><AdminOverview data={data} onRefresh={fetchAllData} /></TabsContent>
-          <TabsContent value="search"><AdminGlobalSearch data={data} /></TabsContent>
-          <TabsContent value="users"><AdminUsers data={data} onRefresh={fetchAllData} adminLevel={data.adminLevel} /></TabsContent>
-          <TabsContent value="orders"><AdminOrders data={data} onRefresh={fetchAllData} /></TabsContent>
-          <TabsContent value="finance"><AdminFinance data={data} onRefresh={fetchAllData} /></TabsContent>
-          <TabsContent value="riders"><AdminRiders data={data} onRefresh={fetchAllData} /></TabsContent>
-          <TabsContent value="vendors"><AdminVendors data={data} onRefresh={fetchAllData} /></TabsContent>
-          <TabsContent value="zones"><AdminZones data={data} onRefresh={fetchAllData} /></TabsContent>
-          <TabsContent value="couriers"><AdminCouriers /></TabsContent>
-          <TabsContent value="bulk"><AdminBulkActions data={data} onRefresh={fetchAllData} /></TabsContent>
-          <TabsContent value="sla"><AdminSLA data={data} onRefresh={fetchAllData} /></TabsContent>
-          <TabsContent value="cash"><AdminCashCollections /></TabsContent>
-          <TabsContent value="refunds"><AdminRefunds data={data} onRefresh={fetchAllData} /></TabsContent>
-          <TabsContent value="notifications"><AdminNotifications data={data} onRefresh={fetchAllData} /></TabsContent>
-          <TabsContent value="support"><AdminSupport data={data} onRefresh={fetchAllData} /></TabsContent>
-          <TabsContent value="promos"><AdminPromos data={data} onRefresh={fetchAllData} /></TabsContent>
-          <TabsContent value="audit"><AdminAuditLogs data={data} onRefresh={fetchAllData} /></TabsContent>
-          <TabsContent value="config"><AdminConfig data={data} onRefresh={fetchAllData} /></TabsContent>
-          <TabsContent value="security"><AdminSecurity data={data} onRefresh={fetchAllData} /></TabsContent>
+          <TabsContent value="overview">{allowedTab('overview') && <AdminOverview data={data} onRefresh={fetchAllData} />}</TabsContent>
+          <TabsContent value="search">{allowedTab('search') && <AdminGlobalSearch data={data} />}</TabsContent>
+          <TabsContent value="users">{allowedTab('users') && <AdminUsers data={data} onRefresh={fetchAllData} adminLevel={data.adminLevel} />}</TabsContent>
+          <TabsContent value="orders">{allowedTab('orders') && <AdminOrders data={data} onRefresh={fetchAllData} />}</TabsContent>
+          <TabsContent value="finance">{allowedTab('finance') && <AdminFinance data={data} onRefresh={fetchAllData} />}</TabsContent>
+          <TabsContent value="riders">{allowedTab('riders') && <AdminRiders data={data} onRefresh={fetchAllData} />}</TabsContent>
+          <TabsContent value="vendors">{allowedTab('vendors') && <AdminVendors data={data} onRefresh={fetchAllData} />}</TabsContent>
+          <TabsContent value="zones">{allowedTab('zones') && <AdminZones data={data} onRefresh={fetchAllData} />}</TabsContent>
+          <TabsContent value="couriers">{allowedTab('couriers') && <AdminCouriers />}</TabsContent>
+          <TabsContent value="bulk">{allowedTab('bulk') && <AdminBulkActions data={data} onRefresh={fetchAllData} />}</TabsContent>
+          <TabsContent value="sla">{allowedTab('sla') && <AdminSLA data={data} onRefresh={fetchAllData} />}</TabsContent>
+          <TabsContent value="cash">{allowedTab('cash') && <AdminCashCollections />}</TabsContent>
+          <TabsContent value="refunds">{allowedTab('refunds') && <AdminRefunds data={data} onRefresh={fetchAllData} />}</TabsContent>
+          <TabsContent value="notifications">{allowedTab('notifications') && <AdminNotifications data={data} onRefresh={fetchAllData} />}</TabsContent>
+          <TabsContent value="support">{allowedTab('support') && <AdminSupport data={data} onRefresh={fetchAllData} />}</TabsContent>
+          <TabsContent value="promos">{allowedTab('promos') && <AdminPromos data={data} onRefresh={fetchAllData} />}</TabsContent>
+          <TabsContent value="audit">{allowedTab('audit') && <AdminAuditLogs data={data} onRefresh={fetchAllData} />}</TabsContent>
+          <TabsContent value="config">{allowedTab('config') && <AdminConfig data={data} onRefresh={fetchAllData} />}</TabsContent>
+          <TabsContent value="security">{allowedTab('security') && <AdminSecurity data={data} onRefresh={fetchAllData} />}</TabsContent>
           </main>
         </div>
       </Tabs>
