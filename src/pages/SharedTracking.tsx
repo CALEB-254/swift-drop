@@ -34,6 +34,7 @@ const REASONS: Record<string, string> = {
 
 /** Secure shareable tracking page at /s/:token — supports optional PIN and expiry. */
 export default function SharedTracking() {
+  useNoIndex();
   const { token = '' } = useParams();
   const [data, setData] = useState<SharedResult | null>(null);
   const [loading, setLoading] = useState(true);
