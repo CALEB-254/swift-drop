@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { authGuard } from '@/lib/authGuard';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
