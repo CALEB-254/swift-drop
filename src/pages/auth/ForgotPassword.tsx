@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
+import { authGuard } from '@/lib/authGuard';
 import { toast } from 'sonner';
 import { Package, ArrowLeft, Mail } from 'lucide-react';
 
@@ -36,6 +37,8 @@ export default function ForgotPassword() {
     setLoading(true);
 
     try {
+      // Server-side reset-attempt limit before asking for the reset email.
+      await authGuard('reset', email);
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/auth/reset-password`,
       });

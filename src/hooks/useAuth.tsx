@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { authGuard } from '@/lib/authGuard';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
@@ -124,6 +125,9 @@ export function useAuth() {
       );
     }
 
+    // Server-side signup rate limit (per IP) before touching auth.
+    await authGuard('signup', email);
+
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -158,6 +162,7 @@ export function useAuth() {
   };
 
   const signIn = async (email: string, password: string) => {
+    await authGuard('login', email);
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
