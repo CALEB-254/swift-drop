@@ -8,6 +8,16 @@
     <meta name="description" content="Fast &amp; Reliable delivery">
     <meta name="author" content="Lovable" />
 
+    <!-- Security headers the static page can carry; hosting adds the rest -->
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests" />
+    <script>
+      // Clickjacking defence (frame-ancestors cannot be set via <meta>).
+      if (window.top !== window.self) {
+        try { window.top.location = window.self.location; } catch (e) { document.body && (document.body.hidden = true); }
+      }
+    </script>
+
     <!-- TODO: Update og:title to match your application name -->
     
     
